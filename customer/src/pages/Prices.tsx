@@ -69,10 +69,12 @@ const Prices = () => {
       if (data.success) {
         setItems(data.data);
         
-        // Initialize quantities
+        // Load quantities from existing cart
+        const existingCart = JSON.parse(localStorage.getItem('cartItems') || '[]');
         const initialQuantities: {[key: string]: number} = {};
         data.data.forEach((item: any) => {
-          initialQuantities[item._id] = 0;
+          const cartItem = existingCart.find((c: any) => c.id === item._id);
+          initialQuantities[item._id] = cartItem ? cartItem.quantity : 0;
         });
         setQuantities(initialQuantities);
       }
@@ -85,55 +87,25 @@ const Prices = () => {
 
 
   const updateQuantity = (itemId: string, increment: boolean) => {
-    setQuantities(prev => ({
-      ...prev,
-      [itemId]: Math.max(0, (prev[itemId] || 0) + (increment ? 1 : -1))
-    }));
-  };
+    const item = items.find(i => i._id === itemId);
+    if (!item) return;
 
-  const addToCart = () => {
-    const selectedItems = items
-      .filter(item => (quantities[item._id] || 0) > 0)
-      .map(item => ({
-        id: item._id,
-        name: item.name,
-        price: item.price,
-        quantity: quantities[item._id],
-        category: item.category || 'Laundry'
-      }));
+    const newQty = Math.max(0, (quantities[itemId] || 0) + (increment ? 1 : -1));
+    setQuantities(prev => ({ ...prev, [itemId]: newQty }));
 
-    if (selectedItems.length === 0) {
-      setToast({ show: true, message: 'Please select at least one item', type: 'error' });
-      setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
-      return;
+    // Sync to cart immediately
+    const cart = JSON.parse(localStorage.getItem('cartItems') || '[]');
+    const idx = cart.findIndex((c: any) => c.id === itemId);
+
+    if (newQty === 0) {
+      if (idx >= 0) cart.splice(idx, 1);
+    } else if (idx >= 0) {
+      cart[idx].quantity = newQty;
+    } else {
+      cart.push({ id: item._id, name: item.name, price: item.price, quantity: newQty, category: item.category || 'Laundry' });
     }
 
-    // Get existing cart items
-    const existingCart = JSON.parse(localStorage.getItem('cartItems') || '[]');
-    
-    // Merge with new items
-    const updatedCart = [...existingCart];
-    
-    selectedItems.forEach(newItem => {
-      const existingIndex = updatedCart.findIndex(item => item.id === newItem.id);
-      if (existingIndex >= 0) {
-        updatedCart[existingIndex].quantity += newItem.quantity;
-      } else {
-        updatedCart.push(newItem);
-      }
-    });
-
-    localStorage.setItem('cartItems', JSON.stringify(updatedCart));
-    
-    setToast({ show: true, message: `${selectedItems.length} item(s) added to cart!`, type: 'success' });
-    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
-    
-    // Reset quantities
-    const resetQuantities: {[key: string]: number} = {};
-    items.forEach((item: any) => {
-      resetQuantities[item._id] = 0;
-    });
-    setQuantities(resetQuantities);
+    localStorage.setItem('cartItems', JSON.stringify(cart));
   };
 
   const getTotalItems = () => {
@@ -265,15 +237,15 @@ const Prices = () => {
           </div>
         ) : null}
 
-        {/* Add to Cart Button */}
-        {getTotalItems() > 0 && (
+        {/* View Cart Button */}
+        {false && getTotalItems() > 0 && (
           <div className="mt-6">
             <Button
-              onClick={addToCart}
+              onClick={() => navigate('/cart')}
               className="w-full h-12 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl font-semibold shadow-lg flex items-center justify-center gap-2"
             >
               <ShoppingCart className="w-5 h-5" />
-              Add {getTotalItems()} item(s) to Cart
+              View Cart ({getTotalItems()} items)
             </Button>
           </div>
         )}
