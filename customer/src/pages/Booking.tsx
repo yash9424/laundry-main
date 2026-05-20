@@ -355,48 +355,47 @@ const Booking = () => {
         </div>
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-black">Select Pickup</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-black">Select Pickup Day</h2>
           <div className="flex gap-2 sm:gap-3">
             <button
               onClick={() => setPickupType("now")}
               className={`flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base shadow-md ${
-                pickupType === "now" 
-                  ? "text-white" 
+                pickupType === "now"
+                  ? "text-white"
                   : "bg-white border border-gray-300 hover:bg-gray-50"
               }`}
               style={pickupType === "now" ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { color: '#452D9B' }}
             >
-              Pickup Now
+              Today
             </button>
             <button
               onClick={() => setPickupType("later")}
               className={`flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base shadow-md ${
-                pickupType === "later" 
-                  ? "text-white" 
+                pickupType === "later"
+                  ? "text-white"
                   : "bg-white border border-gray-300 hover:bg-gray-50"
               }`}
               style={pickupType === "later" ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { color: '#452D9B' }}
             >
-              Pickup Later
+              Tomorrow
             </button>
           </div>
         </div>
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-black">Schedule Pickup</h2>
-          <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            <Button className="h-10 sm:h-12 rounded-2xl font-semibold whitespace-nowrap text-white text-sm sm:text-base px-3 sm:px-4 flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-              {pickupType === "now" ? "Today" : "Tomorrow"}
-            </Button>
+          <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-black">
+            {pickupType === "now" ? "Today's" : "Tomorrow's"} Pickup Slots
+          </h2>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {timeSlots.map((slot) => (
-              <Button 
+              <Button
                 key={slot._id}
-                onClick={() => handleSlotSelection(slot.time)}
-                className={`h-10 sm:h-12 rounded-2xl font-semibold whitespace-nowrap text-sm sm:text-base px-3 sm:px-4 flex-shrink-0 ${
+                onClick={() => !(isSlotPassed(slot.time) && pickupType === 'now') && handleSlotSelection(slot.time)}
+                className={`h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base w-full ${
                   isSlotPassed(slot.time) && pickupType === 'now'
-                    ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-pointer'
-                    : selectedSlot === slot.time 
-                      ? 'text-white shadow-md' 
+                    ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-not-allowed'
+                    : selectedSlot === slot.time
+                      ? 'text-white shadow-md'
                       : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
                 }`}
                 style={selectedSlot === slot.time && !(isSlotPassed(slot.time) && pickupType === 'now') ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : {}}
@@ -405,9 +404,11 @@ const Booking = () => {
               </Button>
             ))}
           </div>
-          <p className="text-xs sm:text-sm mt-2 sm:mt-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-            Next available slot: {pickupType === "now" ? "Today" : "Tomorrow"}, {selectedSlot || 'No slots available'}
-          </p>
+          {selectedSlot && (
+            <p className="text-xs sm:text-sm mt-2 sm:mt-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              Selected: {pickupType === "now" ? "Today" : "Tomorrow"}, {selectedSlot}
+            </p>
+          )}
         </div>
 
         <div>

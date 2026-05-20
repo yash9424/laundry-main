@@ -111,6 +111,14 @@ const Cart = () => {
     return slots.filter(slot => !isSlotPassed(slot.time));
   };
 
+  const handlePickupTypeChange = (type: "now" | "later") => {
+    setPickupType(type);
+    // Auto-select first available slot for the chosen day
+    const available = timeSlots.filter(slot => type === 'later' || !isSlotPassed(slot.time));
+    if (available.length > 0) setSelectedSlot(available[0].time);
+    else setSelectedSlot('');
+  };
+
   const handleSlotSelection = (slotTime: string) => {
     console.log('Cart - Slot clicked:', slotTime);
     console.log('Cart - Current time:', new Date().getHours() + ':' + new Date().getMinutes());
@@ -419,46 +427,44 @@ const Cart = () => {
             
             <div className="mb-4">
               <div className="flex gap-2">
-                <Button className="h-10 rounded-2xl font-semibold whitespace-nowrap text-white text-sm px-4 flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-                  {pickupType === "now" ? "Today" : "Tomorrow"}
-                </Button>
                 <button
-                  onClick={() => setPickupType("now")}
+                  onClick={() => handlePickupTypeChange("now")}
                   className={`flex-1 h-10 rounded-2xl font-semibold text-sm shadow-md ${
-                    pickupType === "now" 
-                      ? "text-white" 
+                    pickupType === "now"
+                      ? "text-white"
                       : "bg-white border border-gray-300 hover:bg-gray-50"
                   }`}
                   style={pickupType === "now" ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { color: '#452D9B' }}
                 >
-                  Pickup Now
+                  Pickup Today
                 </button>
                 <button
-                  onClick={() => setPickupType("later")}
+                  onClick={() => handlePickupTypeChange("later")}
                   className={`flex-1 h-10 rounded-2xl font-semibold text-sm shadow-md ${
-                    pickupType === "later" 
-                      ? "text-white" 
+                    pickupType === "later"
+                      ? "text-white"
                       : "bg-white border border-gray-300 hover:bg-gray-50"
                   }`}
                   style={pickupType === "later" ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { color: '#452D9B' }}
                 >
-                  Pickup Later
+                  Pickup Tomorrow
                 </button>
               </div>
             </div>
             
             <div className="mb-4">
-              <h4 className="font-semibold mb-3 text-black">Available Time Slots</h4>
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              <h4 className="font-semibold mb-3 text-black">{pickupType === 'now' ? "Today's" : "Tomorrow's"} Pickup Slots</h4>
+              <div className="grid grid-cols-3 gap-2">
                 {timeSlots.map((slot) => (
-                  <button 
+                  <button
                     key={slot._id}
                     onClick={() => handleSlotSelection(slot.time)}
-                    className={`h-10 rounded-2xl font-semibold whitespace-nowrap text-sm px-4 flex-shrink-0 ${
+                    disabled={isSlotPassed(slot.time) && pickupType === 'now'}
+                    className={`h-10 rounded-2xl font-semibold text-xs w-full ${
                       isSlotPassed(slot.time) && pickupType === 'now'
-                        ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-pointer'
-                        : selectedSlot === slot.time 
-                          ? 'text-white shadow-md' 
+                        ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-not-allowed'
+                        : selectedSlot === slot.time
+                          ? 'text-white shadow-md'
                           : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
                     }`}
                     style={selectedSlot === slot.time && !(isSlotPassed(slot.time) && pickupType === 'now') ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : {}}
