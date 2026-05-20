@@ -128,7 +128,7 @@ const Prices = () => {
         title="Categories" 
         variant="gradient"
         rightAction={
-          <button onClick={() => setShowInfoModal(true)}>
+          <button title="How to order" onClick={() => setShowInfoModal(true)}>
             <Info className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </button>
         }
@@ -151,20 +151,23 @@ const Prices = () => {
               </p>
             </button>
 
-            {categories.map((cat) => {
-              const Icon = cat.toLowerCase().includes('household') || cat.toLowerCase().includes('home') ? Bed : Shirt;
+            {categories.map((cat: any) => {
+              const Icon = cat.name.toLowerCase().includes('household') || cat.name.toLowerCase().includes('home') ? Bed : Shirt;
               return (
-                <button 
-                  key={cat} 
-                  onClick={() => setSelectedCategory(cat)}
+                <button
+                  key={cat._id || cat.name}
+                  onClick={() => setSelectedCategory(cat.name)}
                   className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow text-left"
                 >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-2 sm:mb-3 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-2 sm:mb-3 shadow-md overflow-hidden" style={{ background: cat.image ? 'transparent' : 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                    {cat.image
+                      ? <img src={cat.image} alt={cat.name} className="w-full h-full object-cover rounded-full" />
+                      : <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                    }
                   </div>
-                  <h3 className="font-bold text-sm sm:text-lg mb-1 text-black">{cat}</h3>
+                  <h3 className="font-bold text-sm sm:text-lg mb-1 text-black">{cat.name}</h3>
                   <p className="text-xs sm:text-sm text-gray-500">
-                    {items.filter(item => item.category === cat).length} items
+                    {items.filter(item => item.category === cat.name).length} items
                   </p>
                 </button>
               );
@@ -201,8 +204,11 @@ const Prices = () => {
                     } hover:bg-blue-50 transition-colors`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-                        <Shirt className="w-5 h-5 text-white" />
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md overflow-hidden" style={{ background: item.image ? 'transparent' : 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                        {item.image
+                          ? <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-full" />
+                          : <Shirt className="w-5 h-5 text-white" />
+                        }
                       </div>
                       <div>
                         <span className="font-semibold text-gray-800 block">{item.name}</span>
@@ -213,6 +219,7 @@ const Prices = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <button
+                        title="Decrease quantity"
                         onClick={() => updateQuantity(item._id, false)}
                         className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
                         style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
@@ -223,6 +230,7 @@ const Prices = () => {
                         {quantities[item._id] || 0}
                       </span>
                       <button
+                        title="Increase quantity"
                         onClick={() => updateQuantity(item._id, true)}
                         className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
                         style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
@@ -270,7 +278,8 @@ const Prices = () => {
       {showInfoModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm mx-4 shadow-2xl relative animate-in fade-in zoom-in duration-200">
-            <button 
+            <button
+              title="Close"
               onClick={() => setShowInfoModal(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
             >

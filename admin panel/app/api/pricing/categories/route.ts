@@ -21,7 +21,9 @@ export async function PUT(request: NextRequest) {
         PricingCategory.findByIdAndUpdate(id, { order })
       ));
     } else {
-      await PricingCategory.findByIdAndUpdate(body.id, { name: body.name });
+      const update: any = { name: body.name };
+      if (body.image !== undefined) update.image = body.image;
+      await PricingCategory.findByIdAndUpdate(body.id, update);
     }
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -32,8 +34,8 @@ export async function PUT(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await dbConnect();
-    const { name } = await request.json();
-    const category = await PricingCategory.create({ name });
+    const { name, image } = await request.json();
+    const category = await PricingCategory.create({ name, image: image || '' });
     return NextResponse.json({ success: true, data: category });
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Failed to create category' }, { status: 500 });

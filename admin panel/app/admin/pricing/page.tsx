@@ -9,12 +9,14 @@ interface PricingItem {
   name: string;
   price: number;
   category: string;
+  image: string;
   createdAt: string;
 }
 
 interface Category {
   _id: string;
   name: string;
+  image: string;
   order: number;
 }
 
@@ -26,9 +28,16 @@ export default function PricingPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryImage, setNewCategoryImage] = useState('');
+  const [newCategoryFile, setNewCategoryFile] = useState<File | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [editCategoryName, setEditCategoryName] = useState('');
+  const [editCategoryImage, setEditCategoryImage] = useState('');
+  const [editCategoryFile, setEditCategoryFile] = useState<File | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState({ name: '', price: '', category: '' })
+  const [itemFile, setItemFile] = useState<File | null>(null)
+  const [editingItemFile, setEditingItemFile] = useState<File | null>(null)
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' });
   
   useEffect(() => {
@@ -68,14 +77,18 @@ export default function PricingPage() {
   
   const handleAdd = async () => {
     try {
+      setUploadingImage(true);
+      let imageUrl = '';
+      if (itemFile) imageUrl = await uploadImage(itemFile);
       const response = await fetch('/api/pricing', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, price: Number(formData.price), category: (formData.category || 'All').trim() })
+        body: JSON.stringify({ ...formData, price: Number(formData.price), category: (formData.category || 'All').trim(), image: imageUrl })
       });
       const data = await response.json();
       if (response.ok) {
         setFormData({ name: '', price: '', category: categories[0]?.name || '' });
+        setItemFile(null);
         setShowAddForm(false);
         fetchItems();
         setModal({ isOpen: true, title: 'Success', message: 'Item added successfully!', type: 'success' });
@@ -85,34 +98,49 @@ export default function PricingPage() {
     } catch (error) {
       console.error('Failed to add item:', error);
       setModal({ isOpen: true, title: 'Error', message: 'Failed to add item', type: 'error' });
-    }
+    } finally { setUploadingImage(false); }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    const data = await res.json();
+    return data.success ? data.url : '';
   };
 
   const handleAddCategory = async () => {
     try {
+      setUploadingImage(true);
+      let imageUrl = newCategoryImage;
+      if (newCategoryFile) imageUrl = await uploadImage(newCategoryFile);
       const response = await fetch('/api/pricing/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newCategoryName })
+        body: JSON.stringify({ name: newCategoryName, image: imageUrl })
       });
       if (response.ok) {
-        setNewCategoryName('');
+        setNewCategoryName(''); setNewCategoryImage(''); setNewCategoryFile(null);
         setShowCategoryForm(false);
         fetchCategories();
       }
     } catch (error) {
       console.error('Failed to add category:', error);
-    }
+    } finally { setUploadingImage(false); }
   };
 
   const handleEditCategory = async () => {
     if (!editingCategory) return;
+    setUploadingImage(true);
+    let imageUrl = editCategoryImage;
+    if (editCategoryFile) imageUrl = await uploadImage(editCategoryFile);
     const response = await fetch('/api/pricing/categories', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: editingCategory._id, name: editCategoryName })
+      body: JSON.stringify({ id: editingCategory._id, name: editCategoryName, image: imageUrl })
     });
-    if (response.ok) { setEditingCategory(null); fetchCategories(); }
+    setUploadingImage(false);
+    if (response.ok) { setEditingCategory(null); setEditCategoryFile(null); fetchCategories(); }
   };
 
   const moveCategory = async (index: number, direction: 'up' | 'down') => {
@@ -154,18 +182,22 @@ export default function PricingPage() {
   
   const handleUpdate = async (item: PricingItem) => {
     try {
+      setUploadingImage(true);
+      let imageUrl = item.image || '';
+      if (editingItemFile) imageUrl = await uploadImage(editingItemFile);
       const response = await fetch('/api/pricing', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: item._id, name: item.name, price: item.price, category: item.category })
+        body: JSON.stringify({ id: item._id, name: item.name, price: item.price, category: item.category, image: imageUrl })
       });
       if (response.ok) {
         setEditingItem(null);
+        setEditingItemFile(null);
         fetchItems();
       }
     } catch (error) {
       console.error('Failed to update item:', error);
-    }
+    } finally { setUploadingImage(false); }
   };
   
   const handleDelete = async (id: string) => {
@@ -208,7 +240,7 @@ export default function PricingPage() {
                   >
                     {category.name}
                   </button>
-                  <button onClick={() => { setEditingCategory(category); setEditCategoryName(category.name); }} title="Edit" style={{ padding: '0.25rem', backgroundColor: 'transparent', color: activeCategory === category.name ? 'white' : '#2563eb', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}>✏️</button>
+                  <button onClick={() => { setEditingCategory(category); setEditCategoryName(category.name); setEditCategoryImage(category.image || ''); setEditCategoryFile(null); }} title="Edit" style={{ padding: '0.25rem', backgroundColor: 'transparent', color: activeCategory === category.name ? 'white' : '#2563eb', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}>✏️</button>
                   <button onClick={() => moveCategory(index, 'up')} disabled={index === 0} title="Move up" style={{ padding: '0.25rem', backgroundColor: 'transparent', color: activeCategory === category.name ? 'white' : '#6b7280', border: 'none', cursor: index === 0 ? 'not-allowed' : 'pointer', fontSize: '0.7rem', opacity: index === 0 ? 0.3 : 1 }}>▲</button>
                   <button onClick={() => moveCategory(index, 'down')} disabled={index === categories.length - 1} title="Move down" style={{ padding: '0.25rem 0.4rem 0.25rem 0.1rem', backgroundColor: 'transparent', color: activeCategory === category.name ? 'white' : '#6b7280', border: 'none', cursor: index === categories.length - 1 ? 'not-allowed' : 'pointer', fontSize: '0.7rem', opacity: index === categories.length - 1 ? 0.3 : 1 }}>▼</button>
                   <button onClick={() => handleDeleteCategory(category._id)} style={{ position: 'absolute', top: '-8px', right: '-8px', width: '18px', height: '18px', borderRadius: '50%', backgroundColor: '#ef4444', color: 'white', border: 'none', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>×</button>
@@ -239,7 +271,8 @@ export default function PricingPage() {
 
           {/* Items Table */}
           <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden', marginBottom: '2rem' }}>
-            <div style={{ backgroundColor: '#f8fafc', padding: '1rem', display: 'grid', gridTemplateColumns: '2fr 2fr 2fr 3fr', gap: '1rem', fontSize: '0.9rem', fontWeight: '600', color: '#6b7280', border: 'none' }}>
+            <div style={{ backgroundColor: '#f8fafc', padding: '1rem', display: 'grid', gridTemplateColumns: '50px 2fr 2fr 1.5fr 3fr', gap: '1rem', fontSize: '0.9rem', fontWeight: '600', color: '#6b7280', border: 'none' }}>
+              <div>Image</div>
               <div>Item Name</div>
               <div>Price</div>
               <div>Last Updated</div>
@@ -247,27 +280,31 @@ export default function PricingPage() {
             </div>
 
             {items.map((item, index) => (
-              <div key={item._id} style={{ padding: '1rem', display: 'grid', gridTemplateColumns: '2fr 2fr 2fr 3fr', gap: '1rem', borderTop: '1px solid #f3f4f6', fontSize: '0.9rem', alignItems: 'center' }}>
+              <div key={item._id} style={{ padding: '1rem', display: 'grid', gridTemplateColumns: '50px 2fr 2fr 1.5fr 3fr', gap: '1rem', borderTop: '1px solid #f3f4f6', fontSize: '0.9rem', alignItems: 'center' }}>
                 <div>
                   {editingItem?._id === item._id ? (
-                    <input 
-                      type="text" 
-                      value={editingItem.name} 
-                      onChange={(e) => setEditingItem({...editingItem, name: e.target.value})}
-                      style={{ padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '6px', width: '100%' }} 
-                    />
+                    <div>
+                      {(editingItemFile ? URL.createObjectURL(editingItemFile) : (editingItem.image || '')) ? (
+                        <img src={editingItemFile ? URL.createObjectURL(editingItemFile) : editingItem.image} alt="preview" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', marginBottom: '4px' }} />
+                      ) : null}
+                      <input type="file" accept="image/*" title="Upload item image" onChange={(e) => setEditingItemFile(e.target.files?.[0] || null)} style={{ fontSize: '0.7rem', width: '100%' }} />
+                    </div>
+                  ) : item.image ? (
+                    <img src={item.image} alt={item.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px' }} />
+                  ) : (
+                    <div style={{ width: '40px', height: '40px', borderRadius: '6px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>👕</div>
+                  )}
+                </div>
+                <div>
+                  {editingItem?._id === item._id ? (
+                    <input type="text" value={editingItem.name} onChange={(e) => setEditingItem({...editingItem, name: e.target.value})} style={{ padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '6px', width: '100%' }} />
                   ) : (
                     item.name
                   )}
                 </div>
                 <div>
                   {editingItem?._id === item._id ? (
-                    <input 
-                      type="number" 
-                      value={editingItem.price} 
-                      onChange={(e) => setEditingItem({...editingItem, price: Number(e.target.value)})}
-                      style={{ padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '6px', width: '80px' }} 
-                    />
+                    <input type="number" placeholder="Price" value={editingItem.price} onChange={(e) => setEditingItem({...editingItem, price: Number(e.target.value)})} style={{ padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '6px', width: '80px' }} />
                   ) : (
                     `₹${item.price}`
                   )}
@@ -328,29 +365,23 @@ export default function PricingPage() {
                   </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Category</label>
-                    <select 
-                      value={formData.category}
-                      onChange={(e) => setFormData({...formData, category: e.target.value})}
-                      style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.9rem' }}
-                    >
+                    <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.9rem' }}>
                       {categories.map(cat => (
                         <option key={cat._id} value={cat.name}>{cat.name}</option>
                       ))}
                     </select>
                   </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Item Image (optional)</label>
+                    {itemFile && <img src={URL.createObjectURL(itemFile)} alt="preview" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem', border: '1px solid #2563eb' }} />}
+                    <input type="file" accept="image/*" title="Upload item image" onChange={(e) => setItemFile(e.target.files?.[0] || null)} style={{ width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.85rem' }} />
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                  <button 
-                    onClick={handleAdd}
-                    disabled={!formData.name || !formData.price}
-                    style={{ padding: '0.75rem 1.5rem', backgroundColor: formData.name && formData.price ? '#10b981' : '#9ca3af', color: 'white', border: 'none', borderRadius: '6px', cursor: formData.name && formData.price ? 'pointer' : 'not-allowed', fontSize: '0.9rem', fontWeight: '500' }}
-                  >
-                    Add Item
+                  <button onClick={handleAdd} disabled={!formData.name || !formData.price || uploadingImage} style={{ padding: '0.75rem 1.5rem', backgroundColor: formData.name && formData.price && !uploadingImage ? '#10b981' : '#9ca3af', color: 'white', border: 'none', borderRadius: '6px', cursor: formData.name && formData.price ? 'pointer' : 'not-allowed', fontSize: '0.9rem', fontWeight: '500' }}>
+                    {uploadingImage ? 'Saving...' : 'Add Item'}
                   </button>
-                  <button 
-                    onClick={() => setShowAddForm(false)}
-                    style={{ padding: '0.75rem 1.5rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
-                  >
+                  <button onClick={() => { setShowAddForm(false); setItemFile(null); }} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}>
                     Cancel
                   </button>
                 </div>
@@ -363,18 +394,22 @@ export default function PricingPage() {
             <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
               <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '2rem', width: '90%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
                 <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: '600', textAlign: 'center' }}>Edit Category</h3>
-                <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ marginBottom: '1rem' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Category Name</label>
-                  <input
-                    type="text"
-                    value={editCategoryName}
-                    onChange={(e) => setEditCategoryName(e.target.value)}
-                    placeholder="Enter category name"
-                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.9rem' }}
-                  />
+                  <input type="text" value={editCategoryName} onChange={(e) => setEditCategoryName(e.target.value)} placeholder="Enter category name" style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.9rem' }} />
+                </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Category Image</label>
+                  {editCategoryImage && !editCategoryFile && (
+                    <img src={editCategoryImage} alt="current" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem', border: '1px solid #e5e7eb' }} />
+                  )}
+                  {editCategoryFile && (
+                    <img src={URL.createObjectURL(editCategoryFile)} alt="preview" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem', border: '1px solid #2563eb' }} />
+                  )}
+                  <input type="file" accept="image/*" title="Upload category image" onChange={(e) => setEditCategoryFile(e.target.files?.[0] || null)} style={{ width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.85rem' }} />
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                  <button onClick={handleEditCategory} disabled={!editCategoryName} style={{ padding: '0.75rem 1.5rem', backgroundColor: editCategoryName ? '#10b981' : '#9ca3af', color: 'white', border: 'none', borderRadius: '6px', cursor: editCategoryName ? 'pointer' : 'not-allowed', fontSize: '0.9rem', fontWeight: '500' }}>Save</button>
+                  <button onClick={handleEditCategory} disabled={!editCategoryName || uploadingImage} style={{ padding: '0.75rem 1.5rem', backgroundColor: editCategoryName && !uploadingImage ? '#10b981' : '#9ca3af', color: 'white', border: 'none', borderRadius: '6px', cursor: editCategoryName ? 'pointer' : 'not-allowed', fontSize: '0.9rem', fontWeight: '500' }}>{uploadingImage ? 'Saving...' : 'Save'}</button>
                   <button onClick={() => setEditingCategory(null)} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}>Cancel</button>
                 </div>
               </div>
@@ -386,28 +421,22 @@ export default function PricingPage() {
             <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
               <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '2rem', width: '90%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
                 <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: '600', textAlign: 'center' }}>Add New Category</h3>
-                <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ marginBottom: '1rem' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Category Name</label>
-                  <input 
-                    type="text" 
-                    placeholder="Enter category name" 
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.9rem' }} 
-                  />
+                  <input type="text" placeholder="Enter category name" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.9rem' }} />
+                </div>
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Category Image</label>
+                  {newCategoryFile && (
+                    <img src={URL.createObjectURL(newCategoryFile)} alt="preview" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem', border: '1px solid #2563eb' }} />
+                  )}
+                  <input type="file" accept="image/*" title="Upload category image" onChange={(e) => setNewCategoryFile(e.target.files?.[0] || null)} style={{ width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.85rem' }} />
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                  <button 
-                    onClick={handleAddCategory}
-                    disabled={!newCategoryName}
-                    style={{ padding: '0.75rem 1.5rem', backgroundColor: newCategoryName ? '#10b981' : '#9ca3af', color: 'white', border: 'none', borderRadius: '6px', cursor: newCategoryName ? 'pointer' : 'not-allowed', fontSize: '0.9rem', fontWeight: '500' }}
-                  >
-                    Add
+                  <button onClick={handleAddCategory} disabled={!newCategoryName || uploadingImage} style={{ padding: '0.75rem 1.5rem', backgroundColor: newCategoryName && !uploadingImage ? '#10b981' : '#9ca3af', color: 'white', border: 'none', borderRadius: '6px', cursor: newCategoryName ? 'pointer' : 'not-allowed', fontSize: '0.9rem', fontWeight: '500' }}>
+                    {uploadingImage ? 'Saving...' : 'Add'}
                   </button>
-                  <button 
-                    onClick={() => setShowCategoryForm(false)}
-                    style={{ padding: '0.75rem 1.5rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
-                  >
+                  <button onClick={() => { setShowCategoryForm(false); setNewCategoryFile(null); }} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}>
                     Cancel
                   </button>
                 </div>

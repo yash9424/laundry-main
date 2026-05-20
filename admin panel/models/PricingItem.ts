@@ -16,6 +16,10 @@ const PricingItemSchema = new mongoose.Schema({
     required: true,
     default: 'All'
   },
+  image: {
+    type: String,
+    default: ''
+  },
   isActive: {
     type: Boolean,
     default: true

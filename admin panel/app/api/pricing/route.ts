@@ -20,9 +20,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await dbConnect();
-    const { name, price, category } = await request.json();
-    
-    const item = await PricingItem.create({ name, price, category });
+    const { name, price, category, image } = await request.json();
+
+    const item = await PricingItem.create({ name, price, category, image: image || '' });
     return NextResponse.json({ success: true, data: item });
   } catch (error: any) {
     console.error('Pricing POST error:', error);
@@ -40,8 +40,10 @@ export async function PUT(request: NextRequest) {
       ));
       return NextResponse.json({ success: true });
     }
-    const { id, name, price, category } = body;
-    const item = await PricingItem.findByIdAndUpdate(id, { name, price, category }, { new: true });
+    const { id, name, price, category, image } = body;
+    const update: any = { name, price, category };
+    if (image !== undefined) update.image = image;
+    const item = await PricingItem.findByIdAndUpdate(id, update, { new: true });
     return NextResponse.json({ success: true, data: item });
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Failed to update item' }, { status: 500 });
