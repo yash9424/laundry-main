@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     
     const filter = category && category !== 'All' ? { category, isActive: true } : { isActive: true };
-    const items = await PricingItem.find(filter).sort({ createdAt: -1 });
+    const items = await PricingItem.find(filter).sort({ order: 1, createdAt: -1 });
     
     return NextResponse.json({ success: true, data: items });
   } catch (error) {
@@ -33,8 +33,14 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     await dbConnect();
-    const { id, name, price, category } = await request.json();
-    
+    const body = await request.json();
+    if (body.reorder) {
+      await Promise.all(body.reorder.map(({ id, order }: { id: string; order: number }) =>
+        PricingItem.findByIdAndUpdate(id, { order })
+      ));
+      return NextResponse.json({ success: true });
+    }
+    const { id, name, price, category } = body;
     const item = await PricingItem.findByIdAndUpdate(id, { name, price, category }, { new: true });
     return NextResponse.json({ success: true, data: item });
   } catch (error) {

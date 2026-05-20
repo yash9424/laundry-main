@@ -15,6 +15,7 @@ interface PricingItem {
 interface Category {
   _id: string;
   name: string;
+  order: number;
 }
 
 export default function PricingPage() {
@@ -25,6 +26,8 @@ export default function PricingPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState('');
   const [formData, setFormData] = useState({ name: '', price: '', category: '' })
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' });
   
@@ -102,6 +105,42 @@ export default function PricingPage() {
     }
   };
 
+  const handleEditCategory = async () => {
+    if (!editingCategory) return;
+    const response = await fetch('/api/pricing/categories', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: editingCategory._id, name: editCategoryName })
+    });
+    if (response.ok) { setEditingCategory(null); fetchCategories(); }
+  };
+
+  const moveCategory = async (index: number, direction: 'up' | 'down') => {
+    const newCats = [...categories];
+    const swapIdx = direction === 'up' ? index - 1 : index + 1;
+    if (swapIdx < 0 || swapIdx >= newCats.length) return;
+    [newCats[index], newCats[swapIdx]] = [newCats[swapIdx], newCats[index]];
+    setCategories(newCats);
+    await fetch('/api/pricing/categories', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reorder: newCats.map((c, i) => ({ id: c._id, order: i })) })
+    });
+  };
+
+  const moveItem = async (index: number, direction: 'up' | 'down') => {
+    const newItems = [...items];
+    const swapIdx = direction === 'up' ? index - 1 : index + 1;
+    if (swapIdx < 0 || swapIdx >= newItems.length) return;
+    [newItems[index], newItems[swapIdx]] = [newItems[swapIdx], newItems[index]];
+    setItems(newItems);
+    await fetch('/api/pricing', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reorder: newItems.map((item, i) => ({ id: item._id, order: i })) })
+    });
+  };
+
   const handleDeleteCategory = async (id: string) => {
     try {
       const response = await fetch(`/api/pricing/categories?id=${id}`, { method: 'DELETE' });
@@ -161,43 +200,18 @@ export default function PricingPage() {
               >
                 All
               </button>
-              {categories.map(category => (
-                <div key={category._id} style={{ position: 'relative', display: 'inline-block' }}>
-                  <button 
+              {categories.map((category, index) => (
+                <div key={category._id} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '2px', border: '1px solid #2563eb', borderRadius: '6px', backgroundColor: activeCategory === category.name ? '#2563eb' : 'white', overflow: 'visible' }}>
+                  <button
                     onClick={() => setActiveCategory(category.name)}
-                    style={{ 
-                      padding: '0.5rem 1.5rem 0.5rem 1rem', 
-                      backgroundColor: activeCategory === category.name ? '#2563eb' : 'white', 
-                      color: activeCategory === category.name ? 'white' : '#2563eb', 
-                      border: activeCategory === category.name ? 'none' : '1px solid #2563eb', 
-                      borderRadius: '6px', 
-                      fontSize: '0.9rem',
-                      cursor: 'pointer'
-                    }}
+                    style={{ padding: '0.5rem 0.5rem', backgroundColor: 'transparent', color: activeCategory === category.name ? 'white' : '#2563eb', border: 'none', fontSize: '0.9rem', cursor: 'pointer', fontWeight: 500 }}
                   >
                     {category.name}
                   </button>
-                  <button
-                    onClick={() => handleDeleteCategory(category._id)}
-                    style={{
-                      position: 'absolute',
-                      top: '-8px',
-                      right: '-8px',
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '50%',
-                      backgroundColor: '#ef4444',
-                      color: 'white',
-                      border: 'none',
-                      fontSize: '14px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    ×
-                  </button>
+                  <button onClick={() => { setEditingCategory(category); setEditCategoryName(category.name); }} title="Edit" style={{ padding: '0.25rem', backgroundColor: 'transparent', color: activeCategory === category.name ? 'white' : '#2563eb', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}>✏️</button>
+                  <button onClick={() => moveCategory(index, 'up')} disabled={index === 0} title="Move up" style={{ padding: '0.25rem', backgroundColor: 'transparent', color: activeCategory === category.name ? 'white' : '#6b7280', border: 'none', cursor: index === 0 ? 'not-allowed' : 'pointer', fontSize: '0.7rem', opacity: index === 0 ? 0.3 : 1 }}>▲</button>
+                  <button onClick={() => moveCategory(index, 'down')} disabled={index === categories.length - 1} title="Move down" style={{ padding: '0.25rem 0.4rem 0.25rem 0.1rem', backgroundColor: 'transparent', color: activeCategory === category.name ? 'white' : '#6b7280', border: 'none', cursor: index === categories.length - 1 ? 'not-allowed' : 'pointer', fontSize: '0.7rem', opacity: index === categories.length - 1 ? 0.3 : 1 }}>▼</button>
+                  <button onClick={() => handleDeleteCategory(category._id)} style={{ position: 'absolute', top: '-8px', right: '-8px', width: '18px', height: '18px', borderRadius: '50%', backgroundColor: '#ef4444', color: 'white', border: 'none', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>×</button>
                 </div>
               ))}
               <button 
@@ -259,21 +273,23 @@ export default function PricingPage() {
                   )}
                 </div>
                 <div>{new Date(item.createdAt).toLocaleDateString()}</div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button 
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <button onClick={() => moveItem(index, 'up')} disabled={index === 0} title="Move up" style={{ padding: '0.5rem 0.6rem', backgroundColor: index === 0 ? '#e5e7eb' : '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.75rem', cursor: index === 0 ? 'not-allowed' : 'pointer' }}>▲</button>
+                  <button onClick={() => moveItem(index, 'down')} disabled={index === items.length - 1} title="Move down" style={{ padding: '0.5rem 0.6rem', backgroundColor: index === items.length - 1 ? '#e5e7eb' : '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.75rem', cursor: index === items.length - 1 ? 'not-allowed' : 'pointer' }}>▼</button>
+                  <button
                     onClick={() => setEditingItem(item)}
                     style={{ padding: '0.5rem 1rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer' }}
                   >
                     Edit
                   </button>
-                  <button 
+                  <button
                     onClick={() => editingItem?._id === item._id ? handleUpdate(editingItem) : null}
                     disabled={editingItem?._id !== item._id}
                     style={{ padding: '0.5rem 1rem', backgroundColor: editingItem?._id === item._id ? '#10b981' : '#9ca3af', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.75rem', cursor: editingItem?._id === item._id ? 'pointer' : 'not-allowed' }}
                   >
                     Update
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleDelete(item._id)}
                     style={{ padding: '0.5rem 1px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer' }}
                   >
@@ -337,6 +353,29 @@ export default function PricingPage() {
                   >
                     Cancel
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Edit Category Modal */}
+          {editingCategory && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+              <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '2rem', width: '90%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: '600', textAlign: 'center' }}>Edit Category</h3>
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Category Name</label>
+                  <input
+                    type="text"
+                    value={editCategoryName}
+                    onChange={(e) => setEditCategoryName(e.target.value)}
+                    placeholder="Enter category name"
+                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.9rem' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                  <button onClick={handleEditCategory} disabled={!editCategoryName} style={{ padding: '0.75rem 1.5rem', backgroundColor: editCategoryName ? '#10b981' : '#9ca3af', color: 'white', border: 'none', borderRadius: '6px', cursor: editCategoryName ? 'pointer' : 'not-allowed', fontSize: '0.9rem', fontWeight: '500' }}>Save</button>
+                  <button onClick={() => setEditingCategory(null)} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}>Cancel</button>
                 </div>
               </div>
             </div>

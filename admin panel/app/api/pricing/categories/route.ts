@@ -5,10 +5,27 @@ import PricingCategory from '@/models/PricingCategory';
 export async function GET() {
   try {
     await dbConnect();
-    const categories = await PricingCategory.find().sort({ createdAt: 1 });
+    const categories = await PricingCategory.find().sort({ order: 1, createdAt: 1 });
     return NextResponse.json({ success: true, data: categories });
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Failed to fetch categories' }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    await dbConnect();
+    const body = await request.json();
+    if (body.reorder) {
+      await Promise.all(body.reorder.map(({ id, order }: { id: string; order: number }) =>
+        PricingCategory.findByIdAndUpdate(id, { order })
+      ));
+    } else {
+      await PricingCategory.findByIdAndUpdate(body.id, { name: body.name });
+    }
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: 'Failed to update category' }, { status: 500 });
   }
 }
 
