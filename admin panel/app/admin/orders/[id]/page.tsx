@@ -351,6 +351,44 @@ export default function OrderDetails() {
             </div>
           </div>
 
+          {/* Pickup Slot */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            padding: '1.5rem',
+            marginBottom: '1.5rem',
+            border: '2px solid #e0e7ff'
+          }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0' }}>🕐 Pickup Slot</h3>
+            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+              <div style={{ backgroundColor: '#eff6ff', borderRadius: '10px', padding: '0.75rem 1.25rem', border: '1px solid #bfdbfe' }}>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: '500' }}>DATE</div>
+                <div style={{ fontSize: '1rem', fontWeight: '700', color: '#1e40af' }}>
+                  {order?.pickupSlot?.date
+                    ? (() => {
+                        const slotDate = new Date(order.pickupSlot.date);
+                        const today = new Date();
+                        const tomorrow = new Date();
+                        tomorrow.setDate(today.getDate() + 1);
+                        const isSameDay = (a: Date, b: Date) =>
+                          a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
+                        if (isSameDay(slotDate, today)) return 'Today — ' + slotDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                        if (isSameDay(slotDate, tomorrow)) return 'Tomorrow — ' + slotDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                        return slotDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                      })()
+                    : 'Not selected'}
+                </div>
+              </div>
+              <div style={{ backgroundColor: '#f0fdf4', borderRadius: '10px', padding: '0.75rem 1.25rem', border: '1px solid #bbf7d0' }}>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: '500' }}>TIME SLOT</div>
+                <div style={{ fontSize: '1rem', fontWeight: '700', color: '#166534' }}>
+                  {order?.pickupSlot?.timeSlot || 'Not selected'}
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Items in Order */}
           <div style={{
             backgroundColor: 'white',
