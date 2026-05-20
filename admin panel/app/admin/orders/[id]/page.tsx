@@ -4,6 +4,126 @@ import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ResponsiveLayout from '../../../components/ResponsiveLayout'
 
+// ── Assign Partner Component ──────────────────────────────────────────────────
+function AssignPartnerSection({ order, onAssigned }: { order: any, onAssigned: () => void }) {
+  const [partners, setPartners] = useState<any[]>([])
+  const [selectedPartnerId, setSelectedPartnerId] = useState('')
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [assigning, setAssigning] = useState(false)
+
+  const loadPartners = async () => {
+    const pincode = order?.pickupAddress?.pincode
+    const res = await fetch(`/api/partners${pincode ? `?pincode=${pincode}` : ''}`)
+    const data = await res.json()
+    if (data.success) setPartners(data.data)
+    setShowDropdown(true)
+  }
+
+  const handleAssign = async () => {
+    if (!selectedPartnerId) return
+    setAssigning(true)
+    try {
+      const res = await fetch(`/api/orders/${order._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ partnerId: selectedPartnerId })
+      })
+      if (res.ok) {
+        setShowDropdown(false)
+        setSelectedPartnerId('')
+        onAssigned()
+      } else {
+        alert('Failed to assign partner. Please try again.')
+      }
+    } catch {
+      alert('Network error. Please try again.')
+    } finally {
+      setAssigning(false)
+    }
+  }
+
+  if (order?.partnerId) {
+    return (
+      <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '1.5rem', marginBottom: '1.5rem' }}>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0' }}>Assigned Partner</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ marginBottom: '0.5rem' }}><strong>Partner Name:</strong> {order.partnerId.name} {order.partnerId._id ? `(#${order.partnerId._id.slice(-4)})` : ''}</div>
+            {order.partnerId.mobile && <div style={{ marginBottom: '0.5rem' }}><strong>Mobile:</strong> {order.partnerId.mobile}</div>}
+          </div>
+          <span style={{ color: '#10b981', fontSize: '0.9rem', fontWeight: '500' }}>Assigned</span>
+        </div>
+        <div style={{ marginTop: '1rem' }}>
+          <button onClick={() => window.location.href = `/admin/delivery-partners/${order.partnerId._id}`} style={{ backgroundColor: 'white', color: '#2563eb', border: '2px solid #2563eb', padding: '0.5rem 1rem', borderRadius: '6px', fontSize: '0.9rem', cursor: 'pointer' }}>
+            View Partner Profile
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '1.5rem', marginBottom: '1.5rem', border: '2px solid #fbbf24' }}>
+      <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0' }}>Assigned Partner</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <span style={{ color: '#6b7280', fontSize: '0.95rem' }}>No partner assigned yet</span>
+        <span style={{ backgroundColor: '#fef3c7', color: '#92400e', padding: '0.25rem 0.75rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '600' }}>Not Assigned</span>
+      </div>
+
+      {!showDropdown ? (
+        <button
+          onClick={loadPartners}
+          style={{ backgroundColor: '#2563eb', color: 'white', border: 'none', padding: '0.6rem 1.25rem', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '500', cursor: 'pointer' }}
+        >
+          🔍 Assign Partner
+        </button>
+      ) : (
+        <div>
+          {partners.length === 0 ? (
+            <div style={{ backgroundColor: '#fef2f2', padding: '1rem', borderRadius: '8px', color: '#dc2626', fontSize: '0.9rem' }}>
+              ⚠️ No approved partners found for pincode <strong>{order?.pickupAddress?.pincode}</strong>
+            </div>
+          ) : (
+            <div>
+              <p style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+                Showing {partners.length} partner(s) serving pincode <strong>{order?.pickupAddress?.pincode}</strong>
+              </p>
+              <select
+                value={selectedPartnerId}
+                onChange={(e) => setSelectedPartnerId(e.target.value)}
+                style={{ width: '100%', padding: '0.75rem', border: '2px solid #2563eb', borderRadius: '8px', fontSize: '0.9rem', marginBottom: '0.75rem', outline: 'none' }}
+              >
+                <option value=''>-- Select a partner --</option>
+                {partners.map((p: any) => (
+                  <option key={p._id} value={p._id}>
+                    {p.name} — {p.mobile} — Pincodes: {p.pincodes?.join(', ')}
+                  </option>
+                ))}
+              </select>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  onClick={handleAssign}
+                  disabled={!selectedPartnerId || assigning}
+                  style={{ backgroundColor: selectedPartnerId && !assigning ? '#10b981' : '#9ca3af', color: 'white', border: 'none', padding: '0.6rem 1.25rem', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '500', cursor: selectedPartnerId && !assigning ? 'pointer' : 'not-allowed' }}
+                >
+                  {assigning ? 'Assigning...' : '✓ Confirm Assign'}
+                </button>
+                <button
+                  onClick={() => { setShowDropdown(false); setSelectedPartnerId('') }}
+                  style={{ backgroundColor: 'white', color: '#6b7280', border: '1px solid #d1d5db', padding: '0.6rem 1.25rem', borderRadius: '8px', fontSize: '0.9rem', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function OrderDetails() {
   const params = useParams()
   const orderId = params.id
@@ -611,48 +731,7 @@ export default function OrderDetails() {
           )}
 
           {/* Assigned Partner */}
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            padding: '1.5rem',
-            marginBottom: '1.5rem'
-          }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0' }}>Assigned Partner</h3>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ marginBottom: '0.5rem' }}>
-                  <strong>Partner Name:</strong> {order?.partnerId?.name || 'Not Assigned'} {order?.partnerId?._id ? `(#${order.partnerId._id.slice(-4)})` : ''}
-                </div>
-                {order?.partnerId?.mobile && (
-                  <div style={{ marginBottom: '0.5rem' }}>
-                    <strong>Mobile:</strong> {order.partnerId.mobile}
-                  </div>
-                )}
-              </div>
-              <span style={{ color: order?.partnerId ? '#10b981' : '#6b7280', fontSize: '0.9rem', fontWeight: '500' }}>
-                {order?.partnerId ? 'Assigned' : 'Not Assigned'}
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-              {order?.partnerId && (
-                <button 
-                  onClick={() => window.location.href = `/admin/delivery-partners/${order.partnerId._id}`}
-                  style={{
-                    backgroundColor: 'white',
-                    color: '#2563eb',
-                    border: '2px solid #2563eb',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '6px',
-                    fontSize: '0.9rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  View Partner Profile
-                </button>
-              )}
-            </div>
-          </div>
+          <AssignPartnerSection order={order} onAssigned={fetchOrderDetails} />
 
           {/* Hub Delivery Approval - HIDDEN */}
           {/* {order?.status === 'delivered_to_hub' && (
