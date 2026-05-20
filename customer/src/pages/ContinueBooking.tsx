@@ -34,7 +34,9 @@ const ContinueBooking = () => {
   const [realItemData, setRealItemData] = useState<any[]>([]);
   const [loading, setLoading] = useState(isFromCart);
   const [additionalNotes, setAdditionalNotes] = useState('');
-  
+  const [expressDelivery, setExpressDelivery] = useState(false);
+  const [expressDeliveryPrice, setExpressDeliveryPrice] = useState(0);
+
   // Use real item data if fetched, otherwise use original data
   const items = realItemData.length > 0 ? realItemData : (isFromCart ? orderData.cartItems : (orderData.items || []));
   const totalAmount = realItemData.length > 0 
@@ -46,14 +48,16 @@ const ContinueBooking = () => {
     : '3 Shirts, 1 Bedsheet';
   const dueAmount = customerInfo?.dueAmount || 0;
   const walletBalance = customerInfo?.walletBalance || 0;
-  const amountAfterDiscount = totalAmount - discount + dueAmount;
+  const expressDeliveryFee = expressDelivery ? expressDeliveryPrice : 0;
+  const amountAfterDiscount = totalAmount - discount + dueAmount + expressDeliveryFee;
   const walletUsed = Math.min(walletBalance, amountAfterDiscount);
   const finalAmount = Math.max(0, amountAfterDiscount - walletUsed);
   
   useEffect(() => {
     fetchCustomerInfo();
     fetchPastOrders();
-    
+    fetchExpressPrice();
+
     // If coming from cart, fetch real item data from API
     if (isFromCart && orderData.cartItems) {
       fetchRealItemData();
@@ -97,6 +101,18 @@ const ContinueBooking = () => {
     }
   };
   
+  const fetchExpressPrice = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/order-charges`);
+      const data = await response.json();
+      if (data.success && data.data) {
+        setExpressDeliveryPrice(data.data.expressDeliveryPrice || 0);
+      }
+    } catch (error) {
+      console.error('Failed to fetch order charges:', error);
+    }
+  };
+
   const fetchCustomerInfo = async () => {
     try {
       const customerId = localStorage.getItem('customerId');
@@ -299,6 +315,36 @@ const ContinueBooking = () => {
           </div>
         </div>
 
+        {expressDeliveryPrice > 0 && (
+          <div>
+            <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Priority Express Delivery</h2>
+            <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(to right, #f59e0b, #ef4444)' }}>
+                    <span className="text-lg">⚡</span>
+                  </div>
+                  <div>
+                    <p className="font-bold text-black text-sm sm:text-base">Priority Express</p>
+                    <p className="text-xs text-gray-500">Delivery in 4–6 hours</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm sm:text-base" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>+₹{expressDeliveryPrice}</span>
+                  <button
+                    type="button"
+                    title={expressDelivery ? 'Disable express delivery' : 'Enable express delivery'}
+                    onClick={() => setExpressDelivery(!expressDelivery)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${expressDelivery ? 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0]' : 'bg-gray-300'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${expressDelivery ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div>
           <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Coupon Code</h2>
           <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg space-y-3 sm:space-y-4">
@@ -333,6 +379,12 @@ const ContinueBooking = () => {
                 <div className="flex justify-between text-green-600">
                   <span>Discount Added:</span>
                   <span>-₹{discount}</span>
+                </div>
+              )}
+              {expressDelivery && expressDeliveryFee > 0 && (
+                <div className="flex justify-between text-orange-600">
+                  <span>Express Delivery Fee:</span>
+                  <span>+₹{expressDeliveryFee}</span>
                 </div>
               )}
               {dueAmount > 0 && (
@@ -412,7 +464,9 @@ const ContinueBooking = () => {
                   paymentStatus: 'paid',
                   walletUsed: walletUsed,
                   appliedVoucherCode: appliedVoucher?.code || null,
-                  specialInstructions: additionalNotes.trim() || null
+                  specialInstructions: additionalNotes.trim() || null,
+                  expressDelivery: expressDelivery,
+                  expressDeliveryFee: expressDeliveryFee
                 };
                 
                 const response = await fetch(`${API_URL}/api/orders`, {
@@ -509,7 +563,9 @@ const ContinueBooking = () => {
                         razorpayPaymentId: response.razorpay_payment_id,
                         walletUsed: walletUsed,
                         appliedVoucherCode: appliedVoucher?.code || null,
-                        specialInstructions: additionalNotes.trim() || null
+                        specialInstructions: additionalNotes.trim() || null,
+                        expressDelivery: expressDelivery,
+                        expressDeliveryFee: expressDeliveryFee
                       };
                       
                       const placeOrderResponse = await fetch(`${API_URL}/api/orders`, {

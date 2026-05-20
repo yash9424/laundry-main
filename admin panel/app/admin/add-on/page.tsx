@@ -57,7 +57,8 @@ export default function AddOnPage() {
     customerUnavailable: 150,
     incorrectAddress: 150,
     refusalToAccept: 150,
-    cancellationPolicyText: ''
+    cancellationPolicyText: '',
+    expressDeliveryPrice: 0
   })
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' })
 
@@ -1501,6 +1502,32 @@ export default function AddOnPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Express / Priority Delivery */}
+          <div style={{ backgroundColor: '#eff6ff', padding: '1.5rem', borderRadius: '12px', border: '2px solid #3b82f6', marginTop: '1.5rem' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#1d4ed8', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>⚡ Priority / Express Delivery (4–6 hours)</h4>
+            <p style={{ fontSize: '0.8rem', color: '#1e40af', marginBottom: '0.75rem' }}>Set extra charge per order for express delivery. Set 0 to disable this option for users.</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <span style={{ fontWeight: '600', color: '#1d4ed8', fontSize: '1.1rem' }}>₹</span>
+              <input
+                type="number"
+                min="0"
+                aria-label="Express Delivery Price"
+                value={charges.expressDeliveryPrice}
+                onChange={(e) => setCharges({ ...charges, expressDeliveryPrice: Number(e.target.value) })}
+                style={{ padding: '0.75rem', border: '2px solid #3b82f6', borderRadius: '8px', fontSize: '0.9rem', width: '150px' }}
+              />
+              <span style={{ color: '#1e40af', fontSize: '0.9rem' }}>per order</span>
+            </div>
+            {charges.expressDeliveryPrice > 0 && (
+              <p style={{ fontSize: '0.8rem', color: '#1d4ed8', marginTop: '0.5rem', fontWeight: '500' }}>
+                ✅ Users will see "Priority Express (4–6 hrs) +₹{charges.expressDeliveryPrice}" option at checkout
+              </p>
+            )}
+            {charges.expressDeliveryPrice === 0 && (
+              <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem' }}>Express option is currently hidden from users</p>
+            )}
           </div>
 
           {/* Full Cancellation Policy Text */}

@@ -6,6 +6,7 @@ const OrderChargesSchema = new mongoose.Schema({
   incorrectAddress: { type: Number, default: 150 },
   refusalToAccept: { type: Number, default: 150 },
   cancellationPolicyText: { type: String, default: '' },
+  expressDeliveryPrice: { type: Number, default: 0 },
   updatedAt: { type: Date, default: Date.now }
 })
 
