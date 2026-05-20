@@ -56,7 +56,8 @@ export default function AddOnPage() {
     cancellationPercentage: 20,
     customerUnavailable: 150,
     incorrectAddress: 150,
-    refusalToAccept: 150
+    refusalToAccept: 150,
+    cancellationTermsNote: ''
   })
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' })
 
@@ -1500,6 +1501,19 @@ export default function AddOnPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Cancellation Terms Note */}
+          <div style={{ backgroundColor: '#f0fdf4', padding: '1.5rem', borderRadius: '12px', border: '2px solid #22c55e', marginTop: '1.5rem' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#15803d', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>📝 Cancellation Fee Terms Note</h4>
+            <p style={{ fontSize: '0.8rem', color: '#166534', marginBottom: '0.75rem' }}>This note will appear in the "View Cancellation Policy" section on the user app.</p>
+            <textarea
+              value={charges.cancellationTermsNote}
+              onChange={(e) => setCharges({ ...charges, cancellationTermsNote: e.target.value })}
+              placeholder="e.g. Cancellation fees apply once a pickup partner has been assigned. Refunds (if applicable) will be processed within 5-7 working days."
+              rows={4}
+              style={{ width: '100%', padding: '0.75rem', border: '1px solid #22c55e', borderRadius: '8px', fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit' }}
+            />
           </div>
 
           <button
