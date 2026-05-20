@@ -13,7 +13,7 @@ const BookingConfirmation = () => {
   const [showCancellationModal, setShowCancellationModal] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | 'warning' }>({ show: false, message: '', type: 'success' });
-  const [charges, setCharges] = useState({ cancellationPercentage: 20, customerUnavailable: 150, incorrectAddress: 150, refusalToAccept: 150, cancellationTermsNote: '' });
+  const [charges, setCharges] = useState({ cancellationPercentage: 20, customerUnavailable: 150, incorrectAddress: 150, refusalToAccept: 150, cancellationPolicyText: '' });
   
   const orderId = orderData.orderId || 12345;
   const items = orderData.items || '3 Shirts, 1 Bedsheet';
@@ -142,34 +142,12 @@ const BookingConfirmation = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="overflow-y-auto p-4 sm:p-6 text-xs sm:text-sm space-y-4">
-              <section>
-                <h3 className="font-bold mb-2">1. Order Cancellation Before Pickup Assignment</h3>
-                <p>If a customer cancels the order before a pickup executive has been assigned, <strong>No cancellation Fee</strong> of the total invoice amount will be charged.</p>
-              </section>
-
-              <section>
-                <h3 className="font-bold mb-2">2. Order Cancellation After Pickup Assignment</h3>
-                <p>Once a pickup executive has been assigned, and the customer cancels the order thereafter, a <strong>{cancellationPercentage}% cancellation fee</strong> of the total invoice amount will be charged.</p>
-                <p className="mt-2 text-blue-600 font-semibold">Example: For an order of ₹{total}, the cancellation charge would be ₹{Math.round((total * cancellationPercentage) / 100)}</p>
-              </section>
-
-              <section>
-                <h3 className="font-bold mb-2">3. Delivery Attempts</h3>
-                <p className="mb-2">Urban Steam will make two (2) delivery attempts — one physical attempt and one attempt via phone call — to deliver the order to the customer.</p>
-                <p className="mb-2">If both delivery attempts fail, the customer will be charged additional delivery fees as follows:</p>
-                <ul className="list-disc pl-6 space-y-1">
-                  <li><strong>Customer Unavailable:</strong> ₹{charges.customerUnavailable}</li>
-                  <li><strong>Incorrect Address:</strong> ₹{charges.incorrectAddress}</li>
-                  <li><strong>Refusal to Accept:</strong> ₹{charges.refusalToAccept}</li>
-                </ul>
-              </section>
-              {charges.cancellationTermsNote ? (
-                <section>
-                  <h3 className="font-bold mb-2">4. Additional Note</h3>
-                  <p style={{ whiteSpace: 'pre-wrap' }}>{charges.cancellationTermsNote}</p>
-                </section>
-              ) : null}
+            <div className="overflow-y-auto p-4 sm:p-6 text-xs sm:text-sm">
+              {charges.cancellationPolicyText ? (
+                <p className="whitespace-pre-wrap leading-relaxed">{charges.cancellationPolicyText}</p>
+              ) : (
+                <p className="text-gray-500 text-center py-4">Cancellation policy not set. Please contact support.</p>
+              )}
             </div>
             <div className="p-4 border-t">
               <Button

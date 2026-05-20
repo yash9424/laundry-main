@@ -57,7 +57,7 @@ export default function AddOnPage() {
     customerUnavailable: 150,
     incorrectAddress: 150,
     refusalToAccept: 150,
-    cancellationTermsNote: ''
+    cancellationPolicyText: ''
   })
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' })
 
@@ -1503,15 +1503,15 @@ export default function AddOnPage() {
             </div>
           </div>
 
-          {/* Cancellation Terms Note */}
+          {/* Full Cancellation Policy Text */}
           <div style={{ backgroundColor: '#f0fdf4', padding: '1.5rem', borderRadius: '12px', border: '2px solid #22c55e', marginTop: '1.5rem' }}>
-            <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#15803d', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>📝 Cancellation Fee Terms Note</h4>
-            <p style={{ fontSize: '0.8rem', color: '#166534', marginBottom: '0.75rem' }}>This note will appear in the "View Cancellation Policy" section on the user app.</p>
+            <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#15803d', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>📝 Cancellation Policy Text (shown in user app)</h4>
+            <p style={{ fontSize: '0.8rem', color: '#166534', marginBottom: '0.75rem' }}>Whatever you type here will appear exactly in the "View Cancellation Policy" section in the customer app. Use line breaks to separate sections.</p>
             <textarea
-              value={charges.cancellationTermsNote}
-              onChange={(e) => setCharges({ ...charges, cancellationTermsNote: e.target.value })}
-              placeholder="e.g. Cancellation fees apply once a pickup partner has been assigned. Refunds (if applicable) will be processed within 5-7 working days."
-              rows={4}
+              value={charges.cancellationPolicyText}
+              onChange={(e) => setCharges({ ...charges, cancellationPolicyText: e.target.value })}
+              placeholder={`Example:\n1. No fee if cancelled before pickup partner is assigned.\n\n2. After pickup partner is assigned, a 20% cancellation fee applies.\n\n3. If delivery fails:\n- Customer Unavailable: ₹150\n- Incorrect Address: ₹150\n- Refusal to Accept: ₹150`}
+              rows={10}
               style={{ width: '100%', padding: '0.75rem', border: '1px solid #22c55e', borderRadius: '8px', fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit' }}
             />
           </div>

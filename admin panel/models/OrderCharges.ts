@@ -5,7 +5,7 @@ const OrderChargesSchema = new mongoose.Schema({
   customerUnavailable: { type: Number, default: 150 },
   incorrectAddress: { type: Number, default: 150 },
   refusalToAccept: { type: Number, default: 150 },
-  cancellationTermsNote: { type: String, default: '' },
+  cancellationPolicyText: { type: String, default: '' },
   updatedAt: { type: Date, default: Date.now }
 })
 
