@@ -55,7 +55,7 @@ const Prices = () => {
       const response = await fetch(`${API_URL}/api/pricing/categories`);
       const data = await response.json();
       if (data.success) {
-        setCategories(data.data.map((cat: any) => cat.name));
+        setCategories(data.data);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -161,7 +161,7 @@ const Prices = () => {
                 >
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-2 sm:mb-3 shadow-md overflow-hidden" style={{ background: cat.image ? 'transparent' : 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
                     {cat.image
-                      ? <img src={cat.image} alt={cat.name} className="w-full h-full object-cover rounded-full" />
+                      ? <img src={cat.image.startsWith('http') ? cat.image : `${API_URL}${cat.image}`} alt={cat.name} className="w-full h-full object-cover rounded-full" />
                       : <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     }
                   </div>
@@ -206,7 +206,7 @@ const Prices = () => {
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md overflow-hidden" style={{ background: item.image ? 'transparent' : 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
                         {item.image
-                          ? <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-full" />
+                          ? <img src={item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`} alt={item.name} className="w-full h-full object-cover rounded-full" />
                           : <Shirt className="w-5 h-5 text-white" />
                         }
                       </div>
