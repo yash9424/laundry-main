@@ -484,7 +484,10 @@ export default function OrdersPage() {
                     style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                   />
                 </div>
-                <div style={{ fontWeight: '500' }} onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.id}</div>
+                <div style={{ fontWeight: '500' }} onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>
+                  {order.id}
+                  {dbOrder.expressDelivery && <span style={{ marginLeft: '4px', fontSize: '0.7rem', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: '700' }}>⚡ Express</span>}
+                </div>
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.customer}</div>
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.mobile}</div>
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.items}</div>

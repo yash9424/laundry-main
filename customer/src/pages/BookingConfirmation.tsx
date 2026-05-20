@@ -85,6 +85,12 @@ const BookingConfirmation = () => {
                 <span className="font-semibold text-green-600 text-sm sm:text-base">-₹{orderData.discount}</span>
               </div>
             )}
+            {orderData.expressDelivery && orderData.expressDeliveryFee > 0 && (
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-muted-foreground text-sm sm:text-base">⚡ Express Delivery:</span>
+                <span className="font-semibold text-orange-600 text-sm sm:text-base">+₹{orderData.expressDeliveryFee}</span>
+              </div>
+            )}
             <div className="flex justify-between items-start gap-3">
               <span className="text-muted-foreground text-sm sm:text-base">Payment Method:</span>
               <span className="font-semibold text-sm sm:text-base">{orderData.customerInfo?.paymentMethods?.find((pm: { isPrimary?: boolean; type?: string }) => pm.isPrimary)?.type || 'Cash on Delivery'}</span>

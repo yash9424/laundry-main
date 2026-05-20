@@ -497,7 +497,9 @@ const ContinueBooking = () => {
                       pickupType: orderData.pickupType,
                       selectedSlot: orderData.selectedSlot,
                       address: orderData.address,
-                      paymentStatus: 'Paid'
+                      paymentStatus: 'Paid',
+                      expressDelivery: expressDelivery,
+                      expressDeliveryFee: expressDeliveryFee
                     }
                   });
                 } else {
@@ -505,7 +507,7 @@ const ContinueBooking = () => {
                 }
                 return;
               }
-              
+
               // For online payment methods (UPI, Card, Bank Transfer), use Razorpay
               const orderResponse = await fetch(`${API_URL}/api/razorpay/create-order`, {
                 method: 'POST',
@@ -596,7 +598,9 @@ const ContinueBooking = () => {
                             pickupType: orderData.pickupType,
                             selectedSlot: orderData.selectedSlot,
                             address: orderData.address,
-                            paymentStatus: 'Paid'
+                            paymentStatus: 'Paid',
+                            expressDelivery: expressDelivery,
+                            expressDeliveryFee: expressDeliveryFee
                           }
                         });
                       } else {

@@ -53,6 +53,7 @@ interface Pickup {
     timeSlot: string;
   };
   status: string;
+  expressDelivery?: boolean;
 }
 
 export default function Pickups() {
@@ -311,7 +312,10 @@ export default function Pickups() {
                     📅 {formatDisplayDate(p.pickupSlot?.date)} | 🕐 {p.pickupSlot?.timeSlot || 'Time not set'}
                   </p>
                 </div>
-                <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">#{p.orderId}</span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">#{p.orderId}</span>
+                  {p.expressDelivery && <span className="text-xs font-bold px-2 py-0.5 rounded-lg" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>⚡ Express</span>}
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <a href={'tel:' + p.customerId?.mobile} className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border-2 py-2.5 text-sm font-bold btn-press" style={{ borderColor: '#452D9B', color: '#452D9B' }}>
