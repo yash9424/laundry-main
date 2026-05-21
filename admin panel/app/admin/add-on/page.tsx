@@ -60,6 +60,8 @@ export default function AddOnPage() {
     refusalToAccept: 150,
     cancellationPolicyText: '',
     expressDeliveryPrice: 0,
+    expressDeliveryLabel: '',
+    expressDeliveryDescription: '',
     todaySlotsEnabled: true,
     tomorrowSlotsEnabled: true,
   })
@@ -1509,6 +1511,16 @@ export default function AddOnPage() {
           <div style={{ backgroundColor: '#eff6ff', padding: '1.5rem', borderRadius: '12px', border: '2px solid #3b82f6', marginTop: '1.5rem' }}>
             <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#1d4ed8', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>⚡ Priority / Express Delivery (4–6 hours)</h4>
             <p style={{ fontSize: '0.8rem', color: '#1e40af', marginBottom: '0.75rem' }}>Set extra charge per order for express delivery. Set 0 to disable this option for users.</p>
+            <div style={{ marginBottom: '0.75rem' }}>
+              <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#1d4ed8', marginBottom: '0.4rem' }}>Toggle Label (shown next to the switch in customer app)</label>
+              <input
+                type="text"
+                placeholder="e.g. Priority / Express Delivery (4–6 hours)"
+                value={(charges as any).expressDeliveryLabel || ''}
+                onChange={(e) => setCharges({ ...charges, expressDeliveryLabel: e.target.value } as any)}
+                style={{ width: '100%', padding: '0.75rem', border: '2px solid #3b82f6', borderRadius: '8px', fontSize: '0.9rem' }}
+              />
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <span style={{ fontWeight: '600', color: '#1d4ed8', fontSize: '1.1rem' }}>₹</span>
               <input
@@ -1529,6 +1541,16 @@ export default function AddOnPage() {
             {charges.expressDeliveryPrice === 0 && (
               <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem' }}>Express option is currently hidden from users</p>
             )}
+            <div style={{ marginTop: '1rem' }}>
+              <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#1d4ed8', marginBottom: '0.4rem' }}>ℹ️ Info Popup Text (shown when user taps the info icon)</label>
+              <textarea
+                value={charges.expressDeliveryDescription}
+                onChange={(e) => setCharges({ ...charges, expressDeliveryDescription: e.target.value })}
+                placeholder={`e.g. Your clothes will be picked up and delivered within 4–6 hours. Available for select areas only. Extra charges apply.`}
+                rows={3}
+                style={{ width: '100%', padding: '0.75rem', border: '1px solid #3b82f6', borderRadius: '8px', fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit' }}
+              />
+            </div>
           </div>
 
           {/* Full Cancellation Policy Text */}

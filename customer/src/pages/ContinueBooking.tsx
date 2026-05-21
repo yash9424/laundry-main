@@ -36,6 +36,9 @@ const ContinueBooking = () => {
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [expressDelivery, setExpressDelivery] = useState(false);
   const [expressDeliveryPrice, setExpressDeliveryPrice] = useState(0);
+  const [expressDeliveryLabel, setExpressDeliveryLabel] = useState('');
+  const [expressDeliveryDescription, setExpressDeliveryDescription] = useState('');
+  const [showExpressInfo, setShowExpressInfo] = useState(false);
 
   // Use real item data if fetched, otherwise use original data
   const items = realItemData.length > 0 ? realItemData : (isFromCart ? orderData.cartItems : (orderData.items || []));
@@ -107,6 +110,8 @@ const ContinueBooking = () => {
       const data = await response.json();
       if (data.success && data.data) {
         setExpressDeliveryPrice(data.data.expressDeliveryPrice || 0);
+        setExpressDeliveryLabel(data.data.expressDeliveryLabel || '');
+        setExpressDeliveryDescription(data.data.expressDeliveryDescription || '');
       }
     } catch (error) {
       console.error('Failed to fetch order charges:', error);
@@ -317,7 +322,7 @@ const ContinueBooking = () => {
 
         {expressDeliveryPrice > 0 && (
           <div>
-            <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Priority Express Delivery</h2>
+            <h2 className="text-base sm:text-lg font-bold mb-3 text-black">{expressDeliveryLabel || 'Priority Express Delivery'}</h2>
             <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -325,8 +330,17 @@ const ContinueBooking = () => {
                     <span className="text-lg">⚡</span>
                   </div>
                   <div>
-                    <p className="font-bold text-black text-sm sm:text-base">Priority Express</p>
-                    <p className="text-xs text-gray-500">Delivery in 4–6 hours</p>
+                    <div className="flex items-center gap-1">
+                      <p className="font-bold text-black text-sm sm:text-base">{expressDeliveryLabel || 'Priority Express'}</p>
+                      {expressDeliveryDescription && (
+                        <button
+                          type="button"
+                          onClick={() => setShowExpressInfo(true)}
+                          className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', color: 'white', fontSize: '0.65rem', fontWeight: '800', border: 'none', cursor: 'pointer' }}
+                        >i</button>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -719,6 +733,37 @@ const ContinueBooking = () => {
                 </Button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Express Delivery Info Popup */}
+      {showExpressInfo && (
+        <div
+          onClick={() => setShowExpressInfo(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-end' }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: 'white', width: '100%', borderRadius: '24px 24px 0 0', padding: '1.5rem', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
+          >
+            <div style={{ width: 40, height: 4, background: '#e2e8f0', borderRadius: 2, margin: '0 auto 1.25rem' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div style={{ width: 42, height: 42, borderRadius: '12px', background: 'linear-gradient(to right, #f59e0b, #ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0 }}>⚡</div>
+              <div>
+                <p style={{ fontWeight: '800', fontSize: '1rem', color: '#1e293b', margin: 0 }}>{expressDeliveryLabel || 'Priority Express Delivery'}</p>
+                <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0 }}>+₹{expressDeliveryPrice} per order</p>
+              </div>
+            </div>
+            <p style={{ color: '#475569', fontSize: '0.9rem', lineHeight: '1.6', whiteSpace: 'pre-line', marginBottom: '1.25rem' }}>
+              {expressDeliveryDescription || 'Your clothes will be picked up and delivered within 4–6 hours.'}
+            </p>
+            <button
+              onClick={() => setShowExpressInfo(false)}
+              style={{ width: '100%', padding: '0.85rem', background: 'linear-gradient(to right, #452D9B, #07C8D0)', color: 'white', border: 'none', borderRadius: '14px', fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer' }}
+            >
+              Got it
+            </button>
           </div>
         </div>
       )}

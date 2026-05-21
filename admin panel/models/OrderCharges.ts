@@ -7,6 +7,8 @@ const OrderChargesSchema = new mongoose.Schema({
   refusalToAccept: { type: Number, default: 150 },
   cancellationPolicyText: { type: String, default: '' },
   expressDeliveryPrice: { type: Number, default: 0 },
+  expressDeliveryLabel: { type: String, default: '' },
+  expressDeliveryDescription: { type: String, default: '' },
   todaySlotsEnabled: { type: Boolean, default: true },
   tomorrowSlotsEnabled: { type: Boolean, default: true },
   updatedAt: { type: Date, default: Date.now }
