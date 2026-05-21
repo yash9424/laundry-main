@@ -3,12 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/config/api";
 import Header from "@/components/Header";
 import BottomNavigation from "@/components/BottomNavigation";
+import { generateSubscriptionInvoice } from "@/utils/generateSubscriptionInvoice";
 
 const MySubscription = () => {
   const navigate = useNavigate();
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [receipt, setReceipt] = useState<any | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const customerName = localStorage.getItem("userName") || "Customer";
+  const customerMobile = localStorage.getItem("userMobile") || "";
 
   useEffect(() => {
     fetchSubscriptions();
@@ -113,9 +117,22 @@ const MySubscription = () => {
               ))}
             </div>
 
-            <button onClick={() => setReceipt(null)} style={{ width: "100%", padding: "0.75rem", background: "linear-gradient(to right, #452D9B, #07C8D0)", color: "white", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer" }}>
-              Close
-            </button>
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <button
+                onClick={async () => {
+                  setDownloading(true);
+                  await generateSubscriptionInvoice(receipt, customerName, customerMobile);
+                  setDownloading(false);
+                }}
+                disabled={downloading}
+                style={{ flex: 1, padding: "0.75rem", background: downloading ? "#9ca3af" : "linear-gradient(to right, #452D9B, #07C8D0)", color: "white", border: "none", borderRadius: "12px", fontWeight: "700", cursor: downloading ? "not-allowed" : "pointer", fontSize: "0.9rem" }}
+              >
+                {downloading ? "Generating..." : "⬇ Download PDF"}
+              </button>
+              <button onClick={() => setReceipt(null)} style={{ flex: 1, padding: "0.75rem", background: "white", color: "#452D9B", border: "2px solid #452D9B", borderRadius: "12px", fontWeight: "700", cursor: "pointer", fontSize: "0.9rem" }}>
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
