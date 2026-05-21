@@ -38,6 +38,7 @@ const Booking = () => {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [showSlotError, setShowSlotError] = useState(false);
+  const [daySettings, setDaySettings] = useState({ todaySlotsEnabled: true, tomorrowSlotsEnabled: true });
   const [customerAddress, setCustomerAddress] = useState<Address | null>(() => {
     const cached = localStorage.getItem('cachedBookingAddress');
     if (cached) {
@@ -62,8 +63,9 @@ const Booking = () => {
   
   useEffect(() => {
     fetchPricingItems();
-    fetchTimeSlots();
+    fetchTimeSlots('now');
     fetchCustomerAddress();
+    fetchDaySettings();
     
     // Handle hardware back button
     const handleBackButton = () => {
@@ -77,7 +79,11 @@ const Booking = () => {
       App.removeAllListeners();
     };
   }, [navigate]);
-  
+
+  useEffect(() => {
+    fetchTimeSlots(pickupType);
+  }, [pickupType]);
+
   const fetchPricingItems = async () => {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 2000)
@@ -114,16 +120,31 @@ const Booking = () => {
     }
   };
   
-  const fetchTimeSlots = async () => {
+  const fetchDaySettings = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/time-slots`);
+      const res = await fetch(`${API_URL}/api/order-charges`);
+      const data = await res.json();
+      if (data.success) {
+        setDaySettings({
+          todaySlotsEnabled: data.data.todaySlotsEnabled !== false,
+          tomorrowSlotsEnabled: data.data.tomorrowSlotsEnabled !== false,
+        });
+      }
+    } catch {}
+  };
+
+  const fetchTimeSlots = async (day: 'now' | 'later') => {
+    try {
+      const dayParam = day === 'now' ? 'today' : 'tomorrow';
+      const response = await fetch(`${API_URL}/api/time-slots?day=${dayParam}`);
       const data = await response.json();
       if (data.success) {
         setTimeSlots(data.data);
-        // Set first available slot as default
         const availableSlots = getAvailableSlots(data.data);
         if (availableSlots.length > 0) {
           setSelectedSlot(availableSlots[0].time);
+        } else {
+          setSelectedSlot('');
         }
       }
     } catch (error) {
@@ -386,28 +407,39 @@ const Booking = () => {
           <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-black">
             {pickupType === "now" ? "Today's" : "Tomorrow's"} Pickup Slots
           </h2>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            {timeSlots.map((slot) => (
-              <Button
-                key={slot._id}
-                onClick={() => !(isSlotPassed(slot.time) && pickupType === 'now') && handleSlotSelection(slot.time)}
-                className={`h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base w-full ${
-                  isSlotPassed(slot.time) && pickupType === 'now'
-                    ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-not-allowed'
-                    : selectedSlot === slot.time
-                      ? 'text-white shadow-md'
-                      : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
-                }`}
-                style={selectedSlot === slot.time && !(isSlotPassed(slot.time) && pickupType === 'now') ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : {}}
-              >
-                {slot.time}
-              </Button>
-            ))}
-          </div>
-          {selectedSlot && (
-            <p className="text-xs sm:text-sm mt-2 sm:mt-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-              Selected: {pickupType === "now" ? "Today" : "Tomorrow"}, {selectedSlot}
-            </p>
+          {((pickupType === 'now' && !daySettings.todaySlotsEnabled) || (pickupType === 'later' && !daySettings.tomorrowSlotsEnabled)) ? (
+            <div className="rounded-2xl bg-orange-50 border border-orange-200 p-4 text-center">
+              <p className="text-orange-600 font-semibold text-sm">
+                {pickupType === 'now' ? 'Today' : 'Tomorrow'} pickup is currently unavailable.
+              </p>
+              <p className="text-orange-500 text-xs mt-1">Please select the other day or try again later.</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                {timeSlots.map((slot) => (
+                  <Button
+                    key={slot._id}
+                    onClick={() => !(isSlotPassed(slot.time) && pickupType === 'now') && handleSlotSelection(slot.time)}
+                    className={`h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base w-full ${
+                      isSlotPassed(slot.time) && pickupType === 'now'
+                        ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-not-allowed'
+                        : selectedSlot === slot.time
+                          ? 'text-white shadow-md'
+                          : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
+                    }`}
+                    style={selectedSlot === slot.time && !(isSlotPassed(slot.time) && pickupType === 'now') ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : {}}
+                  >
+                    {slot.time}
+                  </Button>
+                ))}
+              </div>
+              {selectedSlot && (
+                <p className="text-xs sm:text-sm mt-2 sm:mt-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                  Selected: {pickupType === "now" ? "Today" : "Tomorrow"}, {selectedSlot}
+                </p>
+              )}
+            </>
           )}
         </div>
 

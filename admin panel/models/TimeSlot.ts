@@ -16,6 +16,11 @@ const TimeSlotSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  availableFor: {
+    type: String,
+    enum: ['today', 'tomorrow', 'both'],
+    default: 'both'
+  },
   order: {
     type: Number,
     default: 0

@@ -20,7 +20,8 @@ export default function AddOnPage() {
   const [slogan, setSlogan] = useState('')
   const [timeSlots, setTimeSlots] = useState<any[]>([])
   const [slotTime, setSlotTime] = useState('')
-  const [slotType, setSlotType] = useState('pickup')
+  const [slotType, setSlotType] = useState('both')
+  const [slotAvailableFor, setSlotAvailableFor] = useState('both')
   const [editingSlot, setEditingSlot] = useState<string | null>(null)
   const [draggedItem, setDraggedItem] = useState<any>(null)
   const [editingVoucher, setEditingVoucher] = useState<string | null>(null)
@@ -58,7 +59,9 @@ export default function AddOnPage() {
     incorrectAddress: 150,
     refusalToAccept: 150,
     cancellationPolicyText: '',
-    expressDeliveryPrice: 0
+    expressDeliveryPrice: 0,
+    todaySlotsEnabled: true,
+    tomorrowSlotsEnabled: true,
   })
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' })
 
@@ -478,7 +481,7 @@ export default function AddOnPage() {
 
   const fetchTimeSlots = async () => {
     try {
-      const response = await fetch('/api/time-slots')
+      const response = await fetch('/api/time-slots?admin=true')
       const data = await response.json()
       if (data.success) {
         setTimeSlots(data.data)
@@ -489,18 +492,19 @@ export default function AddOnPage() {
   }
 
   const addTimeSlot = async () => {
-    if (!slotTime || !slotType) return
-    
+    if (!slotTime) return
+
     try {
       const response = await fetch('/api/time-slots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ time: slotTime, type: slotType })
+        body: JSON.stringify({ time: slotTime, type: slotType, availableFor: slotAvailableFor })
       })
-      
+
       if (response.ok) {
         setSlotTime('')
-        setSlotType('pickup')
+        setSlotType('both')
+        setSlotAvailableFor('both')
         fetchTimeSlots()
       }
     } catch (error) {
@@ -510,15 +514,23 @@ export default function AddOnPage() {
 
   const removeTimeSlot = async (id: string) => {
     try {
-      const response = await fetch(`/api/time-slots?id=${id}`, {
-        method: 'DELETE'
-      })
-      
-      if (response.ok) {
-        fetchTimeSlots()
-      }
+      const response = await fetch(`/api/time-slots?id=${id}`, { method: 'DELETE' })
+      if (response.ok) fetchTimeSlots()
     } catch (error) {
       console.error('Error removing time slot:', error)
+    }
+  }
+
+  const toggleSlotActive = async (slot: any) => {
+    try {
+      await fetch(`/api/time-slots?id=${slot._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !slot.isActive })
+      })
+      fetchTimeSlots()
+    } catch (error) {
+      console.error('Error toggling slot:', error)
     }
   }
 
@@ -526,21 +538,23 @@ export default function AddOnPage() {
     setEditingSlot(slot._id)
     setSlotTime(slot.time)
     setSlotType(slot.type)
+    setSlotAvailableFor(slot.availableFor || 'both')
   }
 
   const updateTimeSlot = async () => {
-    if (!slotTime || !slotType || !editingSlot) return
-    
+    if (!slotTime || !editingSlot) return
+
     try {
       const response = await fetch(`/api/time-slots?id=${editingSlot}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ time: slotTime, type: slotType })
+        body: JSON.stringify({ time: slotTime, type: slotType, availableFor: slotAvailableFor })
       })
-      
+
       if (response.ok) {
         setSlotTime('')
-        setSlotType('pickup')
+        setSlotType('both')
+        setSlotAvailableFor('both')
         setEditingSlot(null)
         fetchTimeSlots()
       }
@@ -552,7 +566,21 @@ export default function AddOnPage() {
   const cancelEdit = () => {
     setEditingSlot(null)
     setSlotTime('')
-    setSlotType('pickup')
+    setSlotType('both')
+    setSlotAvailableFor('both')
+  }
+
+  const saveDaySettings = async (todayEnabled: boolean, tomorrowEnabled: boolean) => {
+    try {
+      await fetch('/api/order-charges', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...charges, todaySlotsEnabled: todayEnabled, tomorrowSlotsEnabled: tomorrowEnabled })
+      })
+      setCharges(prev => ({ ...prev, todaySlotsEnabled: todayEnabled, tomorrowSlotsEnabled: tomorrowEnabled }))
+    } catch (error) {
+      console.error('Error saving day settings:', error)
+    }
   }
 
   const handleDragStart = (e: any, slot: any) => {
@@ -1034,143 +1062,116 @@ export default function AddOnPage() {
         {/* Time Slot Management Section */}
         {activeSection === 'TimeSlot' && (
         <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', margin: '0 0 1rem 0' }}>Time Slot Management</h3>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
-            <input 
-              type="text" 
-              placeholder="Time Slot (e.g., 9-11 AM)"
-              value={slotTime}
-              onChange={(e) => setSlotTime(e.target.value)}
-              style={{ padding: '0.75rem', backgroundColor: '#f0f9ff', border: '1px solid #0ea5e9', borderRadius: '12px', outline: 'none', fontSize: '0.9rem' }}
-            />
-            <select 
-              aria-label="Select Slot Type"
-              value={slotType}
-              onChange={(e) => setSlotType(e.target.value)}
-              style={{ padding: '0.75rem', backgroundColor: '#f0f9ff', border: '1px solid #0ea5e9', borderRadius: '12px', outline: 'none', fontSize: '0.9rem' }}
-            >
-              <option value="pickup">Pickup Slot</option>
-              <option value="delivery">Delivery Slot</option>
-              <option value="both">Both</option>
-            </select>
-            {editingSlot ? (
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button 
-                  onClick={updateTimeSlot}
-                  disabled={!slotTime || !slotType}
-                  style={{ 
-                    padding: '0.75rem', 
-                    backgroundColor: slotTime && slotType ? '#10b981' : '#9ca3af', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '12px', 
-                    fontSize: '0.9rem', 
-                    fontWeight: '500',
-                    cursor: slotTime && slotType ? 'pointer' : 'not-allowed',
-                    flex: 1
-                  }}
-                >
-                  Update
-                </button>
-                <button 
-                  onClick={cancelEdit}
-                  style={{ 
-                    padding: '0.75rem', 
-                    backgroundColor: '#6b7280', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '12px', 
-                    fontSize: '0.9rem', 
-                    fontWeight: '500',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Cancel
-                </button>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.25rem', margin: '0 0 0.25rem 0' }}>Time Slot Management</h3>
+          <p style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '1.25rem' }}>Manage pickup/delivery time slots for customers. Control availability per day.</p>
+
+          {/* Master day toggles */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ backgroundColor: charges.todaySlotsEnabled ? '#f0fdf4' : '#fef2f2', border: `2px solid ${charges.todaySlotsEnabled ? '#22c55e' : '#ef4444'}`, borderRadius: '12px', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <p style={{ fontWeight: '700', fontSize: '1rem', color: '#1f2937', margin: 0 }}>📅 Today Slots</p>
+                <p style={{ fontSize: '0.78rem', color: '#6b7280', margin: '0.2rem 0 0 0' }}>{charges.todaySlotsEnabled ? 'Customers can book for today' : 'Today booking disabled'}</p>
               </div>
-            ) : (
-              <button 
-                onClick={addTimeSlot}
-                disabled={!slotTime || !slotType}
-                style={{ 
-                  padding: '0.75rem', 
-                  backgroundColor: slotTime && slotType ? '#2563eb' : '#9ca3af', 
-                  color: 'white', 
-                  border: 'none', 
-                  borderRadius: '12px', 
-                  fontSize: '0.9rem', 
-                  fontWeight: '500',
-                  cursor: slotTime && slotType ? 'pointer' : 'not-allowed'
-                }}
+              <button
+                onClick={() => saveDaySettings(!charges.todaySlotsEnabled, charges.tomorrowSlotsEnabled)}
+                style={{ padding: '0.4rem 1rem', backgroundColor: charges.todaySlotsEnabled ? '#22c55e' : '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer' }}
               >
-                Add Time Slot
+                {charges.todaySlotsEnabled ? 'ON' : 'OFF'}
               </button>
-            )}
+            </div>
+            <div style={{ backgroundColor: charges.tomorrowSlotsEnabled ? '#f0fdf4' : '#fef2f2', border: `2px solid ${charges.tomorrowSlotsEnabled ? '#22c55e' : '#ef4444'}`, borderRadius: '12px', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <p style={{ fontWeight: '700', fontSize: '1rem', color: '#1f2937', margin: 0 }}>📆 Tomorrow Slots</p>
+                <p style={{ fontSize: '0.78rem', color: '#6b7280', margin: '0.2rem 0 0 0' }}>{charges.tomorrowSlotsEnabled ? 'Customers can book for tomorrow' : 'Tomorrow booking disabled'}</p>
+              </div>
+              <button
+                onClick={() => saveDaySettings(charges.todaySlotsEnabled, !charges.tomorrowSlotsEnabled)}
+                style={{ padding: '0.4rem 1rem', backgroundColor: charges.tomorrowSlotsEnabled ? '#22c55e' : '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer' }}
+              >
+                {charges.tomorrowSlotsEnabled ? 'ON' : 'OFF'}
+              </button>
+            </div>
           </div>
-          
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '0.5rem' }}>
-            {timeSlots.length === 0 ? (
-              <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>No time slots created yet</p>
-            ) : (
-              timeSlots.map((slot: any) => (
-                <div 
-                  key={slot._id} 
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, slot)}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, slot)}
-                  style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    padding: '0.75rem', 
-                    backgroundColor: editingSlot === slot._id ? '#dbeafe' : '#f8fafc', 
-                    borderRadius: '6px', 
-                    marginBottom: '0.5rem',
-                    cursor: 'move',
-                    border: editingSlot === slot._id ? '2px solid #2563eb' : '1px solid #e5e7eb'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '1.2rem', color: '#6b7280' }}>⋮⋮</span>
-                    <span style={{ fontSize: '0.9rem' }}>
-                      {slot.time} - {slot.type.charAt(0).toUpperCase() + slot.type.slice(1)}
-                    </span>
+
+          {/* Add / Edit slot form */}
+          <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem' }}>
+            <p style={{ fontWeight: '600', fontSize: '0.9rem', color: '#374151', marginBottom: '0.75rem' }}>{editingSlot ? '✏️ Edit Slot' : '➕ Add New Slot'}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+              <input
+                type="text"
+                placeholder="Time (e.g. 9 AM - 11 AM)"
+                value={slotTime}
+                onChange={(e) => setSlotTime(e.target.value)}
+                style={{ padding: '0.6rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontSize: '0.9rem' }}
+              />
+              <select
+                aria-label="Available For"
+                value={slotAvailableFor}
+                onChange={(e) => setSlotAvailableFor(e.target.value)}
+                style={{ padding: '0.6rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontSize: '0.9rem' }}
+              >
+                <option value="both">Today & Tomorrow</option>
+                <option value="today">Today Only</option>
+                <option value="tomorrow">Tomorrow Only</option>
+              </select>
+              <select
+                aria-label="Slot Type"
+                value={slotType}
+                onChange={(e) => setSlotType(e.target.value)}
+                style={{ padding: '0.6rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontSize: '0.9rem' }}
+              >
+                <option value="both">Pickup & Delivery</option>
+                <option value="pickup">Pickup Only</option>
+                <option value="delivery">Delivery Only</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {editingSlot ? (
+                <>
+                  <button onClick={updateTimeSlot} disabled={!slotTime} style={{ flex: 1, padding: '0.6rem', backgroundColor: slotTime ? '#10b981' : '#9ca3af', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '0.9rem', cursor: slotTime ? 'pointer' : 'not-allowed' }}>Update Slot</button>
+                  <button onClick={cancelEdit} style={{ padding: '0.6rem 1rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '0.9rem', cursor: 'pointer' }}>Cancel</button>
+                </>
+              ) : (
+                <button onClick={addTimeSlot} disabled={!slotTime} style={{ flex: 1, padding: '0.6rem', backgroundColor: slotTime ? '#2563eb' : '#9ca3af', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '0.9rem', cursor: slotTime ? 'pointer' : 'not-allowed' }}>Add Slot</button>
+              )}
+            </div>
+          </div>
+
+          {/* Today / Tomorrow slot panels */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            {(['today', 'tomorrow'] as const).map((day) => {
+              const daySlots = timeSlots.filter((s: any) => s.availableFor === day || s.availableFor === 'both')
+              const dayEnabled = day === 'today' ? charges.todaySlotsEnabled : charges.tomorrowSlotsEnabled
+              return (
+                <div key={day} style={{ border: `1px solid ${dayEnabled ? '#e2e8f0' : '#fecaca'}`, borderRadius: '10px', overflow: 'hidden' }}>
+                  <div style={{ padding: '0.6rem 0.9rem', backgroundColor: dayEnabled ? '#f1f5f9' : '#fee2e2', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: '700', fontSize: '0.9rem', color: '#1f2937' }}>{day === 'today' ? '📅 Today' : '📆 Tomorrow'} <span style={{ fontWeight: '400', color: '#6b7280' }}>({daySlots.length} slots)</span></span>
+                    {!dayEnabled && <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: '600' }}>DISABLED</span>}
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button 
-                      onClick={() => editTimeSlot(slot)}
-                      style={{ 
-                        padding: '0.25rem 0.5rem', 
-                        backgroundColor: '#3b82f6', 
-                        color: 'white', 
-                        border: 'none', 
-                        borderRadius: '4px', 
-                        fontSize: '0.8rem',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      onClick={() => removeTimeSlot(slot._id)}
-                      style={{ 
-                        padding: '0.25rem 0.5rem', 
-                        backgroundColor: '#ef4444', 
-                        color: 'white', 
-                        border: 'none', 
-                        borderRadius: '4px', 
-                        fontSize: '0.8rem',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Remove
-                    </button>
+                  <div style={{ padding: '0.5rem', maxHeight: '280px', overflowY: 'auto' }}>
+                    {daySlots.length === 0 ? (
+                      <p style={{ textAlign: 'center', color: '#9ca3af', padding: '1.5rem 0', fontSize: '0.85rem' }}>No slots for {day}</p>
+                    ) : (
+                      daySlots.map((slot: any) => (
+                        <div key={slot._id + '-' + day} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.6rem', backgroundColor: slot.isActive ? 'white' : '#f9fafb', borderRadius: '6px', marginBottom: '0.4rem', border: `1px solid ${slot.isActive ? '#e2e8f0' : '#fecaca'}`, opacity: slot.isActive ? 1 : 0.7 }}>
+                          <div>
+                            <span style={{ fontWeight: '600', fontSize: '0.875rem', color: slot.isActive ? '#1f2937' : '#9ca3af' }}>{slot.time}</span>
+                            <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginLeft: '0.4rem' }}>{slot.availableFor === 'both' ? 'both days' : slot.availableFor}</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                            <button onClick={() => toggleSlotActive(slot)} style={{ padding: '0.2rem 0.5rem', backgroundColor: slot.isActive ? '#22c55e' : '#9ca3af', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer' }}>
+                              {slot.isActive ? 'ON' : 'OFF'}
+                            </button>
+                            <button onClick={() => editTimeSlot(slot)} style={{ padding: '0.2rem 0.5rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}>Edit</button>
+                            <button onClick={() => removeTimeSlot(slot._id)} style={{ padding: '0.2rem 0.5rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}>✕</button>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
-              ))
-            )}
+              )
+            })}
           </div>
         </div>
         )}
