@@ -34,3 +34,6 @@ firebase-service-account.json
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# User uploaded files - never track these
+/public/uploads/
