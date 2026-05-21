@@ -236,10 +236,14 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const customerId = searchParams.get('customerId')
     const hub = searchParams.get('hub')
-    
+    const partnerIdParam = searchParams.get('partnerId')
+
     let query: any = {}
     if (customerId) {
       query.customerId = customerId
+    }
+    if (partnerIdParam) {
+      query.partnerId = partnerIdParam
     }
     if (hub) {
       console.log('Filtering orders for hub:', hub)
