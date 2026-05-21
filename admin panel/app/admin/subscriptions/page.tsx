@@ -146,7 +146,7 @@ export default function SubscriptionsPage() {
             {plans.map(plan => (
               <div key={plan._id} style={{ background: 'white', borderRadius: '16px', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', overflow: 'hidden', border: '1px solid #f1f5f9' }}>
                 {plan.image && (
-                  <img src={plan.image.startsWith('http') ? plan.image : `http://localhost:3000${plan.image}`} alt={plan.name} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                  <img src={plan.image} alt={plan.name} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
                 )}
                 {!plan.image && (
                   <div style={{ width: '100%', height: '200px', background: 'linear-gradient(135deg, #452D9B, #07C8D0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -245,7 +245,7 @@ export default function SubscriptionsPage() {
             <input type="file" accept="image/*" onChange={e => { if (e.target.files?.[0]) handleImageUpload(e.target.files[0]) }} style={{ marginBottom: '0.5rem', fontSize: '0.85rem' }} />
             {uploading && <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '0.5rem' }}>Uploading...</p>}
             {imagePreview && (
-              <img src={imagePreview.startsWith('http') ? imagePreview : `http://localhost:3000${imagePreview}`} alt="preview" style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #e2e8f0' }} />
+              <img src={imagePreview} alt="preview" style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #e2e8f0' }} />
             )}
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
