@@ -78,6 +78,12 @@ const ReviewsIcon = () => (
   </svg>
 )
 
+const SubscriptionIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+  </svg>
+)
+
 const LogoutIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
     <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
@@ -110,6 +116,7 @@ export default function Sidebar({ activePage, isMobileMenuOpen = false, onMobile
     { icon: <RoleIcon />, label: 'Partner KYC', href: '/admin/partner-kyc', roles: ['Admin'] },
     { icon: <PricingIcon />, label: 'Pricing', href: '/admin/pricing', roles: ['Admin'] },
     { icon: <WalletIcon />, label: 'Wallet & Points', href: '/admin/wallet-points', roles: ['Admin'] },
+    { icon: <SubscriptionIcon />, label: 'Subscriptions', href: '/admin/subscriptions', roles: ['Admin'] },
     { icon: <ReportsIcon />, label: 'Reports', href: '/admin/reports', roles: ['Admin'] },
     { icon: <NotificationsIcon />, label: 'Notifications', href: '/admin/notifications', roles: ['Admin'] },
     { icon: <AddOnIcon />, label: 'Add-On', href: '/admin/add-on', roles: ['Admin'] },

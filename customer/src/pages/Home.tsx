@@ -414,14 +414,22 @@ const Home = () => {
           </div>
         )}
 
-        {/* Book Order Button */}
-        <Button
-          onClick={() => navigate("/prices")}
-          className="w-full h-12 sm:h-14 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl text-sm sm:text-base font-semibold mb-4 sm:mb-6 shadow-lg"
-        >
-          <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-          Book Your Order
-        </Button>
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 gap-3 mb-4 sm:mb-6">
+          <Button
+            onClick={() => navigate("/prices")}
+            className="h-12 sm:h-14 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl text-sm sm:text-base font-semibold shadow-lg"
+          >
+            <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+            Book Order
+          </Button>
+          <Button
+            onClick={() => navigate("/subscriptions")}
+            className="h-12 sm:h-14 bg-gradient-to-br from-amber-400 to-red-500 hover:from-amber-500 hover:to-red-600 text-white rounded-2xl text-sm sm:text-base font-semibold shadow-lg"
+          >
+            💳 Top-Up
+          </Button>
+        </div>
 
         {/* Offer Cards - Full Width Single Card */}
         <div className="mb-4 sm:mb-6">
