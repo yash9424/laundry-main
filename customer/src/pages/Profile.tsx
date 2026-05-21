@@ -744,6 +744,17 @@ const Profile = () => {
           </button>
         </div>
 
+        <div>
+          <h2 className="text-base sm:text-lg font-bold mb-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>My Subscriptions</h2>
+          <button
+            onClick={() => navigate('/my-subscription')}
+            className="w-full bg-white rounded-2xl p-3 sm:p-4 shadow-lg flex items-center gap-2 sm:gap-3 hover:shadow-xl transition-shadow"
+          >
+            <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
+            <span className="font-medium text-black text-sm sm:text-base">View My Subscriptions</span>
+          </button>
+        </div>
+
         <ReferAndEarn />
 
         <div>
