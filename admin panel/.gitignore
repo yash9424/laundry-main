@@ -24,6 +24,8 @@ yarn-error.log*
 
 # Local env files
 .env*.local
+.env.production
+next.config.temp.js
 
 # Firebase
 firebase-service-account.json
