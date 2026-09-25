@@ -59,7 +59,9 @@ export default function DeliveryDetails() {
       {/* Order summary card */}
       <div className="mt-3 mx-4 rounded-xl border border-gray-200 bg-white shadow-sm p-4">
         <div className="flex items-start justify-between">
-          <p className="text-sm font-semibold text-black">Order #{order.orderId}</p>
+          <p className="text-sm font-semibold text-black">Order #{order.orderId}
+            {order.expressDelivery && <span className="ml-2 text-xs font-bold px-2 py-0.5 rounded-lg" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>Express Delivery</span>}
+          </p>
           <span className="rounded-lg text-white px-3 py-1 text-xs font-semibold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
             {order.status === 'process_completed' ? 'Ready for Delivery' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
           </span>

@@ -311,10 +311,13 @@ export default function Pickups() {
                   <p className="text-xs mt-1.5 font-medium" style={{ color: '#452D9B' }}>
                     📅 {formatDisplayDate(p.pickupSlot?.date)} | 🕐 {p.pickupSlot?.timeSlot || 'Time not set'}
                   </p>
+                  <p className="text-xs mt-1 font-medium" style={{ color: '#d97706' }}>
+                    ⏳ SLA starts on pickup: {p.expressDelivery ? '12hr' : '24hr'} turnaround
+                  </p>
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">#{p.orderId}</span>
-                  {p.expressDelivery && <span className="text-xs font-bold px-2 py-0.5 rounded-lg" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>⚡ Express</span>}
+                  {p.expressDelivery && <span className="text-xs font-bold px-2 py-0.5 rounded-lg" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>Express Delivery</span>}
                 </div>
               </div>
               <div className="flex items-center gap-3">

@@ -10,6 +10,18 @@ import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
 
+// Live countdown for Express Delivery orders only (12hr SLA). Standard orders
+// keep the plain static date/time display — this formatter is not used for them.
+function formatCountdown(expectedDeliveryAt: string, now: Date): { text: string; overdue: boolean } {
+  const diffMs = new Date(expectedDeliveryAt).getTime() - now.getTime();
+  const overdue = diffMs < 0;
+  const abs = Math.abs(diffMs);
+  const hours = Math.floor(abs / (1000 * 60 * 60));
+  const minutes = Math.floor((abs % (1000 * 60 * 60)) / (1000 * 60));
+  const text = `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+  return { text: overdue ? `Overdue by ${text}` : `${text} left`, overdue };
+}
+
 export default function DropToHub() {
   const router = useRouter();
   const [hub, setHub] = useState<any>(null);
@@ -19,6 +31,13 @@ export default function DropToHub() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
+  const [now, setNow] = useState(() => new Date());
+
+  // Live tick for the Express Delivery countdown timer (Section 5 SLA requirement)
+  useEffect(() => {
+    const tick = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(tick);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -279,8 +298,21 @@ export default function DropToHub() {
                     style={{ accentColor: '#452D9B' }}
                   />
                   <div>
-                    <p className="text-sm font-semibold text-black">Order ID: #{order.orderId}</p>
+                    <p className="text-sm font-semibold text-black">Order ID: #{order.orderId}
+                      {order.expressDelivery && <span className="ml-2 text-xs font-bold px-2 py-0.5 rounded-lg" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>Express Delivery</span>}
+                    </p>
                     <p className="text-xs text-black mt-1">{order.items?.length || 0} items</p>
+                    {order.expectedDeliveryAt && (
+                      order.expressDelivery ? (
+                        <p className="text-xs mt-1 font-bold" style={{ color: formatCountdown(order.expectedDeliveryAt, now).overdue ? '#dc2626' : '#d97706' }}>
+                          ⏳ {formatCountdown(order.expectedDeliveryAt, now).text}
+                        </p>
+                      ) : (
+                        <p className="text-xs mt-1 font-medium" style={{ color: '#d97706' }}>
+                          ⏳ Deliver by: {new Date(order.expectedDeliveryAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })}
+                        </p>
+                      )
+                    )}
                     <span className="mt-1 text-xs" style={{ color: order.status === 'delivery_failed' || (order.status === 'out_for_delivery' && order.redeliveryScheduled) ? '#dc2626' : '#452D9B' }}>
                       {order.status === 'delivery_failed' ? (order.redeliveryScheduled ? '⚠ Redelivery Failed' : '⚠ Delivery Failed') : 
                        order.status === 'out_for_delivery' && order.redeliveryScheduled ? '🔄 Redelivery Order' : 

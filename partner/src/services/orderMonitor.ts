@@ -108,7 +108,7 @@ class PartnerOrderMonitor {
     const notification = {
       id: `pickup_${order._id}_${Date.now()}`,
       title: 'New Pickup Available',
-      message: `Order #${order.orderId} needs pickup from ${order.pickupAddress?.area || 'your area'}. Tap to accept.`,
+      message: `Order #${order.orderId} needs pickup from ${order.pickupAddress?.area || 'your area'}${order.expressDelivery ? ' (Express Delivery — 12hr)' : ''}. Tap to accept.`,
       timestamp: new Date().toISOString(),
       read: false,
       type: 'pickup' as const,
@@ -127,7 +127,7 @@ class PartnerOrderMonitor {
     const notification = {
       id: `delivery_${order._id}_${Date.now()}`,
       title: 'Ready for Delivery',
-      message: `Order #${order.orderId} is processed and ready for delivery to ${order.deliveryAddress?.area || 'customer'}.`,
+      message: `Order #${order.orderId} is processed and ready for delivery to ${order.deliveryAddress?.area || 'customer'}${order.expressDelivery ? ' (Express Delivery — 12hr)' : ''}.`,
       timestamp: new Date().toISOString(),
       read: false,
       type: 'delivery' as const,

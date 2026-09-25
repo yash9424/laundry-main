@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
+import connectDB from '@/lib/mongodb';
+import WalletTransaction from '@/models/WalletTransaction';
 
 export async function POST(
   request: NextRequest,
@@ -11,7 +13,7 @@ export async function POST(
     const { id } = await params;
     const body = await request.json();
     
-    const { type, action, amount, reason } = body;
+    const { type, action, amount, reason, adjustedBy } = body;
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -48,13 +50,26 @@ export async function POST(
     const updateField = type === 'balance' ? 'walletBalance' : 'loyaltyPoints';
     await db.collection('customers').updateOne(
       { _id: new ObjectId(id) },
-      { 
-        $set: { 
+      {
+        $set: {
           [updateField]: newValue,
           updatedAt: new Date().toISOString()
         }
       }
     );
+
+    // Record this change in the wallet transaction history so it shows up in the customer's Wallet page
+    await connectDB();
+    await WalletTransaction.create({
+      customerId: id,
+      type,
+      action,
+      amount,
+      reason,
+      previousValue: currentValue,
+      newValue,
+      adjustedBy: adjustedBy || 'Admin'
+    });
 
     // Create and send notification
     const notificationTitle = type === 'balance' 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Minus, Plus, Trash2, ShoppingCart, Clock, X } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingCart, Clock, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
 import BottomNavigation from "@/components/BottomNavigation";
@@ -34,6 +34,27 @@ const Cart = () => {
   const [showSlotError, setShowSlotError] = useState(false);
   const [minOrderPrice, setMinOrderPrice] = useState(500);
   const [daySettings, setDaySettings] = useState({ todaySlotsEnabled: true, tomorrowSlotsEnabled: true });
+  const [garmentConfirmed, setGarmentConfirmed] = useState(false);
+  const [expressDeliveryFee, setExpressDeliveryFee] = useState(0);
+  const isExpressSelected = typeof window !== 'undefined' && localStorage.getItem('selectedDeliveryType') === 'express';
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/order-charges`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data?.expressDeliveryEnabled === false) {
+          localStorage.setItem('selectedDeliveryType', 'standard');
+          setExpressDeliveryFee(0);
+        } else if (data.success && data.data?.expressDeliveryPrice) {
+          setExpressDeliveryFee(data.data.expressDeliveryPrice);
+        }
+      })
+      .catch(err => console.error('Error fetching express delivery fee:', err));
+  }, []);
+
+  const getOrderTotal = () => {
+    return getSelectedTotal() + (isExpressSelected ? expressDeliveryFee : 0);
+  };
 
   useEffect(() => {
     loadCartItems();
@@ -58,7 +79,7 @@ const Cart = () => {
       const response = await fetch(`${API_URL}/api/wallet-settings`);
       const data = await response.json();
       if (data.success && data.data) {
-        setMinOrderPrice(data.data.minOrderPrice || 500);
+        setMinOrderPrice(typeof data.data.minOrderPrice === 'number' ? data.data.minOrderPrice : 500);
       }
     } catch (error) {
       console.error('Failed to fetch minimum order price:', error);
@@ -388,15 +409,26 @@ const Cart = () => {
                   <span>Selected Total:</span>
                   <span className="font-semibold">₹{getSelectedTotal()}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>Minimum Order:</span>
-                  <span className="font-semibold">₹{minOrderPrice}</span>
-                </div>
+                {isExpressSelected && expressDeliveryFee > 0 && (
+                  getSelectedTotal() < minOrderPrice ? (
+                    selectedItems.size > 0 && (
+                      <div className="flex justify-between gap-3 text-sm text-gray-500">
+                        <span>Express Delivery:</span>
+                        <span className="text-right">₹{expressDeliveryFee} — applies after minimum order is reached</span>
+                      </div>
+                    )
+                  ) : (
+                    <div className="flex justify-between">
+                      <span>Express Delivery Fee:</span>
+                      <span className="font-semibold">₹{expressDeliveryFee}</span>
+                    </div>
+                  )
+                )}
                 <hr className="my-2" />
                 <div className="flex justify-between text-lg font-bold">
                   <span>Order Total:</span>
                   <span style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    ₹{getSelectedTotal()}
+                    ₹{getSelectedTotal() < minOrderPrice ? getSelectedTotal() : getOrderTotal()}
                   </span>
                 </div>
                 {selectedItems.size === 0 && (
@@ -417,11 +449,11 @@ const Cart = () => {
                   : 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white'
               }`}
             >
-              {selectedItems.size === 0 
-                ? 'Select Items to Order' 
+              {selectedItems.size === 0
+                ? 'Select Items to Order'
                 : getSelectedTotal() < minOrderPrice
                   ? `Minimum Order ₹${minOrderPrice} Required`
-                  : `Select Pickup Slot - ₹${getSelectedTotal()}`
+                  : `Select Pickup Slot - ₹${getOrderTotal()}`
               }
             </Button>
           </>
@@ -519,6 +551,12 @@ const Cart = () => {
                   <span>Selected Items: {getSelectedItemsCount()}</span>
                   <span>₹{getSelectedTotal()}</span>
                 </div>
+                {isExpressSelected && expressDeliveryFee > 0 && (
+                  <div className="flex justify-between">
+                    <span>Express Delivery Fee</span>
+                    <span>₹{expressDeliveryFee}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-semibold">
                   <span>Pickup: {pickupType === 'now' ? 'Today' : 'Tomorrow'}</span>
                   <span>{selectedSlot || 'No slot selected'}</span>
@@ -526,17 +564,37 @@ const Cart = () => {
               </div>
             </div>
             
-            <button 
+            <label className="flex items-start gap-3 cursor-pointer bg-gray-50 rounded-2xl p-3 mb-4" onClick={() => setGarmentConfirmed(!garmentConfirmed)}>
+              <div
+                className="mt-1 w-5 h-5 flex-shrink-0 rounded flex items-center justify-center"
+                style={{
+                  border: garmentConfirmed ? 'none' : '2px solid #9ca3af',
+                  background: garmentConfirmed ? 'linear-gradient(to right, #452D9B, #07C8D0)' : 'white'
+                }}
+              >
+                {garmentConfirmed && <Check className="w-4 h-4 text-white" strokeWidth={3} />}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-black">
+                  I confirm I have added all my clothes for steam ironing.
+                </p>
+              </div>
+            </label>
+
+            <button
               onClick={confirmOrder}
-              disabled={!selectedSlot}
+              disabled={!selectedSlot || !garmentConfirmed}
               className={`w-full py-3 rounded-2xl font-semibold ${
-                selectedSlot 
-                  ? 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0] text-white' 
+                selectedSlot && garmentConfirmed
+                  ? 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0] text-white'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              Confirm Order - ₹{getSelectedTotal()}
+              Confirm Order - ₹{getOrderTotal()}
             </button>
+            <p className="text-xs text-gray-500 text-center mt-3">
+              Our captain will only pick up the clothes added to your cart and confirmed in this order. This helps us maintain transparency and ensures your order is processed correctly.
+            </p>
           </div>
         </div>
       )}

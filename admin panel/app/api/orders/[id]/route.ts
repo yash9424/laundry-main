@@ -1,11 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-import dbConnect from '@/lib/mongodb'
+import dbConnect, { connectToDatabase } from '@/lib/mongodb'
 import Order from '@/models/Order'
 import Partner from '@/models/Partner'
 import Customer from '@/models/Customer'
 import WalletSettings from '@/models/WalletSettings'
 import OrderCharges from '@/models/OrderCharges'
 import WalletTransaction from '@/models/WalletTransaction'
+
+// Let the admin know about an important order event (shows in Admin > Notifications)
+async function notifyAdmin(title: string, message: string) {
+  try {
+    const { db } = await connectToDatabase()
+    await db.collection('notifications').insertOne({
+      title,
+      message,
+      audience: 'Admin',
+      status: 'sent',
+      sentAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    })
+  } catch (notifyError) {
+    console.error('Failed to create admin notification:', notifyError)
+  }
+}
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -170,6 +188,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         }
       }
       console.log('=== END CANCELLATION FEE CALCULATION ===')
+
+      await notifyAdmin('Order Cancelled', `Order #${currentOrder.orderId} was cancelled${cancellationFee > 0 ? ` — cancellation fee ₹${cancellationFee}` : ''}`)
     }
     
     // Handle delivery failure fee logic
@@ -289,6 +309,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         console.log('Skipping wallet deduction as fee is 0')
       }
       console.log('=== END DELIVERY FAILURE FEE CALCULATION ===')
+
+      await notifyAdmin('Delivery Failed', `Order #${currentOrder.orderId} delivery failed${updateData.deliveryFailureReason ? ` — ${updateData.deliveryFailureReason}` : ''}${deliveryFee > 0 ? ` — fee ₹${deliveryFee}` : ''}`)
     }
     
     // If status is being updated, add to status history
@@ -310,6 +332,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }
     }
     
+    // Set the pickup timestamp and the resulting delivery deadline entirely
+    // from the SERVER's own clock — never trust a client-supplied pickedUpAt,
+    // so a manipulated device clock (customer or partner) cannot shift the SLA.
+    if (updateData.status === 'picked_up' && currentOrder?.status !== 'picked_up') {
+      const serverNow = new Date()
+      const turnaroundHours = currentOrder.expressDelivery ? 12 : 24
+      updateData.pickedUpAt = serverNow
+      updateData.expectedDeliveryAt = new Date(serverNow.getTime() + turnaroundHours * 60 * 60 * 1000)
+    }
+
     // Award order completion points when order is delivered
     if (updateData.status === 'delivered' && currentOrder?.status !== 'delivered' && currentOrder?.customerId) {
       const customer = await Customer.findById(currentOrder.customerId)

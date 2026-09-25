@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Toast, ConfirmDialog } from "@/components/Toast";
 import { API_URL } from '@/config/api';
+import { getExpectedDeliveryText } from '@/utils/expectedDelivery';
 
 const BookingConfirmation = () => {
   const navigate = useNavigate();
@@ -71,26 +72,61 @@ const BookingConfirmation = () => {
               <span className="text-muted-foreground text-sm sm:text-base">Service:</span>
               <span className="font-semibold text-sm sm:text-base">{service}</span>
             </div>
-            <div className="flex justify-between items-start gap-3">
-              <span className="text-muted-foreground text-sm sm:text-base">Price:</span>
-              <span className="font-bold text-primary text-base sm:text-lg">₹{total}</span>
-            </div>
-            <div className="flex justify-between items-start gap-3">
-              <span className="text-muted-foreground text-sm sm:text-base">Status:</span>
-              <span className="font-semibold text-primary text-sm sm:text-base">{status}</span>
-            </div>
+            {orderData.originalTotal !== undefined && (
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-muted-foreground text-sm sm:text-base">Items Subtotal:</span>
+                <span className="font-semibold text-sm sm:text-base">₹{orderData.originalTotal}</span>
+              </div>
+            )}
+            {orderData.expressDelivery && orderData.expressDeliveryFee > 0 && (
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-muted-foreground text-sm sm:text-base">Express Delivery Fee:</span>
+                <span className="font-semibold text-sm sm:text-base">+₹{orderData.expressDeliveryFee}</span>
+              </div>
+            )}
+            {orderData.previousDue > 0 && (
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-muted-foreground text-sm sm:text-base">Previous Due:</span>
+                <span className="font-semibold text-sm sm:text-base">+₹{orderData.previousDue}</span>
+              </div>
+            )}
             {orderData.discount > 0 && (
               <div className="flex justify-between items-start gap-3">
                 <span className="text-muted-foreground text-sm sm:text-base">Discount:</span>
                 <span className="font-semibold text-green-600 text-sm sm:text-base">-₹{orderData.discount}</span>
               </div>
             )}
-            {orderData.expressDelivery && orderData.expressDeliveryFee > 0 && (
+            <div className="flex justify-between items-start gap-3">
+              <span className="text-muted-foreground text-sm sm:text-base">Order Total:</span>
+              <span className="font-bold text-primary text-base sm:text-lg">₹{total}</span>
+            </div>
+            {orderData.walletUsed > 0 && (
               <div className="flex justify-between items-start gap-3">
-                <span className="text-muted-foreground text-sm sm:text-base">⚡ Express Delivery:</span>
-                <span className="font-semibold text-orange-600 text-sm sm:text-base">+₹{orderData.expressDeliveryFee}</span>
+                <span className="text-muted-foreground text-sm sm:text-base">Paid from Wallet:</span>
+                <span className="font-semibold text-sm sm:text-base">₹{orderData.walletUsed}</span>
               </div>
             )}
+            {orderData.paidOnline > 0 && (
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-muted-foreground text-sm sm:text-base">Paid Online:</span>
+                <span className="font-semibold text-sm sm:text-base">₹{orderData.paidOnline}</span>
+              </div>
+            )}
+            <div className="flex justify-between items-start gap-3">
+              <span className="text-muted-foreground text-sm sm:text-base">Status:</span>
+              <span className="font-semibold text-primary text-sm sm:text-base">{status}</span>
+            </div>
+            <div className="flex justify-between items-start gap-3">
+              <span className="text-muted-foreground text-sm sm:text-base whitespace-nowrap">Expected Delivery:</span>
+              <span className="font-semibold text-sm sm:text-base text-right">
+                {getExpectedDeliveryText({
+                  expectedDeliveryAt: orderData.expectedDeliveryAt,
+                  slotDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
+                  slotText: orderData.selectedSlot,
+                  express: orderData.expressDelivery
+                })}
+              </span>
+            </div>
             <div className="flex justify-between items-start gap-3">
               <span className="text-muted-foreground text-sm sm:text-base">Payment Method:</span>
               <span className="font-semibold text-sm sm:text-base">{orderData.customerInfo?.paymentMethods?.find((pm: { isPrimary?: boolean; type?: string }) => pm.isPrimary)?.type || 'Cash on Delivery'}</span>

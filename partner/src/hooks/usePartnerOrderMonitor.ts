@@ -8,6 +8,8 @@ interface Order {
   orderId: string;
   status: string;
   partnerId?: string;
+  expressDelivery?: boolean;
+  pickupAddress?: { pincode?: string };
 }
 
 // Send mobile push notification
@@ -50,50 +52,65 @@ const sendPartnerNotification = async (title: string, message: string, orderId: 
 export const usePartnerOrderMonitor = () => {
   const lastOrderStatuses = useRef<Map<string, { status: string, partnerId?: string }>>(new Map());
   const lastCheckedOrders = useRef<Set<string>>(new Set());
+  const myPincodes = useRef<string[]>([]);
 
   useEffect(() => {
     const partnerId = localStorage.getItem('partnerId');
     if (!partnerId) return;
 
+    const loadMyPincodes = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
+        const data = await response.json();
+        if (data.success && data.data?.pincodes) {
+          myPincodes.current = data.data.pincodes;
+        }
+      } catch (error) {
+        console.error('Failed to load partner pincodes:', error);
+      }
+    };
+
     const checkPartnerOrders = async () => {
       try {
         const response = await fetch(`${API_URL}/api/orders`);
         const data = await response.json();
-        
+
         if (data.success && data.data) {
           const orders: Order[] = data.data;
-          
+
           orders.forEach((order) => {
             const lastOrderData = lastOrderStatuses.current.get(order.orderId);
             const currentStatus = order.status;
             const currentPartnerId = order.partnerId;
-            
-            // New order placed in partner's area (no partner assigned yet)
-            if (currentStatus === 'pending' && !currentPartnerId && !lastCheckedOrders.current.has(order._id)) {
+            const deliveryTag = order.expressDelivery ? ' (Express Delivery — 12hr)' : '';
+            const isInMyArea = !!order.pickupAddress?.pincode && myPincodes.current.includes(order.pickupAddress.pincode);
+
+            // New order placed in THIS partner's own service area (no partner assigned yet)
+            if (currentStatus === 'pending' && !currentPartnerId && isInMyArea && !lastCheckedOrders.current.has(order._id)) {
               sendPartnerNotification(
                 '🆕 New Order Available',
-                `New pickup order #${order.orderId} available in your area. Tap to accept.`,
+                `New pickup order #${order.orderId} available in your area${deliveryTag}. Tap to accept.`,
                 order.orderId
               );
               lastCheckedOrders.current.add(order._id);
             }
-            
+
             // Order assigned to this partner
             if (!lastOrderData?.partnerId && currentPartnerId === partnerId) {
               sendPartnerNotification(
                 '📦 Order Assigned',
-                `Order #${order.orderId} assigned to you for pickup.`,
+                `Order #${order.orderId} assigned to you for pickup${deliveryTag}.`,
                 order.orderId
               );
             }
-            
+
             // Order completed and ready for delivery
-            if (lastOrderData?.status !== 'process_completed' && 
-                currentStatus === 'process_completed' && 
+            if (lastOrderData?.status !== 'process_completed' &&
+                currentStatus === 'process_completed' &&
                 currentPartnerId === partnerId) {
               sendPartnerNotification(
                 '✅ Ready for Delivery',
-                `Order #${order.orderId} is processed and ready for delivery.`,
+                `Order #${order.orderId} is processed and ready for delivery${deliveryTag}.`,
                 order.orderId
               );
             }
@@ -109,7 +126,7 @@ export const usePartnerOrderMonitor = () => {
       }
     };
 
-    checkPartnerOrders();
+    loadMyPincodes().then(checkPartnerOrders);
     const interval = setInterval(checkPartnerOrders, 10000); // Check every 10 seconds
 
     return () => {

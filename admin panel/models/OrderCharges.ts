@@ -6,6 +6,7 @@ const OrderChargesSchema = new mongoose.Schema({
   incorrectAddress: { type: Number, default: 150 },
   refusalToAccept: { type: Number, default: 150 },
   cancellationPolicyText: { type: String, default: '' },
+  expressDeliveryEnabled: { type: Boolean, default: true },
   expressDeliveryPrice: { type: Number, default: 0 },
   expressDeliveryLabel: { type: String, default: '' },
   expressDeliveryDescription: { type: String, default: '' },

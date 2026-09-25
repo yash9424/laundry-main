@@ -181,7 +181,9 @@ export default function DeliveryHistory() {
             <div key={order._id} className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-black">Order #{order.orderId}</p>
+                  <p className="text-sm font-semibold text-black">Order #{order.orderId}
+                    {order.expressDelivery && <span className="ml-2 text-xs font-bold px-2 py-0.5 rounded-lg" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>Express Delivery</span>}
+                  </p>
                   <p className="text-xs text-gray-600 mt-2">{order.customerId?.name || 'Customer'}, <span className="text-black">{order.deliveryAddress?.street || order.pickupAddress?.street}, {order.deliveryAddress?.city || order.pickupAddress?.city}</span></p>
                   <p className="text-xs text-gray-600 mt-2">Delivered on: {order.deliveredAt ? new Date(order.deliveredAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.deliveredAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}</p>
                 </div>

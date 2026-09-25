@@ -8,6 +8,8 @@ import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem } from '@capacitor/filesystem';
 import Header from "@/components/Header";
+import { getExpectedDeliveryText } from "@/utils/expectedDelivery";
+import { getOrderBreakdown } from "@/utils/orderBreakdown";
 
 const OrderDetails = () => {
   const navigate = useNavigate();
@@ -100,13 +102,13 @@ const OrderDetails = () => {
       'reached_location': 1,
       'picked_up': 2,
       'delivered_to_hub': 3,
-      'processing': 4,
-      'ironing': 5,
-      'process_completed': 6,
+      'processing': 3,
+      'ironing': 3,
+      'process_completed': 4,
       'ready': 4,
-      'out_for_delivery': 7,
-      'delivered': 8,
-      'delivery_failed': 8,
+      'out_for_delivery': 5,
+      'delivered': 6,
+      'delivery_failed': 6,
       'suspended': 3
     };
     
@@ -122,8 +124,6 @@ const OrderDetails = () => {
     const reachedLocationTime = order.reachedLocationAt ? formatDateTime(order.reachedLocationAt) : 'Pending';
     const pickedUpTime = order.pickedUpAt ? formatDateTime(order.pickedUpAt) : 'Pending';
     const deliveredToHubTime = order.deliveredToHubAt ? formatDateTime(order.deliveredToHubAt) : 'Pending';
-    const processingTime = order.hubApprovedAt ? formatDateTime(order.hubApprovedAt) : 'Pending';
-    const ironingTime = order.ironingAt ? formatDateTime(order.ironingAt) : 'Pending';
     const processCompletedTime = order.processCompletedAt ? formatDateTime(order.processCompletedAt) : 'Pending';
     
     const finalStepLabel = order.status === 'delivery_failed' && !order.redeliveryScheduled ? 'Undelivered' : order.redeliveryScheduled && order.status === 'delivered' ? 'Redelivered Successfully' : 'Delivered';
@@ -136,11 +136,9 @@ const OrderDetails = () => {
       { icon: Package, label: 'Reached Location', time: reachedLocationTime, completed: currentStep >= 1, active: currentStep === 1 },
       { icon: Package, label: 'Picked Up', time: pickedUpTime, completed: currentStep >= 2, active: currentStep === 2 },
       { icon: Truck, label: 'Delivered to Hub', time: deliveredToHubTime, completed: currentStep >= 3, active: currentStep === 3 },
-      { icon: Shirt, label: 'Processing', time: processingTime, completed: currentStep >= 4, active: currentStep === 4 },
-      { icon: Shirt, label: 'Ironing', time: ironingTime, completed: currentStep >= 5, active: currentStep === 5 },
-      { icon: CheckCircle2, label: 'Process Completed', time: processCompletedTime, completed: currentStep >= 6, active: currentStep === 6 },
-      { icon: Truck, label: order.redeliveryScheduled ? 'Out for Redelivery' : 'Out for Delivery', time: order.redeliveryScheduled && order.outForRedeliveryAt ? formatDateTime(order.outForRedeliveryAt) : order.outForDeliveryAt ? formatDateTime(order.outForDeliveryAt) : 'Pending', completed: currentStep >= 7, active: currentStep === 7 },
-      { icon: order.status === 'delivery_failed' && !order.redeliveryScheduled ? X : CheckCircle2, label: finalStepLabel, time: finalStepTime, completed: currentStep >= 8, active: currentStep === 8, failed: order.status === 'delivery_failed' && !order.redeliveryScheduled },
+      { icon: CheckCircle2, label: 'Process Completed', time: processCompletedTime, completed: currentStep >= 4, active: currentStep === 4 },
+      { icon: Truck, label: order.redeliveryScheduled ? 'Out for Redelivery' : 'Out for Delivery', time: order.redeliveryScheduled && order.outForRedeliveryAt ? formatDateTime(order.outForRedeliveryAt) : order.outForDeliveryAt ? formatDateTime(order.outForDeliveryAt) : 'Pending', completed: currentStep >= 5, active: currentStep === 5 },
+      { icon: order.status === 'delivery_failed' && !order.redeliveryScheduled ? X : CheckCircle2, label: finalStepLabel, time: finalStepTime, completed: currentStep >= 6, active: currentStep === 6, failed: order.status === 'delivery_failed' && !order.redeliveryScheduled },
     ];
   };
   
@@ -172,7 +170,14 @@ const OrderDetails = () => {
                 <Shirt className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="min-w-0">
-                <p className="font-bold text-sm sm:text-base">Order #{order?.orderId || 'N/A'}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-sm sm:text-base">Order #{order?.orderId || 'N/A'}</p>
+                  {order?.expressDelivery && (
+                    <span className="text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                      Express Delivery
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   {order?.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items'}
                 </p>
@@ -180,9 +185,17 @@ const OrderDetails = () => {
               </div>
             </div>
             <span className="px-2 sm:px-4 py-1 sm:py-1.5 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-              {order?.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ') : 'Unknown'}
+              {['processing', 'ironing'].includes(order?.status) ? 'At hub' : order?.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ') : 'Unknown'}
             </span>
           </div>
+          {order && !['delivered', 'cancelled'].includes(order.status) && (
+            <div className="mt-3 pt-3 border-t flex items-center justify-between">
+              <span className="text-xs sm:text-sm text-muted-foreground">Expected Delivery</span>
+              <span className="text-xs sm:text-sm font-semibold">
+                {getExpectedDeliveryText({ expectedDeliveryAt: order.expectedDeliveryAt, slotDate: order.pickupSlot?.date, slotText: order.pickupSlot?.timeSlot, express: order.expressDelivery })}
+              </span>
+            </div>
+          )}
         </Card>
 
         <div className="space-y-3 sm:space-y-4">
@@ -331,6 +344,24 @@ const OrderDetails = () => {
             Pickup Slot: {order?.pickupSlot?.timeSlot || 'Not scheduled'}
           </p>
         </Card>
+
+        {(() => {
+          const bd = getOrderBreakdown(order);
+          return (
+            <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-md">
+              <p className="text-sm sm:text-base font-bold mb-2">Payment Summary</p>
+              <div className="space-y-1 text-xs sm:text-sm text-gray-700">
+                <div className="flex justify-between"><span>Items Subtotal</span><span>₹{Math.round(bd.subtotal)}</span></div>
+                {bd.express > 0 && <div className="flex justify-between"><span>Express Delivery Fee</span><span>+₹{Math.round(bd.express)}</span></div>}
+                {bd.due > 0 && <div className="flex justify-between"><span>Previous Due</span><span>+₹{Math.round(bd.due)}</span></div>}
+                {bd.discount > 0 && <div className="flex justify-between text-green-600"><span>Discount</span><span>-₹{Math.round(bd.discount)}</span></div>}
+                <div className="flex justify-between font-bold text-black text-sm sm:text-base pt-1 border-t border-gray-200"><span>Order Total</span><span>₹{Math.round(bd.total)}</span></div>
+                {bd.wallet > 0 && <div className="flex justify-between"><span>Paid from Wallet</span><span>₹{Math.round(bd.wallet)}</span></div>}
+                {bd.paidOnline !== null && bd.paidOnline > 0 && <div className="flex justify-between"><span>Paid Online</span><span>₹{Math.round(bd.paidOnline)}</span></div>}
+              </div>
+            </Card>
+          );
+        })()}
 
         <div className="flex gap-2 sm:gap-3">
           <Button 
