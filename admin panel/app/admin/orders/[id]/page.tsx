@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ResponsiveLayout from '../../../components/ResponsiveLayout'
+import { getOrderBreakdown } from '@/lib/orderBreakdown'
 
 // ── Assign Partner Component ──────────────────────────────────────────────────
 function AssignPartnerSection({ order, onAssigned }: { order: any, onAssigned: () => void }) {
@@ -124,6 +125,18 @@ function AssignPartnerSection({ order, onAssigned }: { order: any, onAssigned: (
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Live countdown for Express Delivery orders only (12hr SLA). Standard orders
+// keep the plain static date/time display — this formatter is not used for them.
+function formatCountdown(expectedDeliveryAt: string, now: Date): { text: string; overdue: boolean } {
+  const diffMs = new Date(expectedDeliveryAt).getTime() - now.getTime()
+  const overdue = diffMs < 0
+  const abs = Math.abs(diffMs)
+  const hours = Math.floor(abs / (1000 * 60 * 60))
+  const minutes = Math.floor((abs % (1000 * 60 * 60)) / (1000 * 60))
+  const text = `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`
+  return { text: overdue ? `Overdue by ${text}` : `${text} left`, overdue }
+}
+
 export default function OrderDetails() {
   const params = useParams()
   const orderId = params.id
@@ -136,6 +149,13 @@ export default function OrderDetails() {
   const [newNote, setNewNote] = useState('')
   const [editingNote, setEditingNote] = useState<string | null>(null)
   const [editNoteText, setEditNoteText] = useState('')
+  const [now, setNow] = useState(() => new Date())
+
+  // Live tick for the Express Delivery countdown timer (Section 5 SLA requirement)
+  useEffect(() => {
+    const tick = setInterval(() => setNow(new Date()), 30000)
+    return () => clearInterval(tick)
+  }, [])
 
   useEffect(() => {
     fetchOrderDetails()
@@ -234,6 +254,21 @@ export default function OrderDetails() {
             }
           `}</style>
           
+          <div style={{ marginBottom: '1rem' }}>
+            <span style={{
+              display: 'inline-block',
+              padding: '0.4rem 1rem',
+              borderRadius: '9999px',
+              fontSize: '0.85rem',
+              fontWeight: '700',
+              backgroundColor: order?.expressDelivery ? '#fef3c7' : '#f3f4f6',
+              color: order?.expressDelivery ? '#d97706' : '#4b5563',
+              border: `1px solid ${order?.expressDelivery ? '#fcd34d' : '#e5e7eb'}`
+            }}>
+              {order?.expressDelivery ? 'Express Delivery — 12 hr' : 'Standard Delivery — 24 hr'}
+            </span>
+          </div>
+
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
             {(order?.status === 'cancelled' || order?.status === 'delivery_failed') && !order?.refunded && (
@@ -506,6 +541,18 @@ export default function OrderDetails() {
                   {order?.pickupSlot?.timeSlot || 'Not selected'}
                 </div>
               </div>
+              <div style={{ backgroundColor: '#fef3c7', borderRadius: '10px', padding: '0.75rem 1.25rem', border: '1px solid #fde68a' }}>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: '500' }}>
+                  EXPECTED DELIVERY ({order?.expressDelivery ? 'Express — 12hr' : 'Standard — 24hr'})
+                </div>
+                <div style={{ fontSize: '1rem', fontWeight: '700', color: order?.expressDelivery && order?.expectedDeliveryAt && formatCountdown(order.expectedDeliveryAt, now).overdue ? '#dc2626' : '#92400e' }}>
+                  {!order?.expectedDeliveryAt
+                    ? 'Pending pickup'
+                    : order?.expressDelivery
+                      ? formatCountdown(order.expectedDeliveryAt, now).text
+                      : new Date(order.expectedDeliveryAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -524,6 +571,18 @@ export default function OrderDetails() {
                 <span>₹{item.price * item.quantity}</span>
               </div>
             )) || <div>No items found</div>}
+            {(() => {
+              const bd = getOrderBreakdown(order)
+              const rowStyle = { display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem', color: '#4b5563' } as const
+              return (
+                <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px dashed #e5e7eb' }}>
+                  <div style={rowStyle}><span>Items Subtotal</span><span>₹{Math.round(bd.subtotal)}</span></div>
+                  {bd.express > 0 && <div style={rowStyle}><span>Express Delivery Fee</span><span>+₹{Math.round(bd.express)}</span></div>}
+                  {bd.due > 0 && <div style={rowStyle}><span>Previous Due</span><span>+₹{Math.round(bd.due)}</span></div>}
+                  {bd.discount > 0 && <div style={{ ...rowStyle, color: '#16a34a' }}><span>Discount{order?.appliedVoucherCode ? ` (${order.appliedVoucherCode})` : ''}</span><span>-₹{Math.round(bd.discount)}</span></div>}
+                </div>
+              )
+            })()}
             {order?.deliveryFailureFee && order.deliveryFailureFee > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', color: '#dc2626', fontWeight: '500' }}>
                 <span>Delivery Failure Fee</span>
@@ -538,8 +597,18 @@ export default function OrderDetails() {
             )}
             <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '1rem 0' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600', color: '#2563eb' }}>
-              <span>Total: ₹{order?.totalAmount || 0}</span>
+              <span>Order Total: ₹{order?.totalAmount || 0}</span>
             </div>
+            {(() => {
+              const bd = getOrderBreakdown(order)
+              const rowStyle = { display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem', color: '#4b5563' } as const
+              return (
+                <>
+                  {bd.wallet > 0 && <div style={rowStyle}><span>Paid from Wallet</span><span>₹{Math.round(bd.wallet)}</span></div>}
+                  {bd.paidOnline !== null && bd.paidOnline > 0 && <div style={rowStyle}><span>Paid Online</span><span>₹{Math.round(bd.paidOnline)}</span></div>}
+                </>
+              )
+            })()}
           </div>
 
           {/* Charges & Refund Summary */}
@@ -1175,8 +1244,11 @@ export default function OrderDetails() {
                 
                 // Header logos
                 try {
-                  doc.addImage('/assets/ACS LOGO.png', 'PNG', 15, 15, 30, 20);
-                  doc.addImage('/assets/LOGO MARK GRADIENT.png', 'PNG', pageWidth - 45, 15, 30, 20);
+                  // Keep each logo's real proportions (ACS 7975x1498, mark 3409x1280) and centre them in the header band
+                  const acsW = 45, acsH = acsW * 1498 / 7975;
+                  const markW = 34, markH = markW * 1280 / 3409;
+                  doc.addImage('/assets/ACS LOGO.png', 'PNG', 15, 25 - acsH / 2, acsW, acsH);
+                  doc.addImage('/assets/LOGO MARK GRADIENT.png', 'PNG', pageWidth - 15 - markW, 25 - markH / 2, markW, markH);
                 } catch (imgError) {
                   setTypography(doc, 'h1');
                   doc.setFontSize(12);
@@ -1330,64 +1402,45 @@ export default function OrderDetails() {
                   yStart += 15;
                 }
                 
-                // Check if summary section needs new page (reserve 80mm for summary)
-                if (yStart > pageHeight - 80) {
+                // Summary: prints the breakdown saved on the order (see getOrderBreakdown)
+                const bd = getOrderBreakdown(order);
+                const summaryRows: { label: string; value: string; emphasis?: boolean }[] = [
+                  { label: 'Subtotal', value: 'Rs.' + Math.round(bd.subtotal) },
+                  { label: 'Tax (0%)', value: 'Rs.0.00' },
+                ];
+                if (bd.express > 0) summaryRows.push({ label: 'Express Delivery Fee', value: '+ Rs.' + Math.round(bd.express) });
+                if (bd.due > 0) summaryRows.push({ label: 'Previous Due', value: '+ Rs.' + Math.round(bd.due) });
+                if (bd.discount > 0) {
+                  summaryRows.push({
+                    label: order.appliedVoucherCode ? `Discount (${order.appliedVoucherCode})` : 'Discount',
+                    value: '- Rs.' + Math.round(bd.discount)
+                  });
+                }
+                summaryRows.push({ label: 'Total', value: 'Rs.' + Math.round(bd.total), emphasis: true });
+                if (bd.wallet > 0) summaryRows.push({ label: 'Paid from wallet', value: 'Rs.' + Math.round(bd.wallet) });
+                if (bd.paidOnline !== null && bd.paidOnline > 0) summaryRows.push({ label: 'Paid online', value: 'Rs.' + Math.round(bd.paidOnline) });
+
+                const summaryRowHeight = 10;
+                if (yStart + 10 + summaryRows.length * summaryRowHeight > pageHeight - 40) {
                   doc.addPage();
                   yStart = 20;
                 }
-                
-                // Summary section starts after items
+
                 yStart += 10;
                 setTypography(doc, 'h2');
                 doc.setFontSize(12);
-                
-                doc.text('Subtotal', 130, yStart);
-                doc.text('- Rs.' + subtotal, pageWidth - 17, yStart, { align: 'right' });
-                yStart += 8;
-                
                 doc.setDrawColor(220, 220, 220);
                 doc.setLineWidth(0.2);
-                doc.line(130, yStart, pageWidth - 15, yStart);
-                yStart += 8;
-                
-                doc.text('Tax (0%)', 130, yStart);
-                doc.text('- Rs.0.00', pageWidth - 17, yStart, { align: 'right' });
-                yStart += 8;
-                
-                doc.line(130, yStart, pageWidth - 15, yStart);
-                yStart += 8;
-                
-                // Calculate discount
-                const originalAmount = subtotal;
-                const finalAmount = order.totalAmount || subtotal;
-                const discountAmount = originalAmount - finalAmount;
-                const hasDiscount = discountAmount > 0;
-                
-                if (hasDiscount) {
-                  const discountLabel = order.appliedVoucherCode ? `Discount (${order.appliedVoucherCode})` : 'Discount';
-                  doc.text(discountLabel, 130, yStart);
-                  doc.text('- Rs.' + Math.round(discountAmount), pageWidth - 17, yStart, { align: 'right' });
-                  yStart += 8;
-                  
-                  doc.line(130, yStart, pageWidth - 15, yStart);
-                  yStart += 8;
-                }
-                
-                const finalTotal = finalAmount;
-                
-                doc.text('Total', 130, yStart);
-                doc.text('- Rs.' + Math.round(finalTotal), pageWidth - 17, yStart, { align: 'right' });
-                yStart += 8;
-                
-                doc.line(130, yStart, pageWidth - 15, yStart);
-                yStart += 8;
-                
-                // Grand Total
-                doc.setTextColor(69, 45, 155);
-                doc.text('Grand Total', 130, yStart);
-                doc.text('- Rs.' + Math.round(order.totalAmount || finalTotal), pageWidth - 17, yStart, { align: 'right' });
-                doc.setTextColor(0, 0, 0);
-                
+
+                summaryRows.forEach((row) => {
+                  if (row.emphasis) doc.setTextColor(69, 45, 155);
+                  doc.text(row.label, 130, yStart);
+                  doc.text(row.value, pageWidth - 17, yStart, { align: 'right' });
+                  doc.setTextColor(0, 0, 0);
+                  doc.line(130, yStart + 3, pageWidth - 15, yStart + 3);
+                  yStart += summaryRowHeight;
+                });
+
                 // Footer
                 yStart = pageHeight - 30;
                 setTypography(doc, 'h3');

@@ -59,6 +59,7 @@ export default function AddOnPage() {
     incorrectAddress: 150,
     refusalToAccept: 150,
     cancellationPolicyText: '',
+    expressDeliveryEnabled: true,
     expressDeliveryPrice: 0,
     expressDeliveryLabel: '',
     expressDeliveryDescription: '',
@@ -570,6 +571,24 @@ export default function AddOnPage() {
     setSlotTime('')
     setSlotType('both')
     setSlotAvailableFor('both')
+  }
+
+  const saveExpressEnabled = async (enabled: boolean) => {
+    const previous = charges.expressDeliveryEnabled
+    setCharges(prev => ({ ...prev, expressDeliveryEnabled: enabled }))
+    try {
+      const response = await fetch('/api/order-charges', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expressDeliveryEnabled: enabled })
+      })
+      if (!response.ok) throw new Error('save failed')
+      setToast({ show: true, message: `Express Delivery turned ${enabled ? 'ON' : 'OFF'}`, type: 'success' })
+    } catch (error) {
+      setCharges(prev => ({ ...prev, expressDeliveryEnabled: previous }))
+      setToast({ show: true, message: 'Could not update Express Delivery. Please try again.', type: 'error' })
+    }
+    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
   }
 
   const saveDaySettings = async (todayEnabled: boolean, tomorrowEnabled: boolean) => {
@@ -1509,13 +1528,23 @@ export default function AddOnPage() {
 
           {/* Express / Priority Delivery */}
           <div style={{ backgroundColor: '#eff6ff', padding: '1.5rem', borderRadius: '12px', border: '2px solid #3b82f6', marginTop: '1.5rem' }}>
-            <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#1d4ed8', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>⚡ Priority / Express Delivery (4–6 hours)</h4>
-            <p style={{ fontSize: '0.8rem', color: '#1e40af', marginBottom: '0.75rem' }}>Set extra charge per order for express delivery. Set 0 to disable this option for users.</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+              <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#1d4ed8', margin: 0 }}>⚡ Express Delivery (12 hours)</h4>
+              <button
+                type="button"
+                onClick={() => saveExpressEnabled(!charges.expressDeliveryEnabled)}
+                aria-label="Toggle Express Delivery"
+                style={{ padding: '0.4rem 1.2rem', backgroundColor: charges.expressDeliveryEnabled ? '#22c55e' : '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer' }}
+              >
+                {charges.expressDeliveryEnabled ? 'ON' : 'OFF'}
+              </button>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: '#1e40af', marginBottom: '0.75rem' }}>Turn Express Delivery ON or OFF for customers, and set the extra charge per order. The ON/OFF switch saves immediately; the fee, label and info text save with "Save Charge Settings".</p>
             <div style={{ marginBottom: '0.75rem' }}>
               <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#1d4ed8', marginBottom: '0.4rem' }}>Toggle Label (shown next to the switch in customer app)</label>
               <input
                 type="text"
-                placeholder="e.g. Priority / Express Delivery (4–6 hours)"
+                placeholder="e.g. Express Delivery (12 hours)"
                 value={(charges as any).expressDeliveryLabel || ''}
                 onChange={(e) => setCharges({ ...charges, expressDeliveryLabel: e.target.value } as any)}
                 style={{ width: '100%', padding: '0.75rem', border: '2px solid #3b82f6', borderRadius: '8px', fontSize: '0.9rem' }}
@@ -1533,20 +1562,25 @@ export default function AddOnPage() {
               />
               <span style={{ color: '#1e40af', fontSize: '0.9rem' }}>per order</span>
             </div>
-            {charges.expressDeliveryPrice > 0 && (
-              <p style={{ fontSize: '0.8rem', color: '#1d4ed8', marginTop: '0.5rem', fontWeight: '500' }}>
-                ✅ Users will see "Priority Express (4–6 hrs) +₹{charges.expressDeliveryPrice}" option at checkout
+            {!charges.expressDeliveryEnabled ? (
+              <p style={{ fontSize: '0.8rem', color: '#b91c1c', marginTop: '0.5rem', fontWeight: '500' }}>
+                ⛔ Express Delivery is OFF. Customers only see Standard Delivery.
               </p>
-            )}
-            {charges.expressDeliveryPrice === 0 && (
-              <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem' }}>Express option is currently hidden from users</p>
+            ) : charges.expressDeliveryPrice > 0 ? (
+              <p style={{ fontSize: '0.8rem', color: '#1d4ed8', marginTop: '0.5rem', fontWeight: '500' }}>
+                ✅ Express Delivery is ON. Customers pay +₹{charges.expressDeliveryPrice} per order.
+              </p>
+            ) : (
+              <p style={{ fontSize: '0.8rem', color: '#b45309', marginTop: '0.5rem', fontWeight: '500' }}>
+                ⚠️ Express Delivery is ON with no extra charge (₹0). Use the OFF switch to hide it from customers.
+              </p>
             )}
             <div style={{ marginTop: '1rem' }}>
               <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#1d4ed8', marginBottom: '0.4rem' }}>ℹ️ Info Popup Text (shown when user taps the info icon)</label>
               <textarea
                 value={charges.expressDeliveryDescription}
                 onChange={(e) => setCharges({ ...charges, expressDeliveryDescription: e.target.value })}
-                placeholder={`e.g. Your clothes will be picked up and delivered within 4–6 hours. Available for select areas only. Extra charges apply.`}
+                placeholder={`e.g. Your clothes will be delivered within 12 hours of pickup. Extra charges apply.`}
                 rows={3}
                 style={{ width: '100%', padding: '0.75rem', border: '1px solid #3b82f6', borderRadius: '8px', fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit' }}
               />

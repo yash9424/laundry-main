@@ -27,9 +27,10 @@ const BottomNavigation = () => {
       </button>
       
       <button onClick={() => navigate("/cart")} className="flex flex-col items-center gap-0.5 sm:gap-1 p-1">
-        <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-          <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+        <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full flex items-center justify-center border-2 border-white shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+          <ShoppingCart className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
         </div>
+        <span className="text-[10px] sm:text-xs font-semibold" style={{ color: '#452D9B' }}>Your Cart</span>
       </button>
       
       <button onClick={() => navigate("/booking-history")} className="flex flex-col items-center gap-0.5 sm:gap-1 p-1">

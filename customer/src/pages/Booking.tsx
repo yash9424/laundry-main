@@ -113,7 +113,7 @@ const Booking = () => {
       }
       
       if (settingsData.success && settingsData.data) {
-        setMinOrderPrice(settingsData.data.minOrderPrice || 500);
+        setMinOrderPrice(typeof settingsData.data.minOrderPrice === 'number' ? settingsData.data.minOrderPrice : 500);
       }
     } catch (error) {
       clearTimeout(timeoutId)

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
+import connectDB from '@/lib/mongodb';
+import WalletTransaction from '@/models/WalletTransaction';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +15,7 @@ export async function POST(request: NextRequest) {
 
     const updateField = type === 'balance' ? 'walletBalance' : 'loyaltyPoints';
     const adjustmentAmount = action === 'increase' ? amount : -amount;
+    await connectDB();
 
     const results = await Promise.all(
       customerIds.map(async (id: string) => {
@@ -27,6 +30,18 @@ export async function POST(request: NextRequest) {
           { _id: new ObjectId(id) },
           { $set: { [updateField]: newValue, updatedAt: new Date().toISOString() } }
         );
+
+        // Record this change in the wallet transaction history so it shows up in the customer's Wallet page
+        await WalletTransaction.create({
+          customerId: id,
+          type,
+          action,
+          amount,
+          reason,
+          previousValue: currentValue,
+          newValue,
+          adjustedBy: 'Admin'
+        });
 
         const notificationTitle = type === 'balance'
           ? `Wallet ${action === 'increase' ? 'Credited' : 'Debited'}`

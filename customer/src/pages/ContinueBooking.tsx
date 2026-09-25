@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Shirt, CheckCircle2, MapPin, Circle } from "lucide-react";
+import { Shirt, CheckCircle2, MapPin, Circle, Check, X } from "lucide-react";
+import { TermsContent } from "@/pages/TermsConditions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import LeafletMap from "@/components/LeafletMap";
@@ -34,11 +35,22 @@ const ContinueBooking = () => {
   const [realItemData, setRealItemData] = useState<any[]>([]);
   const [loading, setLoading] = useState(isFromCart);
   const [additionalNotes, setAdditionalNotes] = useState('');
-  const [expressDelivery, setExpressDelivery] = useState(false);
+  const [expressDelivery, setExpressDelivery] = useState(
+    () => localStorage.getItem('selectedDeliveryType') === 'express'
+  );
   const [expressDeliveryPrice, setExpressDeliveryPrice] = useState(0);
   const [expressDeliveryLabel, setExpressDeliveryLabel] = useState('');
   const [expressDeliveryDescription, setExpressDeliveryDescription] = useState('');
   const [showExpressInfo, setShowExpressInfo] = useState(false);
+  const [expressEnabled, setExpressEnabled] = useState(true);
+  const [policyAcknowledged, setPolicyAcknowledged] = useState(false);
+  const [policyModal, setPolicyModal] = useState<'terms' | 'garment-care' | 'damage-loss' | null>(null);
+
+  useEffect(() => {
+    if (policyModal && policyModal !== 'terms') {
+      setTimeout(() => document.getElementById(policyModal)?.scrollIntoView(), 50);
+    }
+  }, [policyModal]);
 
   // Use real item data if fetched, otherwise use original data
   const items = realItemData.length > 0 ? realItemData : (isFromCart ? orderData.cartItems : (orderData.items || []));
@@ -109,6 +121,11 @@ const ContinueBooking = () => {
       const response = await fetch(`${API_URL}/api/order-charges`);
       const data = await response.json();
       if (data.success && data.data) {
+        if (data.data.expressDeliveryEnabled === false) {
+          setExpressEnabled(false);
+          setExpressDelivery(false);
+          localStorage.setItem('selectedDeliveryType', 'standard');
+        }
         setExpressDeliveryPrice(data.data.expressDeliveryPrice || 0);
         setExpressDeliveryLabel(data.data.expressDeliveryLabel || '');
         setExpressDeliveryDescription(data.data.expressDeliveryDescription || '');
@@ -262,6 +279,15 @@ const ContinueBooking = () => {
               </div>
             </div>
           </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => navigate('/add-address')}
+              className="text-xs text-gray-500 underline"
+            >
+              Change location
+            </button>
+          </div>
           {/* Temporarily hidden - not in use currently
           <div className="flex gap-2 sm:gap-3">
             <Button className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold bg-white border border-gray-300 text-black hover:bg-gray-50 text-xs sm:text-sm">
@@ -320,9 +346,9 @@ const ContinueBooking = () => {
           </div>
         </div>
 
-        {expressDeliveryPrice > 0 && (
+        {expressEnabled && expressDeliveryPrice > 0 && (
           <div>
-            <h2 className="text-base sm:text-lg font-bold mb-3 text-black">{expressDeliveryLabel || 'Priority Express Delivery'}</h2>
+            <h2 className="text-base sm:text-lg font-bold mb-3 text-black">{expressDeliveryLabel || 'Express Delivery'}</h2>
             <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -331,7 +357,7 @@ const ContinueBooking = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-1">
-                      <p className="font-bold text-black text-sm sm:text-base">{expressDeliveryLabel || 'Priority Express'}</p>
+                      <p className="font-bold text-black text-sm sm:text-base">{expressDeliveryLabel || 'Express Delivery'}</p>
                       {expressDeliveryDescription && (
                         <button
                           type="button"
@@ -396,9 +422,9 @@ const ContinueBooking = () => {
                 </div>
               )}
               {expressDelivery && expressDeliveryFee > 0 && (
-                <div className="flex justify-between text-orange-600">
-                  <span>Express Delivery Fee:</span>
-                  <span>+₹{expressDeliveryFee}</span>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Express Delivery Fee:</span>
+                  <span className="text-black">₹{expressDeliveryFee}</span>
                 </div>
               )}
               {dueAmount > 0 && (
@@ -427,6 +453,46 @@ const ContinueBooking = () => {
           </div>
         </div>
 
+        <div className="bg-white rounded-2xl p-4 mb-4 shadow-md">
+          <h3 className="text-sm font-semibold text-black mb-1">Garment care note</h3>
+          <p className="text-xs text-gray-600 leading-relaxed mb-3">
+            Urban Steam provides steam ironing services. Steam ironing and transportation may result in very minor wrinkles, folds or compression during handling and transit. Results may also vary depending on the fabric, construction and existing condition of each garment.
+          </p>
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              className="sr-only"
+              checked={policyAcknowledged}
+              onChange={() => setPolicyAcknowledged(!policyAcknowledged)}
+            />
+            <div
+              className="mt-0.5 w-5 h-5 flex-shrink-0 rounded flex items-center justify-center"
+              style={{
+                border: policyAcknowledged ? 'none' : '2px solid #9ca3af',
+                background: policyAcknowledged ? 'linear-gradient(to right, #452D9B, #07C8D0)' : 'white'
+              }}
+            >
+              {policyAcknowledged && <Check className="w-4 h-4 text-white" strokeWidth={3} />}
+            </div>
+            <span className="text-xs sm:text-sm text-black">
+              I have read and understood the above and agree to Urban Steam's{' '}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); setPolicyModal('terms'); }}
+                className="underline font-medium"
+                style={{ color: '#452D9B' }}
+              >
+                Terms &amp; Conditions
+              </button>
+              .
+            </span>
+          </label>
+          <div className="flex flex-wrap gap-x-3 gap-y-1 mt-3 text-[11px]">
+            <button type="button" onClick={() => setPolicyModal('garment-care')} className="underline" style={{ color: '#452D9B' }}>Garment Care Policy</button>
+            <button type="button" onClick={() => setPolicyModal('damage-loss')} className="underline" style={{ color: '#452D9B' }}>Damage/Loss Policy</button>
+          </div>
+        </div>
+
         <Button
           onClick={async () => {
             try {
@@ -435,7 +501,24 @@ const ContinueBooking = () => {
                 alert('Please login to place order');
                 return;
               }
-              
+
+              // Express may have been switched OFF by admin after this page loaded
+              if (expressDelivery) {
+                try {
+                  const chargesRes = await fetch(`${API_URL}/api/order-charges`);
+                  const chargesData = await chargesRes.json();
+                  if (chargesData.success && chargesData.data?.expressDeliveryEnabled === false) {
+                    setExpressEnabled(false);
+                    setExpressDelivery(false);
+                    localStorage.setItem('selectedDeliveryType', 'standard');
+                    alert('Express Delivery is no longer available. Your order total has been updated to Standard Delivery. Please review it and tap Continue again.');
+                    return;
+                  }
+                } catch (error) {
+                  console.error('Could not re-check Express Delivery setting:', error);
+                }
+              }
+
               // Validate address
               const hasAddress = orderData.address || (customerInfo?.address && customerInfo.address.length > 0);
               console.log('Address validation check:', { hasAddress, orderDataAddress: orderData.address, customerInfoAddress: customerInfo?.address });
@@ -477,6 +560,7 @@ const ContinueBooking = () => {
                   paymentMethod: 'Wallet',
                   paymentStatus: 'paid',
                   walletUsed: walletUsed,
+                  discountAmount: discount,
                   appliedVoucherCode: appliedVoucher?.code || null,
                   specialInstructions: additionalNotes.trim() || null,
                   expressDelivery: expressDelivery,
@@ -505,6 +589,8 @@ const ContinueBooking = () => {
                       originalTotal: totalAmount,
                       discount: discount,
                       walletUsed: walletUsed,
+                      previousDue: dueAmount,
+                      paidOnline: finalAmount,
                       appliedVoucher: appliedVoucher,
                       customerInfo: customerInfo,
                       status: 'Pending',
@@ -513,7 +599,8 @@ const ContinueBooking = () => {
                       address: orderData.address,
                       paymentStatus: 'Paid',
                       expressDelivery: expressDelivery,
-                      expressDeliveryFee: expressDeliveryFee
+                      expressDeliveryFee: expressDeliveryFee,
+                      expectedDeliveryAt: result.data.expectedDeliveryAt
                     }
                   });
                 } else {
@@ -578,6 +665,7 @@ const ContinueBooking = () => {
                         razorpayOrderId: response.razorpay_order_id,
                         razorpayPaymentId: response.razorpay_payment_id,
                         walletUsed: walletUsed,
+                        discountAmount: discount,
                         appliedVoucherCode: appliedVoucher?.code || null,
                         specialInstructions: additionalNotes.trim() || null,
                         expressDelivery: expressDelivery,
@@ -606,6 +694,8 @@ const ContinueBooking = () => {
                             originalTotal: totalAmount,
                             discount: discount,
                             walletUsed: walletUsed,
+                            previousDue: dueAmount,
+                            paidOnline: finalAmount,
                             appliedVoucher: appliedVoucher,
                             customerInfo: customerInfo,
                             status: 'Pending',
@@ -614,7 +704,8 @@ const ContinueBooking = () => {
                             address: orderData.address,
                             paymentStatus: 'Paid',
                             expressDelivery: expressDelivery,
-                            expressDeliveryFee: expressDeliveryFee
+                            expressDeliveryFee: expressDeliveryFee,
+                            expectedDeliveryAt: placeOrderResult.data.expectedDeliveryAt
                           }
                         });
                       } else {
@@ -660,12 +751,43 @@ const ContinueBooking = () => {
               alert('Failed to process payment. Please try again.');
             }
           }}
-          disabled={isProcessingPayment}
+          disabled={isProcessingPayment || !policyAcknowledged}
           className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isProcessingPayment ? 'Processing...' : 'Continue'}
         </Button>
+        {!policyAcknowledged && (
+          <p className="text-xs text-gray-500 text-center mt-2">Please tick the box above to continue.</p>
+        )}
       </div>
+
+      {/* Policy Modal */}
+      {policyModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setPolicyModal(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-bold">
+                {policyModal === 'garment-care' ? 'Garment Care Policy' : policyModal === 'damage-loss' ? 'Damage/Loss Policy' : 'Terms & Conditions'}
+              </h2>
+              <button onClick={() => setPolicyModal(null)} className="p-1" aria-label="Close">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="overflow-y-auto">
+              <TermsContent />
+            </div>
+            <div className="p-4 border-t">
+              <Button
+                onClick={() => setPolicyModal(null)}
+                className="w-full h-11 rounded-xl text-white"
+                style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Payment Warning Modal */}
       {showPaymentWarning && (
@@ -751,12 +873,12 @@ const ContinueBooking = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
               <div style={{ width: 42, height: 42, borderRadius: '12px', background: 'linear-gradient(to right, #f59e0b, #ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0 }}>⚡</div>
               <div>
-                <p style={{ fontWeight: '800', fontSize: '1rem', color: '#1e293b', margin: 0 }}>{expressDeliveryLabel || 'Priority Express Delivery'}</p>
+                <p style={{ fontWeight: '800', fontSize: '1rem', color: '#1e293b', margin: 0 }}>{expressDeliveryLabel || 'Express Delivery'}</p>
                 <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0 }}>+₹{expressDeliveryPrice} per order</p>
               </div>
             </div>
             <p style={{ color: '#475569', fontSize: '0.9rem', lineHeight: '1.6', whiteSpace: 'pre-line', marginBottom: '1.25rem' }}>
-              {expressDeliveryDescription || 'Your clothes will be picked up and delivered within 4–6 hours.'}
+              {expressDeliveryDescription || 'Your clothes will be picked up and delivered within a 12-hour turnaround.'}
             </p>
             <button
               onClick={() => setShowExpressInfo(false)}

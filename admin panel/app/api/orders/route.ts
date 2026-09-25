@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import dbConnect from '@/lib/mongodb'
+import dbConnect, { connectToDatabase } from '@/lib/mongodb'
 import Order from '@/models/Order'
 import Customer from '@/models/Customer'
 import Partner from '@/models/Partner'
@@ -12,9 +12,15 @@ export async function POST(request: NextRequest) {
     await dbConnect()
     
     const orderData = await request.json()
-    
+
     // Generate unique 5-character alphanumeric order ID
     const orderId = Math.random().toString(36).substr(2, 5).toUpperCase()
+
+    // expectedDeliveryAt is intentionally NOT set here. Per spec, the 24hr/12hr
+    // turnaround counts from actual PICKUP time, not order placement — it gets
+    // calculated (server-side, tamper-proof) when the Captain marks the order
+    // as picked up. See app/api/orders/[id]/route.ts PATCH handler.
+    const serverNow = new Date()
     
     // Find hub based on customer pincode
     let assignedHub = null
@@ -35,11 +41,35 @@ export async function POST(request: NextRequest) {
       previousDuePaid = customerForDue.dueAmount
     }
 
+    // Price breakdown saved on the order so every screen and invoice prints the same numbers
+    const itemsList = Array.isArray(orderData.items) ? orderData.items : []
+    const itemsSubtotal = itemsList.reduce(
+      (sum: number, item: any) => sum + (Number(item.quantity) || 0) * (Number(item.price) || 0), 0
+    )
+    const orderTotal = Number(orderData.totalAmount) || 0
+    let discountAmount = Math.min(Math.max(Number(orderData.discountAmount) || 0, 0), itemsSubtotal)
+    const requestedWallet = Number(orderData.walletUsed) || 0
+    const walletApplied = requestedWallet > 0 && (customerForDue?.walletBalance || 0) >= requestedWallet
+      ? Math.min(requestedWallet, orderTotal)
+      : 0
+    const amountPaidOnline = orderData.paymentStatus === 'paid' ? Math.max(0, orderTotal - walletApplied) : 0
+    const expressFeeForTotal = orderData.expressDelivery ? Number(orderData.expressDeliveryFee) || 0 : 0
+    const expectedTotal = itemsSubtotal - discountAmount + previousDuePaid + expressFeeForTotal
+    if (Math.abs(expectedTotal - orderTotal) > 1) {
+      // The charged total is the truth: derive the discount from it so the printed lines always add up
+      console.warn(`Order ${orderId}: total mismatch. Expected ${expectedTotal} from breakdown, received ${orderTotal}`)
+      discountAmount = Math.min(Math.max(itemsSubtotal + previousDuePaid + expressFeeForTotal - orderTotal, 0), itemsSubtotal)
+    }
+
     const newOrder = new Order({
       orderId,
       customerId: orderData.customerId,
       items: orderData.items,
       totalAmount: orderData.totalAmount,
+      itemsSubtotal,
+      discountAmount,
+      walletUsed: walletApplied,
+      amountPaidOnline,
       previousDuePaid: previousDuePaid,
       status: 'pending',
       hub: assignedHub,
@@ -55,12 +85,30 @@ export async function POST(request: NextRequest) {
       razorpayPaymentId: orderData.razorpayPaymentId,
       appliedVoucherCode: orderData.appliedVoucherCode,
       specialInstructions: orderData.specialInstructions || '',
-      createdAt: new Date(),
-      updatedAt: new Date()
+      expressDelivery: orderData.expressDelivery || false,
+      expressDeliveryFee: orderData.expressDeliveryFee || 0,
+      createdAt: serverNow,
+      updatedAt: serverNow
     })
     
     const savedOrder = await newOrder.save()
-    
+
+    // Let the admin know a new order came in (shows in Admin > Notifications)
+    try {
+      const { db } = await connectToDatabase()
+      await db.collection('notifications').insertOne({
+        title: 'New Order Placed',
+        message: `Order #${orderId} placed — ₹${orderData.totalAmount}${orderData.expressDelivery ? ' (Express Delivery)' : ''}`,
+        audience: 'Admin',
+        status: 'sent',
+        sentAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      })
+    } catch (notifyError) {
+      console.error('Failed to create admin notification for new order:', notifyError)
+    }
+
     // Mark voucher as used ONLY if payment is successful
     if (orderData.appliedVoucherCode && orderData.paymentStatus === 'paid') {
       await Customer.findByIdAndUpdate(orderData.customerId, {

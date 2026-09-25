@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Info, Shirt, Bed, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, Minus, Plus } from "lucide-react";
+import { Info, Shirt, Bed, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, Minus, Plus, X, ZoomIn } from "lucide-react";
 import { useEffect, useState } from "react";
 import { API_URL } from '@/config/api';
 import { Button } from "@/components/ui/button";
@@ -16,14 +16,22 @@ const Prices = () => {
   const [quantities, setQuantities] = useState<{[key: string]: number}>({});
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [previewItem, setPreviewItem] = useState<any | null>(null);
+  const [minOrderPrice, setMinOrderPrice] = useState(0);
+  const [expressDeliveryFee, setExpressDeliveryFee] = useState(0);
+  const isExpressSelected = typeof window !== 'undefined' && localStorage.getItem('selectedDeliveryType') === 'express';
 
   useEffect(() => {
     fetchItems();
     fetchCategories();
+    fetchMinOrderPrice();
+    fetchExpressDeliveryFee();
     
     // Handle hardware back button
     const handleBackButton = () => {
-      if (selectedCategory !== null) {
+      if (previewItem) {
+        setPreviewItem(null);
+      } else if (selectedCategory !== null) {
         setSelectedCategory(null);
       } else {
         navigate('/home');
@@ -36,7 +44,7 @@ const Prices = () => {
     return () => {
       App.removeAllListeners();
     };
-  }, [navigate, selectedCategory]);
+  }, [navigate, selectedCategory, previewItem]);
 
   useEffect(() => {
     // Show "How to Order" modal automatically on first visit
@@ -59,6 +67,33 @@ const Prices = () => {
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchMinOrderPrice = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/wallet-settings`);
+      const data = await response.json();
+      if (data.success && data.data?.minOrderPrice) {
+        setMinOrderPrice(data.data.minOrderPrice);
+      }
+    } catch (error) {
+      console.error('Error fetching minimum order price:', error);
+    }
+  };
+
+  const fetchExpressDeliveryFee = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/order-charges`);
+      const data = await response.json();
+      if (data.success && data.data?.expressDeliveryEnabled === false) {
+        localStorage.setItem('selectedDeliveryType', 'standard');
+        setExpressDeliveryFee(0);
+      } else if (data.success && data.data?.expressDeliveryPrice) {
+        setExpressDeliveryFee(data.data.expressDeliveryPrice);
+      }
+    } catch (error) {
+      console.error('Error fetching express delivery fee:', error);
     }
   };
 
@@ -110,6 +145,14 @@ const Prices = () => {
 
   const getTotalItems = () => {
     return Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
+  };
+
+  const getItemsTotal = () => {
+    return items.reduce((sum, item: any) => sum + (item.price * (quantities[item._id] || 0)), 0);
+  };
+
+  const getTotalPrice = () => {
+    return getItemsTotal();
   };
 
   const filteredItems = selectedCategory === 'All'
@@ -204,12 +247,22 @@ const Prices = () => {
                     } hover:bg-blue-50 transition-colors`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md overflow-hidden" style={{ background: item.image ? 'transparent' : 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-                        {item.image
-                          ? <img src={item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`} alt={item.name} className="w-full h-full object-cover rounded-full" />
-                          : <Shirt className="w-5 h-5 text-white" />
-                        }
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewItem(item)}
+                        aria-label={`View ${item.name} details`}
+                        className="relative flex-shrink-0 active:scale-95 transition-transform"
+                      >
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md overflow-hidden ring-2 ring-purple-200" style={{ background: item.image ? 'transparent' : 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                          {item.image
+                            ? <img src={item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`} alt={item.name} className="w-full h-full object-cover rounded-full" />
+                            : <Shirt className="w-5 h-5 text-white" />
+                          }
+                        </div>
+                        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-white shadow flex items-center justify-center">
+                          <ZoomIn className="w-3 h-3" style={{ color: '#452D9B' }} />
+                        </span>
+                      </button>
                       <div>
                         <span className="font-semibold text-gray-800 block">{item.name}</span>
                         <span className="text-lg font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
@@ -245,17 +298,21 @@ const Prices = () => {
           </div>
         ) : null}
 
-        {/* View Cart Button */}
-        {false && getTotalItems() > 0 && (
-          <div className="mt-6">
-            <Button
-              onClick={() => navigate('/cart')}
-              className="w-full h-12 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl font-semibold shadow-lg flex items-center justify-center gap-2"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              View Cart ({getTotalItems()} items)
-            </Button>
-          </div>
+        {/* Live Running Total Bar */}
+        {getTotalItems() > 0 && (
+          <button
+            onClick={() => navigate('/cart')}
+            className="fixed left-4 right-4 bottom-[104px] sm:bottom-32 z-40 rounded-2xl shadow-xl px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between text-white"
+            style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+          >
+            <div className="flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 flex-shrink-0" />
+              <span className="text-sm sm:text-base font-semibold">{getTotalItems()} item{getTotalItems() > 1 ? 's' : ''}</span>
+            </div>
+            <div className="text-right">
+              <span className="text-base sm:text-lg font-bold">₹{getTotalPrice()}</span>
+            </div>
+          </button>
         )}
 
         <div className="mt-6 rounded-2xl p-4 shadow-md" style={{ background: 'linear-gradient(to bottom right, #f0ebf8, #e0f7f9)' }}>
@@ -263,6 +320,14 @@ const Prices = () => {
             *All services include professional steam ironing as standard.
           </p>
         </div>
+
+        {minOrderPrice > 0 && (
+          <div className="mt-3 rounded-2xl p-3 shadow-sm" style={{ background: '#f3f4f6' }}>
+            <p className="text-center text-xs text-gray-500 font-medium">
+              Minimum order value: ₹{minOrderPrice}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Toast Notification */}
@@ -270,6 +335,50 @@ const Prices = () => {
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
           <div className={`${toast.type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-green-500 to-green-600'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3`}>
             <span className="font-semibold">{toast.message}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Garment Preview */}
+      {previewItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setPreviewItem(null)}
+        >
+          <div
+            className="relative bg-white rounded-3xl w-full max-w-sm max-h-[85vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 fade-in duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={() => setPreviewItem(null)}
+              className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/40 text-white flex items-center justify-center"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div
+              className="w-full aspect-square flex items-center justify-center overflow-hidden rounded-t-3xl"
+              style={{ background: previewItem.image ? '#f3f4f6' : 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+            >
+              {previewItem.image
+                ? <img src={previewItem.image.startsWith('http') ? previewItem.image : `${API_URL}${previewItem.image}`} alt={previewItem.name} className="w-full h-full object-cover" />
+                : <Shirt className="w-24 h-24 text-white/90" />
+              }
+            </div>
+
+            <div className="p-5">
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="text-xl font-bold text-gray-800">{previewItem.name}</h3>
+                <span className="text-xl font-bold flex-shrink-0" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                  ₹{previewItem.price}
+                </span>
+              </div>
+              {previewItem.description && (
+                <p className="mt-3 text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{previewItem.description}</p>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -287,31 +396,39 @@ const Prices = () => {
             </button>
             
             <h3 className="text-xl font-bold mb-6 text-center" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-              How to Order
+              How To Order
             </h3>
             
             <div className="space-y-6">
               <div className="flex gap-4">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>1</div>
                 <div>
-                  <p className="font-semibold text-gray-800">Choose Items</p>
-                  <p className="text-sm text-gray-600">Use the <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded text-xs font-bold">+</span> sign to add quantity for each item you want to iron.</p>
+                  <p className="font-semibold text-gray-800">Choose Your Garments</p>
+                  <p className="text-sm text-gray-600">Count your garments and tap <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded text-xs font-bold">+</span> to add them.</p>
                 </div>
               </div>
 
               <div className="flex gap-4">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>2</div>
                 <div>
-                  <p className="font-semibold text-gray-800">Items Auto-Added</p>
-                  <p className="text-sm text-gray-600">Items are automatically saved to your cart as you add quantities. No extra button needed.</p>
+                  <p className="font-semibold text-gray-800">Review Your Cart</p>
+                  <p className="text-sm text-gray-600">Items are saved to your cart automatically. Tap the total bar or Cart below to check your order.</p>
                 </div>
               </div>
 
               <div className="flex gap-4">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>3</div>
                 <div>
-                  <p className="font-semibold text-gray-800">Select Slot & Confirm</p>
-                  <p className="text-sm text-gray-600">Choose a convenient pickup time slot, confirm your ride, and add any special instructions.</p>
+                  <p className="font-semibold text-gray-800">Pick a Slot & Pay</p>
+                  <p className="text-sm text-gray-600">Choose your pickup slot and complete payment.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>4</div>
+                <div>
+                  <p className="font-semibold text-gray-800">Relax</p>
+                  <p className="text-sm text-gray-600">We'll take care of the rest.</p>
                 </div>
               </div>
             </div>

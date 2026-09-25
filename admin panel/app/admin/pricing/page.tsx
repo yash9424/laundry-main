@@ -10,6 +10,7 @@ interface PricingItem {
   price: number;
   category: string;
   image: string;
+  description?: string;
   createdAt: string;
 }
 
@@ -35,7 +36,7 @@ export default function PricingPage() {
   const [editCategoryImage, setEditCategoryImage] = useState('');
   const [editCategoryFile, setEditCategoryFile] = useState<File | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [formData, setFormData] = useState({ name: '', price: '', category: '' })
+  const [formData, setFormData] = useState({ name: '', price: '', category: '', description: '' })
   const [itemFile, setItemFile] = useState<File | null>(null)
   const [editingItemFile, setEditingItemFile] = useState<File | null>(null)
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' });
@@ -87,7 +88,7 @@ export default function PricingPage() {
       });
       const data = await response.json();
       if (response.ok) {
-        setFormData({ name: '', price: '', category: categories[0]?.name || '' });
+        setFormData({ name: '', price: '', category: categories[0]?.name || '', description: '' });
         setItemFile(null);
         setShowAddForm(false);
         fetchItems();
@@ -188,7 +189,7 @@ export default function PricingPage() {
       const response = await fetch('/api/pricing', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: item._id, name: item.name, price: item.price, category: item.category, image: imageUrl })
+        body: JSON.stringify({ id: item._id, name: item.name, price: item.price, category: item.category, image: imageUrl, description: item.description || '' })
       });
       if (response.ok) {
         setEditingItem(null);
@@ -271,16 +272,17 @@ export default function PricingPage() {
 
           {/* Items Table */}
           <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden', marginBottom: '2rem' }}>
-            <div style={{ backgroundColor: '#f8fafc', padding: '1rem', display: 'grid', gridTemplateColumns: '50px 2fr 2fr 1.5fr 3fr', gap: '1rem', fontSize: '0.9rem', fontWeight: '600', color: '#6b7280', border: 'none' }}>
+            <div style={{ backgroundColor: '#f8fafc', padding: '1rem', display: 'grid', gridTemplateColumns: '50px 1.5fr 2.5fr 1fr 1.2fr 3fr', gap: '1rem', fontSize: '0.9rem', fontWeight: '600', color: '#6b7280', border: 'none' }}>
               <div>Image</div>
               <div>Item Name</div>
+              <div>Description</div>
               <div>Price</div>
               <div>Last Updated</div>
               <div>Actions</div>
             </div>
 
             {items.map((item, index) => (
-              <div key={item._id} style={{ padding: '1rem', display: 'grid', gridTemplateColumns: '50px 2fr 2fr 1.5fr 3fr', gap: '1rem', borderTop: '1px solid #f3f4f6', fontSize: '0.9rem', alignItems: 'center' }}>
+              <div key={item._id} style={{ padding: '1rem', display: 'grid', gridTemplateColumns: '50px 1.5fr 2.5fr 1fr 1.2fr 3fr', gap: '1rem', borderTop: '1px solid #f3f4f6', fontSize: '0.9rem', alignItems: 'center' }}>
                 <div>
                   {editingItem?._id === item._id ? (
                     <div>
@@ -300,6 +302,15 @@ export default function PricingPage() {
                     <input type="text" value={editingItem.name} onChange={(e) => setEditingItem({...editingItem, name: e.target.value})} style={{ padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '6px', width: '100%' }} />
                   ) : (
                     item.name
+                  )}
+                </div>
+                <div>
+                  {editingItem?._id === item._id ? (
+                    <input type="text" maxLength={300} placeholder="e.g. 100% cotton, soft & breathable" value={editingItem.description || ''} onChange={(e) => setEditingItem({...editingItem, description: e.target.value})} style={{ padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '6px', width: '100%' }} />
+                  ) : item.description ? (
+                    <span title={item.description} style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', color: '#4b5563', fontSize: '0.85rem' }}>{item.description}</span>
+                  ) : (
+                    <span style={{ color: '#9ca3af' }}>—</span>
                   )}
                 </div>
                 <div>
@@ -370,6 +381,17 @@ export default function PricingPage() {
                         <option key={cat._id} value={cat.name}>{cat.name}</option>
                       ))}
                     </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Description (optional)</label>
+                    <textarea
+                      rows={3}
+                      maxLength={300}
+                      placeholder="Fabric / texture / type, e.g. 100% cotton, soft & breathable"
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.9rem', resize: 'vertical' }}
+                    />
                   </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Item Image (optional)</label>

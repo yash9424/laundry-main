@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, Minus, Plus, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User } from "lucide-react";
+import { Check, Minus, Plus, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, Zap } from "lucide-react";
 import homeScreenImage from "@/assets/Home screen.png";
 import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
@@ -23,6 +23,7 @@ const Home = () => {
   });
   const scrollRef = useRef<HTMLDivElement>(null);
   const voucherScrollRef = useRef<HTMLDivElement>(null);
+  const [expressEnabled, setExpressEnabled] = useState(true);
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
   const [isCopied, setIsCopied] = useState(false);
@@ -410,6 +411,25 @@ const Home = () => {
     setIsCopied(false);
   };
 
+  useEffect(() => {
+    fetch(`${API_URL}/api/order-charges`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data?.expressDeliveryEnabled === false) {
+          setExpressEnabled(false);
+          localStorage.setItem("selectedDeliveryType", "standard");
+        }
+      })
+      .catch(err => console.error('Error fetching express delivery setting:', err));
+  }, []);
+
+  const handleDeliverySelect = (type: "standard" | "express") => {
+    if (type === "express" && !expressEnabled) type = "standard";
+    localStorage.setItem("selectedDeliveryType", type);
+    localStorage.removeItem("cartItems");
+    navigate("/prices");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 page-with-bottom-nav">
       {/* Gradient Header Section - SMALLER */}
@@ -500,15 +520,25 @@ const Home = () => {
           </div>
         )}
 
-        {/* Quick Actions */}
-        <div className="mb-4 sm:mb-5">
-          <Button
-            onClick={() => navigate("/prices")}
-            className="w-full h-12 sm:h-14 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl text-sm sm:text-base font-semibold shadow-lg"
+        {/* Quick Actions - Delivery Type Selection */}
+        <div className={`mb-4 sm:mb-5 grid ${expressEnabled ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
+          <button
+            onClick={() => handleDeliverySelect("standard")}
+            className="h-20 sm:h-24 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1 transition-all"
           >
-            <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-            Book Order
-          </Button>
+            <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
+            <span className="text-sm sm:text-base font-semibold">Standard Delivery</span>
+            <span className="text-[10px] sm:text-xs text-white/80">24-hour turnaround</span>
+          </button>
+
+          {expressEnabled && <button
+            onClick={() => handleDeliverySelect("express")}
+            className="h-20 sm:h-24 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1 transition-all"
+          >
+            <Zap className="w-5 h-5 sm:w-6 sm:h-6" />
+            <span className="text-sm sm:text-base font-semibold">Express Delivery</span>
+            <span className="text-[10px] sm:text-xs text-white/80">12-hour — small fee</span>
+          </button>}
         </div>
 
         {/* Wallet Top-Up Plans Carousel */}

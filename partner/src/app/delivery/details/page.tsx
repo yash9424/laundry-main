@@ -8,6 +8,17 @@ import BottomNav from "@/components/BottomNav";
 import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
 
+// Live countdown for Express Delivery orders only (12hr SLA).
+function formatCountdown(expectedDeliveryAt: string, now: Date): { text: string; overdue: boolean } {
+  const diffMs = new Date(expectedDeliveryAt).getTime() - now.getTime();
+  const overdue = diffMs < 0;
+  const abs = Math.abs(diffMs);
+  const hours = Math.floor(abs / (1000 * 60 * 60));
+  const minutes = Math.floor((abs % (1000 * 60 * 60)) / (1000 * 60));
+  const text = `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+  return { text: overdue ? `Overdue by ${text}` : `${text} left`, overdue };
+}
+
 function DeliveryDetailsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -22,6 +33,13 @@ function DeliveryDetailsContent() {
     refusalToAccept: false
   });
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
+  const [now, setNow] = useState(() => new Date());
+
+  // Re-render every 30s so the Express countdown stays current
+  useEffect(() => {
+    const tick = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(tick);
+  }, []);
 
   useEffect(() => {
     if (orderId) fetchOrder();
@@ -84,6 +102,11 @@ function DeliveryDetailsContent() {
             {order.status === 'process_completed' ? 'Ready for Delivery' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
           </span>
         </div>
+        {order.expressDelivery && !['delivered', 'cancelled'].includes(order.status) && (
+          <p className="mt-2 text-xs font-bold" style={{ color: order.expectedDeliveryAt && formatCountdown(order.expectedDeliveryAt, now).overdue ? '#dc2626' : '#d97706' }}>
+            Express Delivery · ⏳ {order.expectedDeliveryAt ? formatCountdown(order.expectedDeliveryAt, now).text : 'Timer starts at pickup'}
+          </p>
+        )}
         <div className="mt-3 flex items-center justify-between">
           <p className="text-sm text-black">{order.customerId?.name || 'Customer'}</p>
           <div className="flex items-center gap-2">

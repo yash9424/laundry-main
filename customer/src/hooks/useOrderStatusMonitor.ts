@@ -7,6 +7,7 @@ interface Order {
   orderId: string;
   status: string;
   customerId: string;
+  expressDelivery?: boolean;
 }
 
 // Statuses that should trigger notifications
@@ -15,8 +16,6 @@ const NOTIFICATION_STATUSES = [
   'reached_location',
   'picked_up',
   'delivered_to_hub',
-  'processing',
-  'ironing',
   'process_completed',
   'out_for_delivery',
   'delivered',
@@ -52,7 +51,7 @@ export const useOrderStatusMonitor = () => {
             if (NOTIFICATION_STATUSES.includes(currentStatus)) {
               if (!lastStatus || (lastStatus !== currentStatus)) {
                 console.log(`Creating notification: ${order.orderId} -> ${currentStatus}`);
-                notificationService.createOrderStatusNotification(order.orderId, currentStatus);
+                notificationService.createOrderStatusNotification(order.orderId, currentStatus, order.expressDelivery);
               }
             }
             
@@ -99,7 +98,7 @@ export const useOrderStatusMonitor = () => {
             const currentStatus = order.status;
             
             if (lastStatus && lastStatus !== currentStatus && NOTIFICATION_STATUSES.includes(currentStatus)) {
-              notificationService.createOrderStatusNotification(order.orderId, currentStatus);
+              notificationService.createOrderStatusNotification(order.orderId, currentStatus, order.expressDelivery);
             }
             
             lastOrderStatuses.current.set(order.orderId, currentStatus);

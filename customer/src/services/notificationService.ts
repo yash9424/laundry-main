@@ -29,14 +29,6 @@ const statusNotifications = {
     title: '🏭 Order at Processing Hub',
     message: 'Your order has been delivered to our processing hub and will be processed soon.'
   },
-  'processing': {
-    title: '🧺 Order Processing Started',
-    message: 'Your order is now being processed at our facility.'
-  },
-  'ironing': {
-    title: '👔 Ironing in Progress',
-    message: 'Your clothes are being ironed and will be ready soon.'
-  },
   'process_completed': {
     title: '✨ Processing Complete',
     message: 'Your order has been processed and is ready for delivery.'
@@ -200,16 +192,17 @@ class NotificationService {
   }
 
   // Create order status notification
-  createOrderStatusNotification(orderId: string, status: string) {
+  createOrderStatusNotification(orderId: string, status: string, isExpressDelivery?: boolean) {
     const template = statusNotifications[status as keyof typeof statusNotifications];
     if (!template) return;
 
     const notificationId = `order_${orderId}_${status}_${Date.now()}`;
+    const deliveryTag = isExpressDelivery ? ' — Express Delivery' : '';
 
     const notification: OrderNotification = {
       id: notificationId,
       title: template.title,
-      message: `${template.message} (Order #${orderId})`,
+      message: `${template.message} (Order #${orderId}${deliveryTag})`,
       type: 'order_status',
       orderId,
       orderStatus: status,

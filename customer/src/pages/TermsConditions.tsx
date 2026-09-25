@@ -1,18 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
-const TermsConditions = () => {
-  const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="px-4 py-4 flex items-center gap-3 shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-        <button onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-6 h-6 text-white" />
-        </button>
-        <h1 className="text-xl font-bold text-white">Terms & Conditions</h1>
-      </header>
-
+export const TermsContent = () => (
       <div className="px-4 py-6 space-y-6 text-gray-800">
         <section>
           <h2 className="text-lg font-bold mb-2">1. Acceptance of Terms</h2>
@@ -47,7 +36,7 @@ const TermsConditions = () => {
           </div>
         </section>
 
-        <section>
+        <section id="garment-care">
           <h2 className="text-lg font-bold mb-2">5. Garment Care and Processing</h2>
           <div className="text-sm leading-relaxed space-y-2">
             <p>a) Urban Steam will exercise professional care and diligence in the processing of all garments.</p>
@@ -56,7 +45,7 @@ const TermsConditions = () => {
           </div>
         </section>
 
-        <section>
+        <section id="damage-loss">
           <h2 className="text-lg font-bold mb-2">6. Limitation of Liability for Damaged or Lost Items</h2>
           <div className="text-sm leading-relaxed space-y-2">
             <p>a) In the rare event of damage or loss of an item that is directly attributable to our handling, you must notify our customer support team in writing within twenty-four (24) hours of delivery.</p>
@@ -135,6 +124,21 @@ const TermsConditions = () => {
           <p className="text-sm font-semibold mt-2">Support Email: support@urbansteam.in</p>
         </section>
       </div>
+);
+
+const TermsConditions = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="px-4 py-4 flex items-center gap-3 shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+        <button onClick={() => navigate(-1)}>
+          <ArrowLeft className="w-6 h-6 text-white" />
+        </button>
+        <h1 className="text-xl font-bold text-white">Terms & Conditions</h1>
+      </header>
+
+      <TermsContent />
     </div>
   );
 };

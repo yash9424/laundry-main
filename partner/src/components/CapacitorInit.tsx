@@ -1,11 +1,10 @@
 "use client";
 import { useEffect } from "react";
-import { usePartnerOrderMonitor } from "@/hooks/usePartnerOrderMonitor";
 
 export default function CapacitorInit() {
-  // Initialize partner order monitoring
-  usePartnerOrderMonitor();
-  
+  // Order monitoring is started once by <OrderMonitor /> (see app/layout.tsx).
+  // It used to also start here, which fired every notification twice.
+
   useEffect(() => {
     (async () => {
       try {

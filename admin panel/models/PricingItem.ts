@@ -20,6 +20,12 @@ const PricingItemSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  description: {
+    type: String,
+    default: '',
+    trim: true,
+    maxLength: 300
+  },
   isActive: {
     type: Boolean,
     default: true

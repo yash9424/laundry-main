@@ -5,6 +5,17 @@ import { useEffect, useState } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
 import Modal from '../../components/Modal'
 
+// Live countdown for Express Delivery orders (12hr SLA), shown in the orders list.
+function formatCountdown(expectedDeliveryAt: string, now: Date): { text: string; overdue: boolean } {
+  const diffMs = new Date(expectedDeliveryAt).getTime() - now.getTime()
+  const overdue = diffMs < 0
+  const abs = Math.abs(diffMs)
+  const hours = Math.floor(abs / (1000 * 60 * 60))
+  const minutes = Math.floor((abs % (1000 * 60 * 60)) / (1000 * 60))
+  const text = `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`
+  return { text: overdue ? `Overdue by ${text}` : `${text} left`, overdue }
+}
+
 export default function OrdersPage() {
   const router = useRouter()
   const [orders, setOrders] = useState<any[]>([])
@@ -18,6 +29,13 @@ export default function OrdersPage() {
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' | 'confirm', onConfirm: () => {} })
   const [showFromCalendar, setShowFromCalendar] = useState(false)
   const [showToCalendar, setShowToCalendar] = useState(false)
+  const [now, setNow] = useState(() => new Date())
+
+  // Re-render every 30s so Express countdowns stay current
+  useEffect(() => {
+    const tick = setInterval(() => setNow(new Date()), 30000)
+    return () => clearInterval(tick)
+  }, [])
 
   const statusFilters = [
     { label: 'All', value: 'all' },
@@ -39,7 +57,19 @@ export default function OrdersPage() {
     applyFilters()
   }, [orders, activeFilter, fromDate, toDate, searchQuery])
 
-  const fetchOrders = async () => {
+  useEffect(() => {
+    const refresh = () => {
+      if (!document.hidden) fetchOrders(true)
+    }
+    const poll = setInterval(refresh, 10000)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      clearInterval(poll)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+  }, [])
+
+  const fetchOrders = async (silent = false) => {
     try {
       const userData = localStorage.getItem('adminUser')
       let url = '/api/orders'
@@ -72,7 +102,7 @@ export default function OrdersPage() {
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
         setOrders(sortedOrders)
-        setFilteredOrders(sortedOrders)
+        if (!silent) setFilteredOrders(sortedOrders)
       }
     } catch (error) {
       console.error('Failed to fetch orders:', error)
@@ -485,8 +515,13 @@ export default function OrdersPage() {
                   />
                 </div>
                 <div style={{ fontWeight: '500' }} onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>
-                  {order.id}
-                  {dbOrder.expressDelivery && <span style={{ marginLeft: '4px', fontSize: '0.7rem', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: '700' }}>⚡ Express</span>}
+                  <div>{order.id}</div>
+                  {dbOrder.expressDelivery && <span style={{ display: 'inline-block', marginTop: '4px', fontSize: '0.65rem', whiteSpace: 'nowrap', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: '700' }}>Express Delivery</span>}
+                  {dbOrder.expressDelivery && !['delivered', 'cancelled'].includes(dbOrder.status) && (
+                    <div style={{ marginTop: '4px', fontSize: '0.65rem', fontWeight: '600', lineHeight: '1.3', color: dbOrder.expectedDeliveryAt && formatCountdown(dbOrder.expectedDeliveryAt, now).overdue ? '#dc2626' : '#92400e' }}>
+                      ⏳ {dbOrder.expectedDeliveryAt ? formatCountdown(dbOrder.expectedDeliveryAt, now).text : 'Timer starts at pickup'}
+                    </div>
+                  )}
                 </div>
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.customer}</div>
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.mobile}</div>
@@ -494,11 +529,14 @@ export default function OrdersPage() {
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.price}</div>
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>
                   <span style={{
-                    padding: '0.25rem 0.75rem',
+                    display: 'inline-block',
+                    textAlign: 'center',
+                    lineHeight: '1.25',
+                    padding: '0.3rem 0.6rem',
                     borderRadius: '12px',
                     fontSize: '0.8rem',
                     fontWeight: '500',
-                    backgroundColor: 
+                    backgroundColor:
                       order.status === 'Delivered' ? '#dcfce7' :
                       order.status === 'Delivery Failed' ? '#fee2e2' :
                       order.status === 'Pending' ? '#fef3c7' : '#fee2e2',

@@ -4,6 +4,7 @@ import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { ACS_LOGO_BASE64, URBAN_STEAM_LOGO_BASE64 } from './invoiceAssets';
+import { getOrderBreakdown } from './orderBreakdown';
 
 // Brand typography system
 const setBrandFont = (doc: jsPDF, type: 'primary' | 'secondary', weight: 'light' | 'regular' | 'medium' | 'semibold' | 'bold' | 'extrabold' | 'black' = 'regular') => {
@@ -294,84 +295,43 @@ export const generateInvoicePDF = async (order: any) => {
       subtotal = 750;
     }
     
-    // Check if summary section needs new page
-    if (yStart > maxYPosition - 60) {
+    // Summary: prints the breakdown saved on the order (see getOrderBreakdown)
+    const b = getOrderBreakdown(order);
+    const summaryRows: { label: string; value: string; emphasis?: boolean }[] = [
+      { label: 'Subtotal', value: 'Rs.' + Math.round(b.subtotal) },
+      { label: 'Tax (0%)', value: 'Rs.0.00' },
+    ];
+    if (b.express > 0) summaryRows.push({ label: 'Express Delivery Fee', value: '+ Rs.' + Math.round(b.express) });
+    if (b.due > 0) summaryRows.push({ label: 'Previous Due', value: '+ Rs.' + Math.round(b.due) });
+    if (b.discount > 0) {
+      const discountPercentage = b.subtotal > 0 ? Math.round((b.discount / b.subtotal) * 100) : 0;
+      summaryRows.push({ label: `Discount - ${discountPercentage}%`, value: '- Rs.' + Math.round(b.discount) });
+    }
+    summaryRows.push({ label: 'Total', value: 'Rs.' + Math.round(b.total), emphasis: true });
+    if (b.wallet > 0) summaryRows.push({ label: 'Paid from wallet', value: 'Rs.' + Math.round(b.wallet) });
+    if (b.paidOnline !== null && b.paidOnline > 0) summaryRows.push({ label: 'Paid online', value: 'Rs.' + Math.round(b.paidOnline) });
+
+    const summaryRowHeight = 10;
+    if (yStart + 5 + summaryRows.length * summaryRowHeight > pageHeight - 40) {
       doc.addPage();
       yStart = 20;
     }
-    
-    // Summary section starts immediately after items
+
     yStart += 5;
     setTypography(doc, 'h2');
     doc.setFontSize(12);
-    
-    doc.text('Subtotal', 130, yStart);
-    doc.text('- Rs.' + subtotal, pageWidth - 17, yStart, { align: 'right' });
-    yStart += 8;
-    
-    // Line after subtotal
     doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.2);
-    doc.line(130, yStart, pageWidth - 15, yStart);
-    yStart += 8;
-    
-    doc.text('Tax (0%)', 130, yStart);
-    doc.text('- Rs.0.00', pageWidth - 17, yStart, { align: 'right' });
-    yStart += 8;
-    
-    // Line after tax
-    doc.line(130, yStart, pageWidth - 15, yStart);
-    yStart += 8;
-    
-    // Calculate actual discount from order data
-    const originalAmount = subtotal;
-    const previousDue = order.previousDuePaid || 0;
-    const finalAmount = order.totalAmount || subtotal;
-    // discount = (Items Total + Previous Due) - Final Total
-    const discountAmount = (originalAmount + previousDue) - finalAmount;
-    const hasDiscount = discountAmount > 0;
-    
-    // Calculate discount percentage
-    const discountPercentage = hasDiscount ? Math.round((discountAmount / originalAmount) * 100) : 0;
-    
-    // Show Previous Due if exists
-    if (previousDue > 0) {
-      doc.text('Previous Due', 130, yStart);
-      doc.text('+ Rs.' + Math.round(previousDue), pageWidth - 17, yStart, { align: 'right' });
-      yStart += 8;
-      
-      // Line after previous due
-      doc.line(130, yStart, pageWidth - 15, yStart);
-      yStart += 8;
-    }
 
-    // Only show discount if there's an actual discount
-    if (hasDiscount) {
-      doc.text(`Discount - ${discountPercentage}%`, 130, yStart);
-      doc.text('- Rs.' + Math.round(discountAmount), pageWidth - 17, yStart, { align: 'right' });
-      yStart += 8;
-      
-      // Line after discount
-      doc.line(130, yStart, pageWidth - 15, yStart);
-      yStart += 8;
-    }
-    
-    const finalTotal = finalAmount;
-    
-    doc.text('Total', 130, yStart);
-    doc.text('- Rs.' + Math.round(finalTotal), pageWidth - 17, yStart, { align: 'right' });
-    yStart += 8;
-    
-    // Line after total
-    doc.line(130, yStart, pageWidth - 15, yStart);
-    yStart += 8;
-    
-    // Grand Total in blue color
-    doc.setTextColor(69, 45, 155);
-    doc.text('Grand Total', 130, yStart);
-    doc.text('- Rs.' + Math.round(order.totalAmount || finalTotal), pageWidth - 17, yStart, { align: 'right' });
-    doc.setTextColor(0, 0, 0);
-    
+    summaryRows.forEach((row) => {
+      if (row.emphasis) doc.setTextColor(69, 45, 155);
+      doc.text(row.label, 130, yStart);
+      doc.text(row.value, pageWidth - 17, yStart, { align: 'right' });
+      doc.setTextColor(0, 0, 0);
+      doc.line(130, yStart + 3, pageWidth - 15, yStart + 3);
+      yStart += summaryRowHeight;
+    });
+
     // Footer
     yStart = pageHeight - 30;
     setTypography(doc, 'h3');
