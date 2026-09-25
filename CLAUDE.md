@@ -55,8 +55,9 @@ delivers them back.
 
 - **Production API / admin:** `https://acsgroup.cloud` (VPS, nginx → PM2 → Next.js on :3000)
 - **Database:** MongoDB, database name `laundry`
-- **Repo:** `https://github.com/TechnovaTech/Laundry-main.git` (remote `origin`;
-  a second remote `yash` points at a personal fork)
+- **Repo:** `https://github.com/yash9424/laundry-main.git` (remote `origin`, default branch
+  `master`). This is the active repo as of 2026-09-25. The older
+  `TechnovaTech/Laundry-main` repo is no longer connected — don't push there.
 - **App IDs:** customer `com.acsgroup.urbansteam.customer` (Android build.gradle still says
   `com.urbansteam.customerapp` — mismatch, see 9.4), partner `com.urbansteam.partner`
 
