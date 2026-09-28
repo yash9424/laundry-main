@@ -11,3 +11,6 @@ out/
 Thumbs.db
 customer/jdk-21.0.9/
 customer/jdk21.zip
+
+# Local release artifacts (APK/AAB) - not for git
+builds/
