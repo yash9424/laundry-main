@@ -33,7 +33,7 @@ export default function AdminLogin() {
     <div style={{
       display: 'flex',
       minHeight: '100vh',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      fontFamily: 'var(--font-manrope), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       {/* Left Side - Blue Background with Image */}
       <div style={{

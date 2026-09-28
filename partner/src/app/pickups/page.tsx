@@ -317,7 +317,9 @@ export default function Pickups() {
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">#{p.orderId}</span>
-                  {p.expressDelivery && <span className="text-xs font-bold px-2 py-0.5 rounded-lg" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>Express Delivery</span>}
+                  {p.expressDelivery
+                    ? <span className="text-xs font-bold px-2 py-0.5 rounded-lg" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>Express Delivery</span>
+                    : <span className="text-xs font-bold px-2 py-0.5 rounded-lg" style={{ backgroundColor: '#f3f4f6', color: '#4b5563' }}>Standard Delivery</span>}
                 </div>
               </div>
               <div className="flex items-center gap-3">

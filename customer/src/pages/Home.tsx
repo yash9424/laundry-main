@@ -24,6 +24,12 @@ const Home = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const voucherScrollRef = useRef<HTMLDivElement>(null);
   const [expressEnabled, setExpressEnabled] = useState(true);
+  const [deliveryText, setDeliveryText] = useState({
+    standardTitle: 'Standard Delivery',
+    standardSubtitle: '24-hour turnaround',
+    expressTitle: 'Express Delivery',
+    expressSubtitle: '12-hour turnaround — for a small fee',
+  });
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
   const [isCopied, setIsCopied] = useState(false);
@@ -415,10 +421,18 @@ const Home = () => {
     fetch(`${API_URL}/api/order-charges`)
       .then(res => res.json())
       .then(data => {
-        if (data.success && data.data?.expressDeliveryEnabled === false) {
+        if (!data.success || !data.data) return;
+        if (data.data.expressDeliveryEnabled === false) {
           setExpressEnabled(false);
           localStorage.setItem("selectedDeliveryType", "standard");
         }
+        // Button wording is admin-editable (Add-On > Charges); keep the defaults if unset
+        setDeliveryText({
+          standardTitle: data.data.homeStandardTitle || 'Standard Delivery',
+          standardSubtitle: data.data.homeStandardSubtitle || '24-hour turnaround',
+          expressTitle: data.data.homeExpressTitle || 'Express Delivery',
+          expressSubtitle: data.data.homeExpressSubtitle || '12-hour turnaround — for a small fee',
+        });
       })
       .catch(err => console.error('Error fetching express delivery setting:', err));
   }, []);
@@ -527,8 +541,8 @@ const Home = () => {
             className="h-20 sm:h-24 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1 transition-all"
           >
             <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-sm sm:text-base font-semibold">Standard Delivery</span>
-            <span className="text-[10px] sm:text-xs text-white/80">24-hour turnaround</span>
+            <span className="text-sm sm:text-base font-semibold">{deliveryText.standardTitle}</span>
+            <span className="text-[10px] sm:text-xs text-white/80">{deliveryText.standardSubtitle}</span>
           </button>
 
           {expressEnabled && <button
@@ -536,8 +550,8 @@ const Home = () => {
             className="h-20 sm:h-24 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1 transition-all"
           >
             <Zap className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-sm sm:text-base font-semibold">Express Delivery</span>
-            <span className="text-[10px] sm:text-xs text-white/80">12-hour — small fee</span>
+            <span className="text-sm sm:text-base font-semibold">{deliveryText.expressTitle}</span>
+            <span className="text-[10px] sm:text-xs text-white/80">{deliveryText.expressSubtitle}</span>
           </button>}
         </div>
 

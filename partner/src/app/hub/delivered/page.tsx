@@ -86,7 +86,11 @@ export default function DeliveredToHub() {
             <div key={order._id} className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-base font-semibold text-black">#{order.orderId}</p>
+                  <p className="text-base font-semibold text-black">#{order.orderId}
+                    {order.expressDelivery
+                      ? <span className="ml-2 text-xs font-bold px-2 py-0.5 rounded-lg" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>Express Delivery</span>
+                      : <span className="ml-2 text-xs font-bold px-2 py-0.5 rounded-lg" style={{ backgroundColor: '#f3f4f6', color: '#4b5563' }}>Standard Delivery</span>}
+                  </p>
                   <p className="text-sm text-gray-700 mt-1">{order.customerId?.name || 'Customer'}</p>
                   <p className="text-xs text-black mt-1">{order.items?.length || 0} items • ₹{order.totalAmount || 0}</p>
                   <p className="text-xs text-gray-600 mt-2">

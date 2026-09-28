@@ -31,10 +31,24 @@ export default function CustomerProfilePage() {
   const customerId = params.id as string
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [loading, setLoading] = useState(true)
+  const [subscriptions, setSubscriptions] = useState<any[]>([])
 
   useEffect(() => {
     fetchCustomer()
+    fetchSubscriptions()
   }, [customerId])
+
+  // What top-up plans this customer has bought (Admin > Subscriptions lists them all;
+  // this shows only the ones belonging to this customer)
+  const fetchSubscriptions = async () => {
+    try {
+      const response = await fetch(`/api/subscriptions?customerId=${customerId}`)
+      const data = await response.json()
+      if (data.success) setSubscriptions(data.data || [])
+    } catch (error) {
+      console.error('Failed to fetch subscriptions:', error)
+    }
+  }
 
   const fetchCustomer = async () => {
     try {
@@ -166,6 +180,58 @@ export default function CustomerProfilePage() {
             ))}
           </div>
         )}
+
+        {/* Top-up plans this customer has purchased */}
+        <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', margin: 0 }}>Subscriptions</h3>
+            {subscriptions.some(s => s.status === 'active') && (
+              <span style={{ backgroundColor: '#dcfce7', color: '#15803d', borderRadius: '20px', padding: '0.25rem 0.85rem', fontSize: '0.78rem', fontWeight: 700 }}>
+                Active plan
+              </span>
+            )}
+          </div>
+
+          {subscriptions.length === 0 ? (
+            <p style={{ color: '#9ca3af', fontSize: '0.9rem', margin: 0 }}>This customer has not bought any top-up plan yet.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {subscriptions.map((sub: any) => {
+                const active = sub.status === 'active'
+                return (
+                  <div key={sub._id} style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                    <div style={{ width: 46, height: 46, borderRadius: '10px', overflow: 'hidden', flexShrink: 0, background: 'linear-gradient(135deg, #452D9B 0%, #07C8D0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.2rem' }}>
+                      {sub.planId?.image
+                        ? <img src={sub.planId.image} alt={sub.planName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : '💳'}
+                    </div>
+                    <div style={{ flex: 1, minWidth: '140px' }}>
+                      <div style={{ fontWeight: 700, color: '#1f2937' }}>{sub.planName || sub.planId?.name || 'Plan'}</div>
+                      <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                        Purchased {sub.purchasedAt ? new Date(sub.purchasedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', minWidth: '90px' }}>
+                      <div style={{ fontSize: '0.72rem', color: '#6b7280' }}>Paid</div>
+                      <div style={{ fontWeight: 700 }}>₹{sub.price ?? 0}</div>
+                    </div>
+                    <div style={{ textAlign: 'right', minWidth: '110px' }}>
+                      <div style={{ fontSize: '0.72rem', color: '#6b7280' }}>Wallet credited</div>
+                      <div style={{ fontWeight: 700, color: '#16a34a' }}>₹{sub.walletCredited ?? 0}</div>
+                    </div>
+                    <span style={{
+                      padding: '0.25rem 0.8rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize',
+                      backgroundColor: active ? '#dcfce7' : sub.status === 'pending' ? '#fef3c7' : '#fee2e2',
+                      color: active ? '#15803d' : sub.status === 'pending' ? '#b45309' : '#b91c1c',
+                    }}>
+                      {sub.status || 'unknown'}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Payment Methods */}
         {(customer as any).paymentMethods && (customer as any).paymentMethods.length > 0 && (

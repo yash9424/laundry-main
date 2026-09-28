@@ -7,7 +7,7 @@ interface Order {
   _id: string;
   orderId: string;
   status: string;
-  partnerId?: string;
+  partnerId?: string | { _id?: string } | null;
   expressDelivery?: boolean;
   pickupAddress?: { pincode?: string };
 }
@@ -81,7 +81,8 @@ export const usePartnerOrderMonitor = () => {
           orders.forEach((order) => {
             const lastOrderData = lastOrderStatuses.current.get(order.orderId);
             const currentStatus = order.status;
-            const currentPartnerId = order.partnerId;
+            // /api/orders populates partnerId as an object, so compare on its id, not the object
+            const currentPartnerId = typeof order.partnerId === 'string' ? order.partnerId : order.partnerId?._id;
             const deliveryTag = order.expressDelivery ? ' (Express Delivery — 12hr)' : '';
             const isInMyArea = !!order.pickupAddress?.pincode && myPincodes.current.includes(order.pickupAddress.pincode);
 

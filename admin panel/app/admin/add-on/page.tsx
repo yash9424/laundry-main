@@ -63,6 +63,29 @@ export default function AddOnPage() {
     expressDeliveryPrice: 0,
     expressDeliveryLabel: '',
     expressDeliveryDescription: '',
+    expressTurnaroundHours: 12,
+    standardTurnaroundHours: 24,
+    invoiceGstNumber: '',
+    invoiceSupportEmail: '',
+    homeStandardTitle: '',
+    homeStandardSubtitle: '',
+    homeExpressTitle: '',
+    homeExpressSubtitle: '',
+    howToOrderTitle: '',
+    howToOrderSteps: '',
+    brandHeadingFont: 'Montserrat',
+    brandBodyFont: 'Manrope',
+    garmentCarePolicyText: '',
+    damageLossPolicyText: '',
+    pickupChecklistEnabled: true,
+    pickupChecklistTitle: '',
+    pickupChecklistIntro: '',
+    pickupChecklistPoints: '',
+    pickupChecklistNote: '',
+    pickupImportantTitle: '',
+    pickupImportantText: '',
+    pickupSustainabilityTitle: '',
+    pickupSustainabilityText: '',
     todaySlotsEnabled: true,
     tomorrowSlotsEnabled: true,
   })
@@ -1584,6 +1607,217 @@ export default function AddOnPage() {
                 rows={3}
                 style={{ width: '100%', padding: '0.75rem', border: '1px solid #3b82f6', borderRadius: '8px', fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit' }}
               />
+            </div>
+          </div>
+
+          {/* Delivery turnaround + invoice details */}
+          <div style={{ backgroundColor: '#fefce8', padding: '1.5rem', borderRadius: '12px', border: '2px solid #eab308', marginTop: '1.5rem' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#a16207', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>⏱️ Delivery Turnaround &amp; Invoice Details</h4>
+            <p style={{ fontSize: '0.8rem', color: '#854d0e', marginBottom: '0.75rem' }}>The delivery deadline is counted from the moment the captain marks the order picked up. Changing these affects new pickups only — orders already picked up keep the deadline they were given.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#a16207', marginBottom: '0.4rem' }}>Express turnaround (hours)</label>
+                <input
+                  type="number" min="1" placeholder="12"
+                  value={charges.expressTurnaroundHours}
+                  onChange={(e) => setCharges({ ...charges, expressTurnaroundHours: Number(e.target.value) })}
+                  style={{ width: '100%', padding: '0.75rem', border: '2px solid #eab308', borderRadius: '8px', fontSize: '0.9rem' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#a16207', marginBottom: '0.4rem' }}>Standard turnaround (hours)</label>
+                <input
+                  type="number" min="1" placeholder="24"
+                  value={charges.standardTurnaroundHours}
+                  onChange={(e) => setCharges({ ...charges, standardTurnaroundHours: Number(e.target.value) })}
+                  style={{ width: '100%', padding: '0.75rem', border: '2px solid #eab308', borderRadius: '8px', fontSize: '0.9rem' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#a16207', marginBottom: '0.4rem' }}>GST number (on invoices)</label>
+                <input
+                  type="text" placeholder="29ACLFAA519M1ZW"
+                  value={charges.invoiceGstNumber}
+                  onChange={(e) => setCharges({ ...charges, invoiceGstNumber: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '2px solid #eab308', borderRadius: '8px', fontSize: '0.9rem' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#a16207', marginBottom: '0.4rem' }}>Support email (on invoices)</label>
+                <input
+                  type="email" placeholder="support@urbansteam.in"
+                  value={charges.invoiceSupportEmail}
+                  onChange={(e) => setCharges({ ...charges, invoiceSupportEmail: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '2px solid #eab308', borderRadius: '8px', fontSize: '0.9rem' }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Customer app wording: Home buttons + How To Order */}
+          <div style={{ backgroundColor: '#f5f3ff', padding: '1.5rem', borderRadius: '12px', border: '2px solid #8b5cf6', marginTop: '1.5rem' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#6d28d9', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>📱 Customer App Wording (Home buttons &amp; How To Order)</h4>
+            <p style={{ fontSize: '0.8rem', color: '#5b21b6', marginBottom: '0.75rem' }}>Leave a box empty to keep the current wording. Saves with "Save Charge Settings" below.</p>
+
+            <p style={{ fontWeight: '700', fontSize: '0.85rem', color: '#6d28d9', margin: '0 0 0.5rem 0' }}>Home screen — the two delivery buttons</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.8rem', color: '#6d28d9', marginBottom: '0.3rem' }}>Standard button — title</label>
+                <input type="text" placeholder="Standard Delivery" value={charges.homeStandardTitle}
+                  onChange={(e) => setCharges({ ...charges, homeStandardTitle: e.target.value })}
+                  style={{ width: '100%', padding: '0.65rem', border: '2px solid #8b5cf6', borderRadius: '8px', fontSize: '0.9rem', marginBottom: '0.5rem' }} />
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.8rem', color: '#6d28d9', marginBottom: '0.3rem' }}>Standard button — small text</label>
+                <input type="text" placeholder="24-hour turnaround" value={charges.homeStandardSubtitle}
+                  onChange={(e) => setCharges({ ...charges, homeStandardSubtitle: e.target.value })}
+                  style={{ width: '100%', padding: '0.65rem', border: '1px solid #8b5cf6', borderRadius: '8px', fontSize: '0.9rem' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.8rem', color: '#6d28d9', marginBottom: '0.3rem' }}>Express button — title</label>
+                <input type="text" placeholder="Express Delivery" value={charges.homeExpressTitle}
+                  onChange={(e) => setCharges({ ...charges, homeExpressTitle: e.target.value })}
+                  style={{ width: '100%', padding: '0.65rem', border: '2px solid #8b5cf6', borderRadius: '8px', fontSize: '0.9rem', marginBottom: '0.5rem' }} />
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.8rem', color: '#6d28d9', marginBottom: '0.3rem' }}>Express button — small text</label>
+                <input type="text" placeholder="12-hour turnaround — for a small fee" value={charges.homeExpressSubtitle}
+                  onChange={(e) => setCharges({ ...charges, homeExpressSubtitle: e.target.value })}
+                  style={{ width: '100%', padding: '0.65rem', border: '1px solid #8b5cf6', borderRadius: '8px', fontSize: '0.9rem' }} />
+              </div>
+            </div>
+
+            <p style={{ fontWeight: '700', fontSize: '0.85rem', color: '#6d28d9', margin: '0 0 0.5rem 0' }}>"How To Order" popup (catalogue page)</p>
+            <label style={{ display: 'block', fontWeight: '600', fontSize: '0.8rem', color: '#6d28d9', marginBottom: '0.3rem' }}>Popup heading</label>
+            <input type="text" placeholder="How To Order" value={charges.howToOrderTitle}
+              onChange={(e) => setCharges({ ...charges, howToOrderTitle: e.target.value })}
+              style={{ width: '100%', padding: '0.65rem', border: '2px solid #8b5cf6', borderRadius: '8px', fontSize: '0.9rem', marginBottom: '0.6rem' }} />
+            <label style={{ display: 'block', fontWeight: '600', fontSize: '0.8rem', color: '#6d28d9', marginBottom: '0.3rem' }}>
+              Steps — one per line, written as <strong>Title | Description</strong>. Steps are numbered automatically, so add or remove lines freely.
+            </label>
+            <textarea rows={6} value={charges.howToOrderSteps}
+              onChange={(e) => setCharges({ ...charges, howToOrderSteps: e.target.value })}
+              placeholder={'Choose Your Garments | Count your garments and tap "+" to add them.\nReview Your Cart | Tap Cart below and check your order.\nPick a Slot & Pay | Choose your pickup slot and complete payment.\nRelax | We\'ll take care of the rest.'}
+              style={{ width: '100%', padding: '0.75rem', border: '2px solid #8b5cf6', borderRadius: '8px', fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit' }} />
+          </div>
+
+          {/* Brand typography */}
+          <div style={{ backgroundColor: '#fdf2f8', padding: '1.5rem', borderRadius: '12px', border: '2px solid #ec4899', marginTop: '1.5rem' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#be185d', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>🔤 Brand Fonts (Customer, Captain &amp; Admin apps)</h4>
+            <p style={{ fontSize: '0.8rem', color: '#9d174d', marginBottom: '0.75rem' }}>Any <a href="https://fonts.google.com" target="_blank" rel="noreferrer" style={{ color: '#be185d', fontWeight: '600' }}>Google Font</a> name works. Changing this updates all three apps the next time they load — no app update needed. If a name is wrong or the font cannot load, the apps fall back to Montserrat / Manrope automatically.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#be185d', marginBottom: '0.4rem' }}>Heading font (titles &amp; buttons)</label>
+                <input
+                  type="text" list="google-font-suggestions" placeholder="Montserrat"
+                  value={charges.brandHeadingFont}
+                  onChange={(e) => setCharges({ ...charges, brandHeadingFont: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '2px solid #ec4899', borderRadius: '8px', fontSize: '0.9rem' }}
+                />
+                <p style={{ marginTop: '0.5rem', fontSize: '1.05rem', fontWeight: '700', color: '#1f2937', fontFamily: `'${charges.brandHeadingFont || 'Montserrat'}', sans-serif` }}>Urban Steam — Book Order</p>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#be185d', marginBottom: '0.4rem' }}>Body font (normal text)</label>
+                <input
+                  type="text" list="google-font-suggestions" placeholder="Manrope"
+                  value={charges.brandBodyFont}
+                  onChange={(e) => setCharges({ ...charges, brandBodyFont: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '2px solid #ec4899', borderRadius: '8px', fontSize: '0.9rem' }}
+                />
+                <p style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: '#374151', fontFamily: `'${charges.brandBodyFont || 'Manrope'}', sans-serif` }}>Your clothes, steam ironed and delivered in 12 hours.</p>
+              </div>
+            </div>
+            <datalist id="google-font-suggestions">
+              {['Montserrat', 'Manrope', 'Poppins', 'Inter', 'Lato', 'Nunito', 'Raleway', 'Work Sans', 'DM Sans', 'Plus Jakarta Sans', 'Outfit', 'Rubik'].map(f => (
+                <option key={f} value={f} />
+              ))}
+            </datalist>
+          </div>
+
+          {/* Checkout policy popups */}
+          <div style={{ backgroundColor: '#f0f9ff', padding: '1.5rem', borderRadius: '12px', border: '2px solid #0ea5e9', marginTop: '1.5rem' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#0369a1', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>📄 Garment Care &amp; Damage/Loss Policies (checkout popups)</h4>
+            <p style={{ fontSize: '0.8rem', color: '#075985', marginBottom: '0.75rem' }}>These open when the customer taps the links under the garment-care note at checkout. <strong>Leave a box empty</strong> and that link keeps showing the matching section of the Terms &amp; Conditions page, exactly as it does today. Paste the approved legal wording here once you have it — no app update needed.</p>
+            <div style={{ marginBottom: '0.75rem' }}>
+              <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#0369a1', marginBottom: '0.4rem' }}>Garment Care Policy</label>
+              <textarea rows={6} value={charges.garmentCarePolicyText}
+                onChange={(e) => setCharges({ ...charges, garmentCarePolicyText: e.target.value })}
+                placeholder="Empty = shows Terms section 5 (Garment Care and Processing)"
+                style={{ width: '100%', padding: '0.75rem', border: '2px solid #0ea5e9', borderRadius: '8px', fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#0369a1', marginBottom: '0.4rem' }}>Damage / Loss Policy</label>
+              <textarea rows={6} value={charges.damageLossPolicyText}
+                onChange={(e) => setCharges({ ...charges, damageLossPolicyText: e.target.value })}
+                placeholder="Empty = shows Terms section 6 (Limitation of Liability for Damaged or Lost Items)"
+                style={{ width: '100%', padding: '0.75rem', border: '2px solid #0ea5e9', borderRadius: '8px', fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
+          </div>
+
+          {/* "Before your pickup" card shown in the customer app */}
+          <div style={{ backgroundColor: '#faf5ff', padding: '1.5rem', borderRadius: '12px', border: '2px solid #a855f7', marginTop: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+              <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#7e22ce', margin: 0 }}>🧺 "Before Your Pickup" Card (shown in customer app)</h4>
+              <button
+                type="button"
+                onClick={() => setCharges({ ...charges, pickupChecklistEnabled: !charges.pickupChecklistEnabled })}
+                aria-label="Toggle pickup checklist"
+                style={{ padding: '0.4rem 1.2rem', backgroundColor: charges.pickupChecklistEnabled ? '#22c55e' : '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer' }}
+              >
+                {charges.pickupChecklistEnabled ? 'ON' : 'OFF'}
+              </button>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: '#6b21a8', marginBottom: '0.75rem' }}>Appears on the Order Confirmation screen and on Track Order until the captain collects the clothes. Save with "Save Charge Settings" below.</p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '0.75rem' }}>
+              <div>
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#7e22ce', marginBottom: '0.4rem' }}>Card heading</label>
+                <input type="text" placeholder="Before your pickup" value={charges.pickupChecklistTitle}
+                  onChange={(e) => setCharges({ ...charges, pickupChecklistTitle: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '2px solid #a855f7', borderRadius: '8px', fontSize: '0.9rem' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#7e22ce', marginBottom: '0.4rem' }}>Intro line</label>
+                <input type="text" placeholder="For a smooth pickup, please ensure that:" value={charges.pickupChecklistIntro}
+                  onChange={(e) => setCharges({ ...charges, pickupChecklistIntro: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '2px solid #a855f7', borderRadius: '8px', fontSize: '0.9rem' }} />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '0.75rem' }}>
+              <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#7e22ce', marginBottom: '0.4rem' }}>Checklist points — one per line (each line gets a tick)</label>
+              <textarea rows={4} value={charges.pickupChecklistPoints}
+                onChange={(e) => setCharges({ ...charges, pickupChecklistPoints: e.target.value })}
+                placeholder={"The garment quantities match your booking.\nGarments are added under the correct categories.\nThe garments are kept ready as per your booking."}
+                style={{ width: '100%', padding: '0.75rem', border: '2px solid #a855f7', borderRadius: '8px', fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
+
+            <div style={{ marginBottom: '0.75rem' }}>
+              <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#7e22ce', marginBottom: '0.4rem' }}>Note under the checklist</label>
+              <textarea rows={2} value={charges.pickupChecklistNote}
+                onChange={(e) => setCharges({ ...charges, pickupChecklistNote: e.target.value })}
+                placeholder="Our pickup team will collect only the garments included in the confirmed booking."
+                style={{ width: '100%', padding: '0.75rem', border: '1px solid #a855f7', borderRadius: '8px', fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
+
+            <div style={{ backgroundColor: '#fffbeb', padding: '1rem', borderRadius: '8px', border: '1px solid #fde68a', marginBottom: '0.75rem' }}>
+              <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#b45309', marginBottom: '0.4rem' }}>⚠️ Warning block — heading</label>
+              <input type="text" placeholder="Important" value={charges.pickupImportantTitle}
+                onChange={(e) => setCharges({ ...charges, pickupImportantTitle: e.target.value })}
+                style={{ width: '100%', padding: '0.6rem', border: '1px solid #fbbf24', borderRadius: '8px', fontSize: '0.9rem', marginBottom: '0.5rem' }} />
+              <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#b45309', marginBottom: '0.4rem' }}>Warning block — text (leave empty to hide)</label>
+              <textarea rows={3} value={charges.pickupImportantText}
+                onChange={(e) => setCharges({ ...charges, pickupImportantText: e.target.value })}
+                placeholder="Urban Steam does not take responsibility for cash, jewellery..."
+                style={{ width: '100%', padding: '0.6rem', border: '1px solid #fbbf24', borderRadius: '8px', fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
+
+            <div style={{ backgroundColor: '#f0fdf4', padding: '1rem', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+              <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#15803d', marginBottom: '0.4rem' }}>♻️ Green block — heading</label>
+              <input type="text" placeholder="A small step towards sustainable service" value={charges.pickupSustainabilityTitle}
+                onChange={(e) => setCharges({ ...charges, pickupSustainabilityTitle: e.target.value })}
+                style={{ width: '100%', padding: '0.6rem', border: '1px solid #4ade80', borderRadius: '8px', fontSize: '0.9rem', marginBottom: '0.5rem' }} />
+              <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#15803d', marginBottom: '0.4rem' }}>Green block — text (leave empty to hide)</label>
+              <textarea rows={3} value={charges.pickupSustainabilityText}
+                onChange={(e) => setCharges({ ...charges, pickupSustainabilityText: e.target.value })}
+                placeholder="If the paper inside your garments is still clean and usable..."
+                style={{ width: '100%', padding: '0.6rem', border: '1px solid #4ade80', borderRadius: '8px', fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit' }} />
             </div>
           </div>
 

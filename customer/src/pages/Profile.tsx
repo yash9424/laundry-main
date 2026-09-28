@@ -794,12 +794,27 @@ const Profile = () => {
 
         <button
           onClick={() => {
-            localStorage.removeItem('customerId');
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('userName');
-            localStorage.removeItem('userMobile');
-            localStorage.removeItem('customerMobile');
-            localStorage.removeItem('hasSeenTopupModal');
+            // Clear everything belonging to this account. Cached wallet, profile and
+            // cart data used to survive logout, so the next person to sign in on the
+            // same device could see the previous customer's balance and details.
+            const exactKeys = [
+              'customerId', 'authToken', 'userName', 'userMobile', 'customerMobile',
+              'hasSeenTopupModal', 'cartItems', 'selectedDeliveryType',
+              'cachedProfile', 'cachedAddress', 'cachedBookingAddress',
+              'cachedSavedAddresses', 'cachedWalletBalance', 'wallet_settings',
+              'customer_notifications', 'cleared_notifications',
+              'deleted_notifications', 'pushed_notifications',
+            ];
+            const prefixes = ['wallet_', 'transactions_', 'cache_'];
+            try {
+              exactKeys.forEach((key) => localStorage.removeItem(key));
+              Object.keys(localStorage)
+                .filter((key) => prefixes.some((prefix) => key.startsWith(prefix)))
+                .forEach((key) => localStorage.removeItem(key));
+              sessionStorage.clear();
+            } catch (error) {
+              console.error('Could not fully clear stored data on logout:', error);
+            }
             navigate("/welcome", { replace: true });
           }}
           className="w-full h-10 sm:h-12 rounded-2xl bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-semibold flex items-center justify-center gap-2 transition-all text-sm sm:text-base shadow-lg"

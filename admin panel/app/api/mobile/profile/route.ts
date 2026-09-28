@@ -39,14 +39,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log('Profile creation data:', body)
 
-    // Check if customer with this mobile or email already exists
-    const existingCustomer = await Customer.findOne({ 
-      $or: [
-        { mobile: body.mobile },
-        { email: body.email },
-        { mobile: { $regex: /^google_/ } }
-      ]
-    })
+    // Match ONLY this person's own record.
+    // This used to also match { mobile: /^google_/ }, which could return a completely
+    // unrelated Google user — the new signup then took over that account, wallet included.
+    const identityMatches: any[] = []
+    if (body.customerId) identityMatches.push({ _id: body.customerId })
+    if (body.mobile) identityMatches.push({ mobile: body.mobile })
+    if (body.email) identityMatches.push({ email: body.email })
+
+    const existingCustomer = identityMatches.length > 0
+      ? await Customer.findOne({ $or: identityMatches })
+      : null
     
     if (existingCustomer) {
       // Update existing customer
@@ -135,13 +138,30 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Customer ID required' }, { status: 400 })
     }
 
+    // Only profile fields may be set from the app. Money and loyalty fields
+    // (walletBalance, loyaltyPoints, dueAmount, totalSpend, usedVouchers, referralCodes)
+    // are deliberately NOT accepted here — they are changed by the server alone.
+    const EDITABLE_FIELDS = ['name', 'email', 'mobile', 'profileImage', 'address', 'paymentMethods', 'referredBy']
+    const safeUpdate: any = { updatedAt: new Date() }
+    for (const field of EDITABLE_FIELDS) {
+      if (body[field] !== undefined) safeUpdate[field] = body[field]
+    }
+
+    const ignored = Object.keys(body).filter(k => !EDITABLE_FIELDS.includes(k))
+    if (ignored.length > 0) console.warn('Profile update ignored non-editable fields:', ignored)
+
+    // No upsert: an unknown id must be an error, never a brand new customer record
     const customer = await Customer.findByIdAndUpdate(
       customerId,
-      { ...body, updatedAt: new Date() },
-      { new: true, upsert: true }
+      { $set: safeUpdate },
+      { new: true }
     )
-    
-    console.log('Updated customer:', customer)
+
+    if (!customer) {
+      return NextResponse.json({ success: false, error: 'Customer not found' }, { status: 404 })
+    }
+
+    console.log('Updated customer:', customer._id)
 
     return NextResponse.json({ success: true, data: customer })
   } catch (error: any) {

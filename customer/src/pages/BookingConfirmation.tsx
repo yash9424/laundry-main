@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Toast, ConfirmDialog } from "@/components/Toast";
 import { API_URL } from '@/config/api';
 import { getExpectedDeliveryText } from '@/utils/expectedDelivery';
+import PickupChecklist from '@/components/PickupChecklist';
 
 const BookingConfirmation = () => {
   const navigate = useNavigate();
@@ -139,6 +140,10 @@ const BookingConfirmation = () => {
             </div>
           </div>
         </Card>
+
+        <div className="mb-4">
+          <PickupChecklist />
+        </div>
 
         <Button
           onClick={() => navigate("/order-details", { state: orderData })}

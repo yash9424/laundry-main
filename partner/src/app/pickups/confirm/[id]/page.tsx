@@ -193,7 +193,7 @@ export default function PickupConfirm() {
             <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}`)}`} target="_blank" className="mt-3 inline-flex items-center rounded-lg border-2 px-4 py-2 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>Open in Maps</a>
           </div>
           <span className="rounded-lg border-2 px-3 py-1 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>
-            {order.status === 'reached_location' ? 'Reached Location' : order.status === 'picked_up' ? 'Picked Up' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
+            {order.status === 'reached_location' ? 'Reached Location' : order.status === 'picked_up' ? 'Picked Up' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace(/_/g, ' ')}
           </span>
         </div>
       </div>

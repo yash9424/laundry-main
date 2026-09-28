@@ -516,7 +516,9 @@ export default function OrdersPage() {
                 </div>
                 <div style={{ fontWeight: '500' }} onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>
                   <div>{order.id}</div>
-                  {dbOrder.expressDelivery && <span style={{ display: 'inline-block', marginTop: '4px', fontSize: '0.65rem', whiteSpace: 'nowrap', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: '700' }}>Express Delivery</span>}
+                  {dbOrder.expressDelivery
+                    ? <span style={{ display: 'inline-block', marginTop: '4px', fontSize: '0.65rem', whiteSpace: 'nowrap', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: '700' }}>Express Delivery</span>
+                    : <span style={{ display: 'inline-block', marginTop: '4px', fontSize: '0.65rem', whiteSpace: 'nowrap', backgroundColor: '#f3f4f6', color: '#4b5563', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: '700' }}>Standard Delivery</span>}
                   {dbOrder.expressDelivery && !['delivered', 'cancelled'].includes(dbOrder.status) && (
                     <div style={{ marginTop: '4px', fontSize: '0.65rem', fontWeight: '600', lineHeight: '1.3', color: dbOrder.expectedDeliveryAt && formatCountdown(dbOrder.expectedDeliveryAt, now).overdue ? '#dc2626' : '#92400e' }}>
                       ⏳ {dbOrder.expectedDeliveryAt ? formatCountdown(dbOrder.expectedDeliveryAt, now).text : 'Timer starts at pickup'}

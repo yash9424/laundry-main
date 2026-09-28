@@ -7,6 +7,7 @@ import ConfirmModal from "@/components/ConfirmModal";
 import BottomNav from "@/components/BottomNav";
 import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
+import { getOrderBreakdown } from '@/utils/orderBreakdown';
 
 // Live countdown for Express Delivery orders only (12hr SLA).
 function formatCountdown(expectedDeliveryAt: string, now: Date): { text: string; overdue: boolean } {
@@ -99,7 +100,7 @@ function DeliveryDetailsContent() {
         <div className="flex items-start justify-between">
           <p className="text-sm font-semibold text-black">Order #{order.orderId}</p>
           <span className="rounded-lg text-white px-3 py-1 text-xs font-semibold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-            {order.status === 'process_completed' ? 'Ready for Delivery' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
+            {order.status === 'process_completed' ? 'Ready for Delivery' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace(/_/g, ' ')}
           </span>
         </div>
         {order.expressDelivery && !['delivered', 'cancelled'].includes(order.status) && (
@@ -130,6 +131,37 @@ function DeliveryDetailsContent() {
         </div>
         <p className="mt-3 text-sm font-semibold" style={{ color: '#452D9B' }}>Total Price: ₹{order.totalAmount}</p>
       </div>
+
+      {/* Payment card — what the captain needs to know before handing the order over */}
+      {(() => {
+        const bd = getOrderBreakdown(order);
+        const isPaid = order.paymentStatus === 'paid';
+        return (
+          <div className="mt-4 mx-4 rounded-xl border border-gray-200 bg-white shadow-sm p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-base font-semibold text-black">Payment</p>
+              <span
+                className="rounded-full px-3 py-1 text-xs font-bold"
+                style={isPaid
+                  ? { backgroundColor: '#dcfce7', color: '#15803d' }
+                  : { backgroundColor: '#fee2e2', color: '#b91c1c' }}
+              >
+                {isPaid ? 'Paid' : `Collect ₹${Math.round(bd.total)}`}
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-gray-500">{order.paymentMethod || 'Cash on Delivery'}</p>
+            <div className="mt-3 space-y-1 text-sm">
+              <div className="flex items-center justify-between"><span className="text-gray-600">Items Subtotal</span><span className="text-black">₹{Math.round(bd.subtotal)}</span></div>
+              {bd.express > 0 && <div className="flex items-center justify-between"><span className="text-gray-600">Express Delivery Fee</span><span className="text-black">+₹{Math.round(bd.express)}</span></div>}
+              {bd.due > 0 && <div className="flex items-center justify-between"><span className="text-gray-600">Previous Due</span><span className="text-black">+₹{Math.round(bd.due)}</span></div>}
+              {bd.discount > 0 && <div className="flex items-center justify-between"><span className="text-gray-600">Discount</span><span className="text-green-600">-₹{Math.round(bd.discount)}</span></div>}
+              <div className="flex items-center justify-between border-t border-gray-100 pt-1 font-semibold"><span className="text-black">Order Total</span><span className="text-black">₹{Math.round(bd.total)}</span></div>
+              {bd.wallet > 0 && <div className="flex items-center justify-between"><span className="text-gray-600">Paid from Wallet</span><span className="text-black">₹{Math.round(bd.wallet)}</span></div>}
+              {bd.paidOnline !== null && bd.paidOnline > 0 && <div className="flex items-center justify-between"><span className="text-gray-600">Paid Online</span><span className="text-black">₹{Math.round(bd.paidOnline)}</span></div>}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* CTA */}
       <div className="mx-4 mb-6">

@@ -296,6 +296,10 @@ export default function PickForDelivery() {
                         </p>
                       </div>
                     )}
+                    <p className="text-xs mt-2 font-bold" style={{ color: order.paymentStatus === 'paid' ? '#15803d' : '#b91c1c' }}>
+                      {order.paymentStatus === 'paid' ? '✓ Paid' : `Collect ₹${Math.round(Number(order.totalAmount) || 0)}`}
+                      <span className="font-normal text-gray-500"> · {order.paymentMethod || 'Cash on Delivery'}</span>
+                    </p>
                     <p className="text-xs text-gray-600 mt-2">Customer: <span className="text-black">{order.customerId?.name || 'N/A'}</span></p>
                     <p className="text-xs text-gray-600 mt-1">Items: <span className="text-black">{order.items?.map((item: any) => item.quantity + ' ' + item.name).join(', ')}</span></p>
                     <p className="text-xs text-gray-600 mt-1">Address: <span className="text-black">{order.deliveryAddress?.street || order.pickupAddress?.street}, {order.deliveryAddress?.city || order.pickupAddress?.city}</span></p>

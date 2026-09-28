@@ -19,6 +19,15 @@ const Prices = () => {
   const [previewItem, setPreviewItem] = useState<any | null>(null);
   const [minOrderPrice, setMinOrderPrice] = useState(0);
   const [expressDeliveryFee, setExpressDeliveryFee] = useState(0);
+  const [howToOrder, setHowToOrder] = useState<{ title: string; steps: { title: string; description: string }[] }>({
+    title: 'How To Order',
+    steps: [
+      { title: 'Choose Your Garments', description: 'Count your garments and tap "+" to add them.' },
+      { title: 'Review Your Cart', description: 'Items are saved to your cart automatically. Tap the total bar or Cart below to check your order.' },
+      { title: 'Pick a Slot & Pay', description: 'Choose your pickup slot and complete payment.' },
+      { title: 'Relax', description: "We'll take care of the rest." },
+    ],
+  });
   const isExpressSelected = typeof window !== 'undefined' && localStorage.getItem('selectedDeliveryType') === 'express';
 
   useEffect(() => {
@@ -91,6 +100,24 @@ const Prices = () => {
         setExpressDeliveryFee(0);
       } else if (data.success && data.data?.expressDeliveryPrice) {
         setExpressDeliveryFee(data.data.expressDeliveryPrice);
+      }
+
+      // "How To Order" wording is admin-editable: one step per line, "Title | Description"
+      if (data.success && data.data) {
+        const parsed = String(data.data.howToOrderSteps ?? '')
+          .split(/\r?\n/)
+          .map((line: string) => line.trim())
+          .filter(Boolean)
+          .map((line: string) => {
+            const [title, ...rest] = line.split('|');
+            return { title: title.trim(), description: rest.join('|').trim() };
+          })
+          .filter((step: any) => step.title);
+
+        setHowToOrder(prev => ({
+          title: data.data.howToOrderTitle || prev.title,
+          steps: parsed.length > 0 ? parsed : prev.steps,
+        }));
       }
     } catch (error) {
       console.error('Error fetching express delivery fee:', error);
@@ -396,41 +423,19 @@ const Prices = () => {
             </button>
             
             <h3 className="text-xl font-bold mb-6 text-center" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-              How To Order
+              {howToOrder.title}
             </h3>
             
             <div className="space-y-6">
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>1</div>
-                <div>
-                  <p className="font-semibold text-gray-800">Choose Your Garments</p>
-                  <p className="text-sm text-gray-600">Count your garments and tap <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded text-xs font-bold">+</span> to add them.</p>
+              {howToOrder.steps.map((step, index) => (
+                <div key={index} className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>{index + 1}</div>
+                  <div>
+                    <p className="font-semibold text-gray-800">{step.title}</p>
+                    {step.description && <p className="text-sm text-gray-600">{step.description}</p>}
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>2</div>
-                <div>
-                  <p className="font-semibold text-gray-800">Review Your Cart</p>
-                  <p className="text-sm text-gray-600">Items are saved to your cart automatically. Tap the total bar or Cart below to check your order.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>3</div>
-                <div>
-                  <p className="font-semibold text-gray-800">Pick a Slot & Pay</p>
-                  <p className="text-sm text-gray-600">Choose your pickup slot and complete payment.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>4</div>
-                <div>
-                  <p className="font-semibold text-gray-800">Relax</p>
-                  <p className="text-sm text-gray-600">We'll take care of the rest.</p>
-                </div>
-              </div>
+              ))}
             </div>
 
             <button 

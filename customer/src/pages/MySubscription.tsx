@@ -64,9 +64,24 @@ const MySubscription = () => {
             return (
               <div key={sub._id} style={{ background: "white", borderRadius: "16px", padding: "1.25rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1px solid #f1f5f9" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem" }}>
-                  <div>
-                    <h3 style={{ fontWeight: "700", fontSize: "1rem", color: "#1e293b", marginBottom: "0.2rem" }}>{sub.planName}</h3>
-                    <p style={{ fontSize: "0.8rem", color: "#94a3b8" }}>{formatDate(sub.purchasedAt)}</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0 }}>
+                    {/* Plan artwork uploaded in the admin panel */}
+                    <div style={{ width: 52, height: 52, borderRadius: "12px", overflow: "hidden", flexShrink: 0, background: "linear-gradient(135deg, #452D9B 0%, #07C8D0 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {sub.planId?.image ? (
+                        <img
+                          src={sub.planId.image.startsWith("http") ? sub.planId.image : `${API_URL}${sub.planId.image}`}
+                          alt={sub.planName}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                        />
+                      ) : (
+                        <span style={{ fontSize: "1.3rem" }}>💳</span>
+                      )}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <h3 style={{ fontWeight: "700", fontSize: "1rem", color: "#1e293b", marginBottom: "0.2rem" }}>{sub.planName}</h3>
+                      <p style={{ fontSize: "0.8rem", color: "#94a3b8" }}>{formatDate(sub.purchasedAt)}</p>
+                    </div>
                   </div>
                   <span style={{ background: sc.bg, color: sc.text, padding: "3px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "700", textTransform: "capitalize" }}>{sub.status}</span>
                 </div>

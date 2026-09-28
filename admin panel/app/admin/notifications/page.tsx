@@ -20,6 +20,13 @@ export default function NotificationsPage() {
   const [audience, setAudience] = useState('Customers')
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
+  const [audienceFilter, setAudienceFilter] = useState('all')
+
+  // Auto-generated order events carry audience 'Admin'; everything else is a broadcast
+  const adminAlertCount = notifications.filter(n => n.audience === 'Admin').length
+  const visibleNotifications = audienceFilter === 'all'
+    ? notifications
+    : notifications.filter(n => n.audience === audienceFilter || (audienceFilter !== 'Admin' && n.audience === 'Both'))
 
   useEffect(() => {
     fetchNotifications()
@@ -231,8 +238,30 @@ export default function NotificationsPage() {
 
         {/* Notifications List */}
         <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden', marginBottom: '2rem' }}>
-          <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+          <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#2563eb', margin: 0 }}>Notifications List</h3>
+            {/* "Order Alerts" are the records the server writes on new / cancelled / failed orders */}
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {[
+                { key: 'all', label: 'All' },
+                { key: 'Admin', label: `Order Alerts${adminAlertCount > 0 ? ` (${adminAlertCount})` : ''}` },
+                { key: 'Customers', label: 'To Customers' },
+                { key: 'Partners', label: 'To Captains' },
+              ].map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setAudienceFilter(tab.key)}
+                  style={{
+                    padding: '0.4rem 0.9rem', borderRadius: '20px', fontSize: '0.82rem', fontWeight: '600', cursor: 'pointer',
+                    border: audienceFilter === tab.key ? 'none' : '1px solid #d1d5db',
+                    backgroundColor: audienceFilter === tab.key ? '#2563eb' : 'white',
+                    color: audienceFilter === tab.key ? 'white' : '#6b7280',
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
           
           <div style={{ backgroundColor: '#f8fafc', padding: '1rem', display: 'grid', gridTemplateColumns: '1.5fr 2fr 1fr 1fr 1.5fr 1fr', gap: '1rem', fontSize: '0.9rem', fontWeight: '600', color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>
@@ -246,11 +275,11 @@ export default function NotificationsPage() {
 
           {fetchLoading ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>Loading notifications...</div>
-          ) : notifications.length === 0 ? (
+          ) : visibleNotifications.length === 0 ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>No notifications found</div>
           ) : (
-            notifications.map((notification, index) => (
-              <div key={notification._id} style={{ padding: '1rem', display: 'grid', gridTemplateColumns: '1.5fr 2fr 1fr 1fr 1.5fr 1fr', gap: '1rem', borderBottom: index < notifications.length - 1 ? '1px solid #f3f4f6' : 'none', fontSize: '0.9rem', alignItems: 'center' }}>
+            visibleNotifications.map((notification, index) => (
+              <div key={notification._id} style={{ padding: '1rem', display: 'grid', gridTemplateColumns: '1.5fr 2fr 1fr 1fr 1.5fr 1fr', gap: '1rem', borderBottom: index < visibleNotifications.length - 1 ? '1px solid #f3f4f6' : 'none', fontSize: '0.9rem', alignItems: 'center' }}>
                 <div style={{ fontWeight: '500' }}>{notification.title}</div>
                 <div style={{ color: '#6b7280' }}>{notification.message.substring(0, 50)}...</div>
                 <div>{notification.audience}</div>

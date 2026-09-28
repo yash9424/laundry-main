@@ -118,26 +118,50 @@ const Subscriptions = () => {
           </div>
         )}
 
-        {/* Plan chips */}
+        {/* Every plan, each with its own image, so nothing the admin uploads stays hidden */}
         {plans.length > 0 && (
-          <div style={{ display: "flex", gap: "0.6rem", overflowX: "auto", paddingBottom: "0.5rem", marginBottom: "1.25rem", scrollbarWidth: "none" }}>
-            {plans.map(plan => (
-              <button
-                key={plan._id}
-                onClick={() => setSelected(plan._id)}
-                style={{
-                  flexShrink: 0, padding: "0.5rem 1.1rem", borderRadius: "50px",
-                  border: selected === plan._id ? "2px solid #452D9B" : "2px solid #e2e8f0",
-                  background: selected === plan._id ? "linear-gradient(to right, #452D9B, #07C8D0)" : "white",
-                  color: selected === plan._id ? "white" : "#64748b",
-                  fontWeight: "700", fontSize: "0.82rem", cursor: "pointer",
-                  whiteSpace: "nowrap", transition: "all .2s",
-                  boxShadow: selected === plan._id ? "0 4px 12px rgba(69,45,155,0.25)" : "none",
-                }}
-              >
-                {plan.name}
-              </button>
-            ))}
+          <div style={{ display: "flex", gap: "0.75rem", overflowX: "auto", paddingBottom: "0.75rem", marginBottom: "1.25rem", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
+            {plans.map(plan => {
+              const isActive = selected === plan._id;
+              const bonus = plan.walletCredit - plan.price;
+              return (
+                <button
+                  key={plan._id}
+                  onClick={() => setSelected(plan._id)}
+                  style={{
+                    flexShrink: 0, width: 132, padding: 0, borderRadius: "16px", overflow: "hidden",
+                    border: isActive ? "2px solid #452D9B" : "2px solid #e8e8ef",
+                    background: "white", cursor: "pointer", textAlign: "left", transition: "all .2s",
+                    boxShadow: isActive ? "0 8px 20px rgba(69,45,155,0.22)" : "0 2px 6px rgba(0,0,0,0.05)",
+                    transform: isActive ? "translateY(-2px)" : "none",
+                  }}
+                >
+                  <div style={{ position: "relative", height: 74, background: "linear-gradient(135deg, #452D9B 0%, #07C8D0 100%)" }}>
+                    {plan.image ? (
+                      <img
+                        src={imgUrl(plan.image)}
+                        alt={plan.name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.6rem" }}>💳</div>
+                    )}
+                    {bonus > 0 && (
+                      <span style={{ position: "absolute", top: 6, left: 6, background: "#16a34a", color: "white", borderRadius: "20px", padding: "1px 8px", fontSize: "0.62rem", fontWeight: "800" }}>
+                        +₹{bonus}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ padding: "0.5rem 0.6rem 0.6rem" }}>
+                    <p style={{ margin: 0, fontWeight: "800", fontSize: "0.85rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{plan.name}</p>
+                    <p style={{ margin: "0.15rem 0 0", fontSize: "0.72rem", color: "#64748b" }}>
+                      ₹{plan.price} → <span style={{ color: "#452D9B", fontWeight: "800" }}>₹{plan.walletCredit}</span>
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
 

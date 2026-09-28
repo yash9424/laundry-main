@@ -15,6 +15,7 @@ import SafeAreaWrapper from './components/SafeAreaWrapper';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useOrderStatusMonitor } from './hooks/useOrderStatusMonitor';
 import { navigationDetector } from './utils/navigationDetection';
+import { applyBrandFonts } from './utils/brandFonts';
 import { API_URL } from './config/api';
 import VideoSplash from "./pages/VideoSplash";
 import Welcome from "./pages/Welcome";
@@ -204,6 +205,7 @@ const App = () => {
     const initializeApp = async () => {
       // Initialize navigation detection first
       navigationDetector.init();
+      applyBrandFonts();
       
       if (Capacitor.isNativePlatform()) {
         try {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Shirt, CheckCircle2, MapPin, Circle, Check, X } from "lucide-react";
+import { Shirt, CheckCircle2, MapPin, Circle, Check, X, Clock } from "lucide-react";
 import { TermsContent } from "@/pages/TermsConditions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,8 @@ const ContinueBooking = () => {
   const [expressEnabled, setExpressEnabled] = useState(true);
   const [policyAcknowledged, setPolicyAcknowledged] = useState(false);
   const [policyModal, setPolicyModal] = useState<'terms' | 'garment-care' | 'damage-loss' | null>(null);
+  const [garmentCarePolicyText, setGarmentCarePolicyText] = useState('');
+  const [damageLossPolicyText, setDamageLossPolicyText] = useState('');
 
   useEffect(() => {
     if (policyModal && policyModal !== 'terms') {
@@ -129,6 +131,8 @@ const ContinueBooking = () => {
         setExpressDeliveryPrice(data.data.expressDeliveryPrice || 0);
         setExpressDeliveryLabel(data.data.expressDeliveryLabel || '');
         setExpressDeliveryDescription(data.data.expressDeliveryDescription || '');
+        setGarmentCarePolicyText(data.data.garmentCarePolicyText || '');
+        setDamageLossPolicyText(data.data.damageLossPolicyText || '');
       }
     } catch (error) {
       console.error('Failed to fetch order charges:', error);
@@ -352,8 +356,8 @@ const ContinueBooking = () => {
             <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(to right, #f59e0b, #ef4444)' }}>
-                    <span className="text-lg">⚡</span>
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                    <Clock className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <div className="flex items-center gap-1">
@@ -774,7 +778,15 @@ const ContinueBooking = () => {
               </button>
             </div>
             <div className="overflow-y-auto">
-              <TermsContent />
+              {/* Admin-supplied policy text wins; otherwise fall back to the matching
+                  section of the Terms page, as before. */}
+              {policyModal === 'garment-care' && garmentCarePolicyText ? (
+                <div className="px-4 py-6 text-sm leading-relaxed text-gray-800 whitespace-pre-line">{garmentCarePolicyText}</div>
+              ) : policyModal === 'damage-loss' && damageLossPolicyText ? (
+                <div className="px-4 py-6 text-sm leading-relaxed text-gray-800 whitespace-pre-line">{damageLossPolicyText}</div>
+              ) : (
+                <TermsContent />
+              )}
             </div>
             <div className="p-4 border-t">
               <Button
@@ -871,7 +883,7 @@ const ContinueBooking = () => {
           >
             <div style={{ width: 40, height: 4, background: '#e2e8f0', borderRadius: 2, margin: '0 auto 1.25rem' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{ width: 42, height: 42, borderRadius: '12px', background: 'linear-gradient(to right, #f59e0b, #ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0 }}>⚡</div>
+              <div style={{ width: 42, height: 42, borderRadius: '12px', background: 'linear-gradient(to right, #452D9B, #07C8D0)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Clock className="w-5 h-5 text-white" /></div>
               <div>
                 <p style={{ fontWeight: '800', fontSize: '1rem', color: '#1e293b', margin: 0 }}>{expressDeliveryLabel || 'Express Delivery'}</p>
                 <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0 }}>+₹{expressDeliveryPrice} per order</p>

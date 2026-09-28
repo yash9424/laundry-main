@@ -3,8 +3,22 @@ import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { ACS_LOGO_BASE64, URBAN_STEAM_LOGO_BASE64 } from './invoiceAssets';
+import { API_URL } from '@/config/api';
 
 export const generateSubscriptionInvoice = async (sub: any, customerName: string, customerMobile: string) => {
+  // Invoice identity is admin-editable (Add-On > Charges); fall back to the defaults
+  let invoiceGst = '29ACLFAA519M1ZW';
+  let invoiceEmail = 'support@urbansteam.in';
+  try {
+    const chargesResponse = await fetch(`${API_URL}/api/order-charges`);
+    const chargesData = await chargesResponse.json();
+    if (chargesData?.success && chargesData.data) {
+      invoiceGst = chargesData.data.invoiceGstNumber || invoiceGst;
+      invoiceEmail = chargesData.data.invoiceSupportEmail || invoiceEmail;
+    }
+  } catch (error) {
+    console.error('Could not load invoice identity, using defaults:', error);
+  }
   if (!sub) return;
 
   try {
@@ -17,8 +31,8 @@ export const generateSubscriptionInvoice = async (sub: any, customerName: string
 
     // Logos
     try {
-      doc.addImage(ACS_LOGO_BASE64, 'PNG', 15, 8, 45, 40);
-      doc.addImage(URBAN_STEAM_LOGO_BASE64, 'PNG', pageWidth - 50, 8, 35, 32);
+      doc.addImage(ACS_LOGO_BASE64, 'PNG', 15, 8, 45, 40, 'acsLogo', 'FAST');
+      doc.addImage(URBAN_STEAM_LOGO_BASE64, 'PNG', pageWidth - 50, 8, 35, 32, 'urbanSteamMark', 'FAST');
     } catch {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(14);
@@ -83,8 +97,8 @@ export const generateSubscriptionInvoice = async (sub: any, customerName: string
     doc.text('From', 147, yStart + 8);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.text('support@urbansteam.in', 147, yStart + 14);
-    doc.text('GST: 29ACLFAA519M1ZW', 147, yStart + 22);
+    doc.text(invoiceEmail, 147, yStart + 14);
+    doc.text('GST: ' + invoiceGst, 147, yStart + 22);
 
     // Table header
     let y = yStart + sectionHeight + 5;
@@ -159,7 +173,7 @@ export const generateSubscriptionInvoice = async (sub: any, customerName: string
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.text('In case of any issues contact support@urbansteam.in within 24 hours', 15, pageHeight - 18);
+    doc.text('In case of any issues contact ' + invoiceEmail + ' within 24 hours', 15, pageHeight - 18);
 
     const fileName = `UrbanSteam_Topup_${sub._id?.slice(-8).toUpperCase() || Date.now()}.pdf`;
 

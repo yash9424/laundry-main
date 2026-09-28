@@ -31,7 +31,7 @@ const RateOrder = () => {
           id: order.orderId,
           rawOrderId: order._id, // Store the actual MongoDB _id
           items: order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items',
-          status: order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' '),
+          status: order.status.charAt(0).toUpperCase() + order.status.slice(1).replace(/_/g, ' '),
           deliveryDate: new Date(order.createdAt).toLocaleDateString('en-GB', {
             day: '2-digit',
             month: 'short',

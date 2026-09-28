@@ -78,15 +78,29 @@ export default function SubscriptionsPage() {
   }
 
   const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      showToast('Please choose a JPG, PNG or WebP file.', 'error')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Image is too large. Please choose one under 5 MB.', 'error')
+      return
+    }
     setUploading(true)
-    const fd = new FormData()
-    fd.append('file', file)
-    const res = await fetch('/api/upload', { method: 'POST', body: fd })
-    const data = await res.json()
-    setUploading(false)
-    if (data.url) {
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/upload', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok || !data.success || !data.url) {
+        throw new Error(data.error || 'Upload failed')
+      }
       setForm((f: any) => ({ ...f, image: data.url }))
       setImagePreview(data.url)
+    } catch (error: any) {
+      showToast(error.message || 'Could not upload the image. Please try again.', 'error')
+    } finally {
+      setUploading(false)
     }
   }
 

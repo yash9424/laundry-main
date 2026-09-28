@@ -337,9 +337,31 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     // so a manipulated device clock (customer or partner) cannot shift the SLA.
     if (updateData.status === 'picked_up' && currentOrder?.status !== 'picked_up') {
       const serverNow = new Date()
-      const turnaroundHours = currentOrder.expressDelivery ? 12 : 24
+      // Turnaround hours are admin-editable (Add-On > Charges); fall back to 12/24 if unset
+      const turnaroundCharges = await OrderCharges.findOne()
+      const turnaroundHours = currentOrder.expressDelivery
+        ? (Number(turnaroundCharges?.expressTurnaroundHours) || 12)
+        : (Number(turnaroundCharges?.standardTurnaroundHours) || 24)
       updateData.pickedUpAt = serverNow
       updateData.expectedDeliveryAt = new Date(serverNow.getTime() + turnaroundHours * 60 * 60 * 1000)
+    }
+
+    // Operational timestamps come from the SERVER clock, not the captain's phone or the
+    // admin's browser, so a wrong device clock cannot distort the order timeline.
+    const serverStampFields: Record<string, string> = {
+      reached_location: 'reachedLocationAt',
+      delivered_to_hub: 'deliveredToHubAt',
+      out_for_delivery: 'outForDeliveryAt',
+      delivered: 'deliveredAt'
+    }
+    const stampField = updateData.status ? serverStampFields[updateData.status] : undefined
+    if (stampField && currentOrder?.status !== updateData.status) {
+      const stampedAt = new Date()
+      updateData[stampField] = stampedAt
+      // A redelivery records its own out-for-delivery time in a separate field
+      if (updateData.status === 'out_for_delivery' && currentOrder?.redeliveryScheduled) {
+        updateData.outForRedeliveryAt = stampedAt
+      }
     }
 
     // Award order completion points when order is delivered

@@ -95,7 +95,28 @@ const loadImageAsBase64 = (url: string): Promise<string> => {
   });
 };
 
+// Invoice identity is admin-editable (Add-On > Charges); these are the fallbacks
+const INVOICE_GST_FALLBACK = '29ACLFAA519M1ZW';
+const INVOICE_EMAIL_FALLBACK = 'support@urbansteam.in';
+
+const fetchInvoiceIdentity = async () => {
+  try {
+    const response = await fetch(`${API_URL}/api/order-charges`);
+    const data = await response.json();
+    if (data?.success && data.data) {
+      return {
+        gst: data.data.invoiceGstNumber || INVOICE_GST_FALLBACK,
+        email: data.data.invoiceSupportEmail || INVOICE_EMAIL_FALLBACK,
+      };
+    }
+  } catch (error) {
+    console.error('Could not load invoice identity, using defaults:', error);
+  }
+  return { gst: INVOICE_GST_FALLBACK, email: INVOICE_EMAIL_FALLBACK };
+};
+
 export const generateInvoicePDF = async (order: any) => {
+  const invoiceIdentity = await fetchInvoiceIdentity();
   if (!order) return;
 
   try {
@@ -127,8 +148,8 @@ export const generateInvoicePDF = async (order: any) => {
     
     // Header logos - increase height, keep width same
     try {
-      doc.addImage(ACS_LOGO_BASE64, 'PNG', 15, 8, 45, 40);
-      doc.addImage(URBAN_STEAM_LOGO_BASE64, 'PNG', pageWidth - 50, 8, 35, 32);
+      doc.addImage(ACS_LOGO_BASE64, 'PNG', 15, 8, 45, 40, 'acsLogo', 'FAST');
+      doc.addImage(URBAN_STEAM_LOGO_BASE64, 'PNG', pageWidth - 50, 8, 35, 32, 'urbanSteamMark', 'FAST');
     } catch (imgError) {
       setTypography(doc, 'h1');
       doc.text('ACS Group', 15, 24);
@@ -227,8 +248,8 @@ export const generateInvoicePDF = async (order: any) => {
     
     setTypography(doc, 'body');
     doc.setFontSize(9);
-    doc.text('Email: support@urbansteam.in', 147, yStart + 14);
-    doc.text('GST: 29ACLFAA519M1ZW', 147, yStart + 22); // Moved down from 20 to 22
+    doc.text('Email: ' + invoiceIdentity.email, 147, yStart + 14);
+    doc.text('GST: ' + invoiceIdentity.gst, 147, yStart + 22); // Moved down from 20 to 22
     
     // Service table - position after dynamic section
     yStart = 65 + sectionHeight + 5;
@@ -277,8 +298,8 @@ export const generateInvoicePDF = async (order: any) => {
         setTypography(doc, 'body');
         doc.setFontSize(10);
         doc.text(String(item.quantity || 1), 130, yStart, { align: 'center' });
-        doc.text('- Rs.' + (item.price || 0), 155, yStart, { align: 'center' });
-        doc.text('- Rs.' + itemTotal, pageWidth - 17, yStart, { align: 'right' });
+        doc.text('Rs.' + (item.price || 0), 155, yStart, { align: 'center' });
+        doc.text('Rs.' + itemTotal, pageWidth - 17, yStart, { align: 'right' });
         yStart += 15;
       });
     } else {
@@ -298,6 +319,7 @@ export const generateInvoicePDF = async (order: any) => {
     // Summary: prints the breakdown saved on the order (see getOrderBreakdown)
     const b = getOrderBreakdown(order);
     const summaryRows: { label: string; value: string; emphasis?: boolean }[] = [
+      { label: 'Delivery Type', value: order.expressDelivery ? 'Express Delivery' : 'Standard Delivery' },
       { label: 'Subtotal', value: 'Rs.' + Math.round(b.subtotal) },
       { label: 'Tax (0%)', value: 'Rs.0.00' },
     ];
@@ -341,7 +363,7 @@ export const generateInvoicePDF = async (order: any) => {
     setTypography(doc, 'body');
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.text('In case of any issues contact support@urbansteam.in within 24 hours of delivery', 15, yStart + 6);
+    doc.text('In case of any issues contact ' + invoiceIdentity.email + ' within 24 hours of delivery', 15, yStart + 6);
   
     if (Capacitor.isNativePlatform()) {
       try {

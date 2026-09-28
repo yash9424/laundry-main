@@ -8,6 +8,7 @@ import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem } from '@capacitor/filesystem';
 import Header from "@/components/Header";
+import PickupChecklist from "@/components/PickupChecklist";
 import { getExpectedDeliveryText } from "@/utils/expectedDelivery";
 import { getOrderBreakdown } from "@/utils/orderBreakdown";
 
@@ -164,28 +165,31 @@ const OrderDetails = () => {
         ) : (
           <>
         <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 sm:gap-3">
+            <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
                 <Shirt className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="font-bold text-sm sm:text-base">Order #{order?.orderId || 'N/A'}</p>
-                  {order?.expressDelivery && (
-                    <span className="text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-                      Express Delivery
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-sm sm:text-base truncate">Order #{order?.orderId || 'N/A'}</p>
+                {order?.expressDelivery ? (
+                  <span className="mt-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-amber-700">
+                    <Clock className="w-3 h-3" />
+                    Express Delivery
+                  </span>
+                ) : (
+                  <span className="mt-1 inline-flex items-center whitespace-nowrap rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-gray-600">
+                    Standard Delivery
+                  </span>
+                )}
+                <p className="mt-1 text-xs sm:text-sm text-muted-foreground truncate">
                   {order?.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items'}
                 </p>
                 <p className="text-base sm:text-lg font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>₹{order?.totalAmount || 0}</p>
               </div>
             </div>
-            <span className="px-2 sm:px-4 py-1 sm:py-1.5 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-              {['processing', 'ironing'].includes(order?.status) ? 'At hub' : order?.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ') : 'Unknown'}
+            <span className="self-start whitespace-nowrap px-2 sm:px-3 py-1 sm:py-1.5 text-white text-[11px] sm:text-sm font-semibold rounded-full flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+              {['processing', 'ironing'].includes(order?.status) ? 'At hub' : order?.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1).replace(/_/g, ' ') : 'Unknown'}
             </span>
           </div>
           {order && !['delivered', 'cancelled'].includes(order.status) && (
@@ -344,6 +348,11 @@ const OrderDetails = () => {
             Pickup Slot: {order?.pickupSlot?.timeSlot || 'Not scheduled'}
           </p>
         </Card>
+
+        {/* Pickup guidance is only useful until the captain has actually collected the clothes */}
+        {order && ['pending', 'reached_location'].includes(order.status) && (
+          <PickupChecklist />
+        )}
 
         {(() => {
           const bd = getOrderBreakdown(order);

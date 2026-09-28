@@ -83,8 +83,18 @@ export default function ProfilePage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("partnerId");
-    localStorage.removeItem("authToken");
+    // Clear everything belonging to this captain, not just the id and token, so the
+    // next person to sign in on this device cannot inherit the previous one's data.
+    const keys = [
+      "partnerId", "authToken", "partnerMobile",
+      "partner_notifications", "partner_read_notifications", "partner_deleted_notifications",
+    ];
+    try {
+      keys.forEach((key) => localStorage.removeItem(key));
+      sessionStorage.clear();
+    } catch (error) {
+      console.error("Could not fully clear stored data on logout:", error);
+    }
     router.push("/");
   };
 

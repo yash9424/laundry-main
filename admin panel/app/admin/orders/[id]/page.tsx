@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ResponsiveLayout from '../../../components/ResponsiveLayout'
 import { getOrderBreakdown } from '@/lib/orderBreakdown'
+import { ACS_LOGO_BASE64, URBAN_STEAM_LOGO_BASE64 } from '@/lib/invoiceAssets'
 
 // ── Assign Partner Component ──────────────────────────────────────────────────
 function AssignPartnerSection({ order, onAssigned }: { order: any, onAssigned: () => void }) {
@@ -1232,6 +1233,20 @@ export default function OrderDetails() {
                   }
                 };
                 
+                // Invoice identity is admin-editable (Add-On > Charges); fall back to the defaults
+                let invoiceGst = '29ACLFAA519M1ZW';
+                let invoiceEmail = 'support@urbansteam.in';
+                try {
+                  const chargesRes = await fetch('/api/order-charges');
+                  const chargesJson = await chargesRes.json();
+                  if (chargesJson?.success && chargesJson.data) {
+                    invoiceGst = chargesJson.data.invoiceGstNumber || invoiceGst;
+                    invoiceEmail = chargesJson.data.invoiceSupportEmail || invoiceEmail;
+                  }
+                } catch (chargesError) {
+                  console.error('Could not load invoice identity, using defaults:', chargesError);
+                }
+
                 const doc = new jsPDF('p', 'mm', 'a4');
                 const pageWidth = doc.internal.pageSize.getWidth();
                 const pageHeight = doc.internal.pageSize.getHeight();
@@ -1247,8 +1262,11 @@ export default function OrderDetails() {
                   // Keep each logo's real proportions (ACS 7975x1498, mark 3409x1280) and centre them in the header band
                   const acsW = 45, acsH = acsW * 1498 / 7975;
                   const markW = 34, markH = markW * 1280 / 3409;
-                  doc.addImage('/assets/ACS LOGO.png', 'PNG', 15, 25 - acsH / 2, acsW, acsH);
-                  doc.addImage('/assets/LOGO MARK GRADIENT.png', 'PNG', pageWidth - 15 - markW, 25 - markH / 2, markW, markH);
+                  // Use the downscaled base64 logos, not the full-size files in /assets.
+                  // jsPDF embeds whatever it is given at full resolution, and the originals
+                  // (7975px and 3409px wide) produced a ~62 MB invoice.
+                  doc.addImage(ACS_LOGO_BASE64, 'PNG', 15, 25 - acsH / 2, acsW, acsH, 'acsLogo', 'FAST');
+                  doc.addImage(URBAN_STEAM_LOGO_BASE64, 'PNG', pageWidth - 15 - markW, 25 - markH / 2, markW, markH, 'urbanSteamMark', 'FAST');
                 } catch (imgError) {
                   setTypography(doc, 'h1');
                   doc.setFontSize(12);
@@ -1337,8 +1355,8 @@ export default function OrderDetails() {
                 
                 setTypography(doc, 'body');
                 doc.setFontSize(9);
-                doc.text('Email: support@urbansteam.in', 147, yStart + 14);
-                doc.text('GST: 29ACLFAA519M1ZW', 147, yStart + 22);
+                doc.text('Email: ' + invoiceEmail, 147, yStart + 14);
+                doc.text('GST: ' + invoiceGst, 147, yStart + 22);
                 
                 // Service table
                 yStart = 75 + sectionHeight + 5;
@@ -1384,8 +1402,8 @@ export default function OrderDetails() {
                     setTypography(doc, 'body');
                     doc.setFontSize(10);
                     doc.text(String(item.quantity || 1), 130, yStart, { align: 'center' });
-                    doc.text('- Rs.' + (item.price || 0), 155, yStart, { align: 'center' });
-                    doc.text('- Rs.' + itemTotal, pageWidth - 17, yStart, { align: 'right' });
+                    doc.text('Rs.' + (item.price || 0), 155, yStart, { align: 'center' });
+                    doc.text('Rs.' + itemTotal, pageWidth - 17, yStart, { align: 'right' });
                     yStart += 15;
                   });
                 } else {
@@ -1405,6 +1423,7 @@ export default function OrderDetails() {
                 // Summary: prints the breakdown saved on the order (see getOrderBreakdown)
                 const bd = getOrderBreakdown(order);
                 const summaryRows: { label: string; value: string; emphasis?: boolean }[] = [
+                  { label: 'Delivery Type', value: order.expressDelivery ? 'Express Delivery' : 'Standard Delivery' },
                   { label: 'Subtotal', value: 'Rs.' + Math.round(bd.subtotal) },
                   { label: 'Tax (0%)', value: 'Rs.0.00' },
                 ];
@@ -1420,8 +1439,11 @@ export default function OrderDetails() {
                 if (bd.wallet > 0) summaryRows.push({ label: 'Paid from wallet', value: 'Rs.' + Math.round(bd.wallet) });
                 if (bd.paidOnline !== null && bd.paidOnline > 0) summaryRows.push({ label: 'Paid online', value: 'Rs.' + Math.round(bd.paidOnline) });
 
-                const summaryRowHeight = 10;
-                if (yStart + 10 + summaryRows.length * summaryRowHeight > pageHeight - 40) {
+                // Only break to a second page if the summary genuinely will not fit above
+                // the footer (drawn at pageHeight - 30). The old reserve pushed a normal
+                // two-item invoice onto page 2 and left page 1 half empty.
+                const summaryRowHeight = 9;
+                if (yStart + 10 + summaryRows.length * summaryRowHeight > pageHeight - 35) {
                   doc.addPage();
                   yStart = 20;
                 }
@@ -1450,7 +1472,7 @@ export default function OrderDetails() {
                 setTypography(doc, 'body');
                 doc.setFontSize(8);
                 doc.setTextColor(100, 100, 100);
-                doc.text('In case of any issues contact support@urbansteam.in within 24 hours of delivery', 15, yStart + 6);
+                doc.text('In case of any issues contact ' + invoiceEmail + ' within 24 hours of delivery', 15, yStart + 6);
                 
                 doc.save(`Invoice-${order.orderId || 'order'}.pdf`);
               }}

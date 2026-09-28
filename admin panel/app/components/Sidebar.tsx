@@ -120,7 +120,7 @@ export default function Sidebar({ activePage, isMobileMenuOpen = false, onMobile
     { icon: <ReportsIcon />, label: 'Reports', href: '/admin/reports', roles: ['Admin'] },
     { icon: <NotificationsIcon />, label: 'Notifications', href: '/admin/notifications', roles: ['Admin'] },
     { icon: <AddOnIcon />, label: 'Add-On', href: '/admin/add-on', roles: ['Admin'] },
-    // { icon: <SettingsIcon />, label: 'Settings', href: '/admin/settings', roles: ['Admin'] },
+    { icon: <SettingsIcon />, label: 'Settings', href: '/admin/settings', roles: ['Admin'] },
     { icon: <RoleIcon />, label: 'Role Management', href: '/admin/role-management', roles: ['Admin'] },
     { icon: <ReviewsIcon />, label: 'Reviews', href: '/admin/reviews', roles: ['Admin'] },
     { icon: <LogoutIcon />, label: 'Logout', href: '/admin/login', roles: ['Admin', 'Store Manager'] }
@@ -137,7 +137,7 @@ export default function Sidebar({ activePage, isMobileMenuOpen = false, onMobile
         display: 'flex',
         flexDirection: 'column'
       }}>
-        <div style={{ flex: 1 }}>
+        <div className="sidebar-menu-scroll">
         {menuItems.slice(0, -1).map((item, index) => (
           <a 
             key={index}
@@ -236,7 +236,7 @@ export default function Sidebar({ activePage, isMobileMenuOpen = false, onMobile
           <div style={{ clear: 'both' }} />
         </div>
         
-        <div style={{ flex: 1 }}>
+        <div className="sidebar-menu-scroll">
         {menuItems.slice(0, -1).map((item, index) => (
           <a 
             key={index}

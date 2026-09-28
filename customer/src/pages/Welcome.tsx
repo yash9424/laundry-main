@@ -19,7 +19,7 @@ const Welcome = () => {
         </h1>
         
         <p className="text-base sm:text-lg font-normal mb-6 sm:mb-8 leading-relaxed" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-          Reimagining ironing for the modern India
+          Reimagining Ironing for the modern India
         </p>
         
         <Button 

@@ -94,7 +94,8 @@ const AddAddress = () => {
   }, []);
 
   const handleStateChange = (selectedState) => {
-    setAddress({...address, state: selectedState, city: "", pincode: ""});
+    // Keep City and Pincode: clearing them made the customer type the City a second time
+    setAddress({...address, state: selectedState});
     setCitySuggestions([]);
   };
 
@@ -112,10 +113,11 @@ const AddAddress = () => {
         const response = await fetch(`${API_URL}/api/locations/pincodes?pincode=${value}`);
         const data = await response.json();
         if (data && data.length > 0) {
+          // Only fill in what the customer has not already entered, so a typed City is never overwritten
           setAddress(prev => ({
             ...prev,
-            city: data[0].city || '',
-            state: data[0].state || ''
+            city: prev.city?.trim() ? prev.city : (data[0].city || ''),
+            state: prev.state?.trim() ? prev.state : (data[0].state || '')
           }));
         }
         

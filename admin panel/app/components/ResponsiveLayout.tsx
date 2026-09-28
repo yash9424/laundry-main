@@ -28,7 +28,7 @@ export default function ResponsiveLayout({
   }
 
   return (
-    <div style={{ minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+    <div style={{ minHeight: '100vh', fontFamily: 'var(--font-manrope), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       <Sidebar 
         activePage={activePage} 
         isMobileMenuOpen={isMobileMenuOpen}

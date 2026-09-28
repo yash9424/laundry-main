@@ -28,14 +28,16 @@ export async function POST(request: NextRequest) {
     await dbConnect()
     const body = await request.json()
 
-    // Find existing partner by mobile, email, or Google placeholder
-    const existingPartner = await Partner.findOne({
-      $or: [
-        { mobile: body.mobile },
-        { email: body.email },
-        { mobile: { $regex: /^google_/ } }
-      ]
-    })
+    // Match ONLY this partner's own record. The old { mobile: /^google_/ } clause could
+    // return an unrelated Google partner, letting one signup take over another's account.
+    const identityMatches: any[] = []
+    if (body.partnerId) identityMatches.push({ _id: body.partnerId })
+    if (body.mobile) identityMatches.push({ mobile: body.mobile })
+    if (body.email) identityMatches.push({ email: body.email })
+
+    const existingPartner = identityMatches.length > 0
+      ? await Partner.findOne({ $or: identityMatches })
+      : null
     
     if (existingPartner) {
       const updatedPartner = await Partner.findByIdAndUpdate(

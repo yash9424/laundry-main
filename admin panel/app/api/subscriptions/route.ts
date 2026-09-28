@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb'
 import Subscription from '@/models/Subscription'
 import SubscriptionPlan from '@/models/SubscriptionPlan'
 import Customer from '@/models/Customer'
+import WalletTransaction from '@/models/WalletTransaction'
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,6 +33,16 @@ export async function POST(request: NextRequest) {
     const plan = await SubscriptionPlan.findById(planId).lean() as any
     if (!plan) return NextResponse.json({ success: false, error: 'Plan not found' }, { status: 404 })
 
+    // The wallet credit must land on a real, identified customer — never a missing
+    // or mistyped id, which is how value ends up attached to the wrong account.
+    if (!customerId) {
+      return NextResponse.json({ success: false, error: 'Customer ID is required' }, { status: 400 })
+    }
+    const buyer = await Customer.findById(customerId).select('_id name walletBalance')
+    if (!buyer) {
+      return NextResponse.json({ success: false, error: 'Customer not found' }, { status: 404 })
+    }
+
     const subscription = await Subscription.create({
       customerId,
       planId,
@@ -44,12 +55,28 @@ export async function POST(request: NextRequest) {
     })
 
     if (status === 'active' || !status) {
-      const customer = await Customer.findById(customerId)
-      if (customer) {
-        const prev = customer.walletBalance || 0
-        customer.walletBalance = prev + plan.walletCredit
-        await customer.save()
-      }
+      const creditAmount = Number(plan.walletCredit) || 0
+      const previousBalance = buyer.walletBalance || 0
+
+      // $inc is atomic: two purchases at the same moment cannot overwrite each other,
+      // and the credit is scoped to this one customer's document.
+      const credited = await Customer.findByIdAndUpdate(
+        buyer._id,
+        { $inc: { walletBalance: creditAmount } },
+        { new: true }
+      ).select('walletBalance')
+
+      // Wallet credits must leave a trail (scope section 15)
+      await WalletTransaction.create({
+        customerId: buyer._id,
+        type: 'balance',
+        action: 'increase',
+        amount: creditAmount,
+        reason: `Wallet top-up — ${plan.name} plan (₹${plan.price})`,
+        previousValue: previousBalance,
+        newValue: credited?.walletBalance ?? previousBalance + creditAmount,
+        adjustedBy: 'System'
+      })
     }
 
     return NextResponse.json({ success: true, data: subscription })
