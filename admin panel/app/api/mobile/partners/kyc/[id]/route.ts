@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Partner from '@/models/Partner'
+import { persistImageFields } from '@/lib/imageStore'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,7 +21,8 @@ export async function POST(
     await connectDB()
     const { id } = await params
     const body = await request.json()
-    
+    await persistImageFields(body, ['aadharImage', 'drivingLicenseImage'])
+
     const partner = await Partner.findByIdAndUpdate(
       id,
       {

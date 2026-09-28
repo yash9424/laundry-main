@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Customer from '@/models/Customer'
 import WalletSettings from '@/models/WalletSettings'
+import { persistImageFields } from '@/lib/imageStore'
 
 export async function GET(request: NextRequest) {
   try {
@@ -146,6 +147,9 @@ export async function PUT(request: NextRequest) {
     for (const field of EDITABLE_FIELDS) {
       if (body[field] !== undefined) safeUpdate[field] = body[field]
     }
+    // A profile photo picked in the app arrives as a base64 data URL; keep the
+    // file on disk and only the URL on the customer.
+    await persistImageFields(safeUpdate, ['profileImage'])
 
     const ignored = Object.keys(body).filter(k => !EDITABLE_FIELDS.includes(k))
     if (ignored.length > 0) console.warn('Profile update ignored non-editable fields:', ignored)

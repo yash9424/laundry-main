@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Customer from '@/models/Customer'
+import { persistImageFields } from '@/lib/imageStore'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -23,7 +24,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     await dbConnect()
     const { id } = await params
     const updateData = await request.json()
-    
+    await persistImageFields(updateData, ['profileImage'])
+
     const customer = await Customer.findByIdAndUpdate(
       id,
       { $set: updateData },

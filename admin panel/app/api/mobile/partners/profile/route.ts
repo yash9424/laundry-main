@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Partner from '@/models/Partner'
+import { persistImageFields } from '@/lib/imageStore'
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,6 +28,7 @@ export async function POST(request: NextRequest) {
   try {
     await dbConnect()
     const body = await request.json()
+    await persistImageFields(body, ['profileImage', 'aadharImage', 'drivingLicenseImage'])
 
     // Match ONLY this partner's own record. The old { mobile: /^google_/ } clause could
     // return an unrelated Google partner, letting one signup take over another's account.

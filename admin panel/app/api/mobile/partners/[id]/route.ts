@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Partner from '@/models/Partner'
+import { persistImageFields } from '@/lib/imageStore'
+
+// Captain photos and KYC scans arrive as base64 data URLs; store them as files.
+const PARTNER_IMAGE_FIELDS = ['profileImage', 'aadharImage', 'drivingLicenseImage']
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -46,7 +50,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     await connectDB()
     const { id } = await params
     const body = await request.json()
-    
+    await persistImageFields(body, PARTNER_IMAGE_FIELDS)
+
     const updatedPartner = await Partner.findByIdAndUpdate(
       id,
       { ...body, updatedAt: new Date() },
@@ -69,7 +74,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     await connectDB()
     const { id } = await params
     const body = await request.json()
-    
+    await persistImageFields(body, PARTNER_IMAGE_FIELDS)
+
     const updatedPartner = await Partner.findByIdAndUpdate(
       id,
       { ...body, updatedAt: new Date() },

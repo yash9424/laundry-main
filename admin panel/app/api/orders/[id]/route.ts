@@ -6,6 +6,7 @@ import Customer from '@/models/Customer'
 import WalletSettings from '@/models/WalletSettings'
 import OrderCharges from '@/models/OrderCharges'
 import WalletTransaction from '@/models/WalletTransaction'
+import { persistImageFields } from '@/lib/imageStore'
 
 // Let the admin know about an important order event (shows in Admin > Notifications)
 async function notifyAdmin(title: string, message: string) {
@@ -71,8 +72,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     await dbConnect()
     const { id } = await params
     const updateData = await request.json()
+    // The Captain app posts pickup photos as base64 data URLs. Write them to
+    // public/uploads and keep a URL on the order instead, so the document stays
+    // small. Already-installed app builds keep sending base64 and still work.
+    await persistImageFields(updateData, ['pickupPhotos'])
     console.log('PATCH request - Order ID:', id)
-    console.log('PATCH request - Update data:', JSON.stringify(updateData, null, 2))
+    console.log('PATCH request - Update data keys:', Object.keys(updateData).join(', '))
     
     // Try to find by orderId first, then by _id (without population for cancellation check)
     let currentOrder = await Order.findOne({ orderId: id })

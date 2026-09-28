@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Partner from '@/models/Partner'
+import { persistImage } from '@/lib/imageStore'
 
 export async function GET() {
   try {
@@ -31,10 +32,14 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB()
     const { partnerId, vehicleType, vehicleNumber, aadharNumber, drivingLicenseNumber, aadharImage, drivingLicenseImage } = await request.json()
-    
+
+    // KYC scans come in as base64; store them as files and keep only the URL.
+    const aadharImageUrl = await persistImage(aadharImage)
+    const drivingLicenseImageUrl = await persistImage(drivingLicenseImage)
+
     console.log('KYC Submission - Partner ID:', partnerId)
     console.log('KYC Data:', { aadharNumber, drivingLicenseNumber, hasAadharImage: !!aadharImage, hasDLImage: !!drivingLicenseImage })
-    
+
     const partner = await Partner.findByIdAndUpdate(
       partnerId,
       {
@@ -42,8 +47,8 @@ export async function POST(request: NextRequest) {
         vehicleNumber,
         aadharNumber,
         drivingLicenseNumber,
-        aadharImage,
-        drivingLicenseImage,
+        aadharImage: aadharImageUrl,
+        drivingLicenseImage: drivingLicenseImageUrl,
         kycStatus: 'pending',
         kycSubmittedAt: new Date()
       },
