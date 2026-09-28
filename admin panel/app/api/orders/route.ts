@@ -285,6 +285,7 @@ export async function GET(request: NextRequest) {
     const customerId = searchParams.get('customerId')
     const hub = searchParams.get('hub')
     const partnerIdParam = searchParams.get('partnerId')
+    const partnerScope = searchParams.get('partnerScope')
 
     let query: any = {}
     if (customerId) {
@@ -292,6 +293,22 @@ export async function GET(request: NextRequest) {
     }
     if (partnerIdParam) {
       query.partnerId = partnerIdParam
+    }
+    // What the Captain app's 10-second poller actually needs: the orders assigned
+    // to this partner, plus the unclaimed ones in the pincodes they serve. Without
+    // it the app pulls every order in the database on every tick, which grows
+    // without limit as orders accumulate. Old app builds send no partnerScope and
+    // still get the full list, so they keep working unchanged.
+    if (partnerScope) {
+      const partnerDoc = await Partner.findById(partnerScope).select('pincodes')
+      const servedPincodes = partnerDoc?.pincodes?.length ? partnerDoc.pincodes : []
+      query.$or = [
+        { partnerId: partnerScope },
+        { 'pickupAddress.pincode': { $in: servedPincodes }, partnerId: null },
+      ]
+      // Delivered and cancelled orders are terminal — the poller never raises a
+      // notification for them, so they only add weight.
+      query.status = { $nin: ['delivered', 'cancelled'] }
     }
     if (hub) {
       console.log('Filtering orders for hub:', hub)

@@ -72,7 +72,9 @@ export const usePartnerOrderMonitor = () => {
 
     const checkPartnerOrders = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/orders`);
+        // partnerScope asks the server for just this partner's orders plus the
+        // unclaimed ones in their pincodes, instead of every order in the database.
+        const response = await fetch(`${API_URL}/api/orders?partnerScope=${partnerId}`);
         const data = await response.json();
 
         if (data.success && data.data) {
