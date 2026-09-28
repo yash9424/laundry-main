@@ -309,7 +309,13 @@ export async function GET(request: NextRequest) {
       }
     }
     
+    // pickupPhotos are base64 data URLs stored inside the document, so an order
+    // averages ~600 KB. Sending them here made the unfiltered list 7.3 MB, which
+    // the Captain app then re-fetched every 10 seconds. Nothing reads photos from
+    // the list — only the admin order detail screen does, and that calls
+    // /api/orders/[id], which still returns them.
     const orders = await Order.find(query)
+      .select('-pickupPhotos')
       .populate('customerId', 'name mobile email')
       .populate('partnerId', 'name mobile email')
       .populate('hub', 'name address contactPerson contactNumber')
