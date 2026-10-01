@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import otpStore from '@/lib/otpStore';
+import { saveOtp, pendingCount } from '@/lib/otpStore';
 import { IndoriSmsService } from '@/lib/indoriSms';
 
 export async function POST(request: Request) {
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
     // Test phone number for Google Play review
     if (phone === '+919999999999') {
-      otpStore.set(phone, '123456');
+      saveOtp(phone, '123456');
       console.log('\n========================================');
       console.log('📱 TEST OTP FOR GOOGLE PLAY REVIEW');
       console.log('Phone:', phone);
@@ -25,8 +25,8 @@ export async function POST(request: Request) {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore.set(phone, otp);
-    
+    saveOtp(phone, otp);
+
     // Send OTP via Indori SMS
     const smsResult = await IndoriSmsService.sendOTP(phone, otp);
     
@@ -35,6 +35,7 @@ export async function POST(request: Request) {
     console.log('Phone:', phone);
     console.log('OTP:', otp);
     console.log('SMS Status:', smsResult ? 'SUCCESS' : 'FAILED');
+    console.log('Pending codes:', pendingCount());
     console.log('========================================\n');
 
     return NextResponse.json({

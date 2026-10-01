@@ -11,6 +11,10 @@ const VerifyMobile = () => {
   
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [resendTimer, setResendTimer] = useState(30);
+  // An OTP is single use: the server deletes it the moment it verifies. A second
+  // tap while the first request is still running therefore came back as
+  // "OTP expired" even though the login had just succeeded.
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -38,10 +42,12 @@ const VerifyMobile = () => {
   };
 
   const handleVerify = async () => {
+    if (verifying) return;
     if (otp.every(digit => digit !== "")) {
       const enteredOtp = otp.join('');
       const phone = `+91${mobileNumber}`;
-      
+      setVerifying(true);
+
       try {
         const response = await fetch(`${API_URL}/api/auth/verify-otp`, {
           method: 'POST',
@@ -74,10 +80,13 @@ const VerifyMobile = () => {
           }
         } else {
           alert(data.error || 'Invalid OTP');
+          setOtp(["", "", "", "", "", ""]);
         }
       } catch (error) {
         console.error('Verification failed:', error);
         alert('Verification failed. Please try again.');
+      } finally {
+        setVerifying(false);
       }
     }
   };
@@ -148,13 +157,13 @@ const VerifyMobile = () => {
           )}
         </div>
         
-        <Button 
+        <Button
           onClick={handleVerify}
-          disabled={otp.some(digit => digit === "")}
+          disabled={verifying || otp.some(digit => digit === "")}
           className="mb-6 sm:mb-8 w-full max-w-sm sm:max-w-md bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           size="lg"
         >
-          Verify & Continue
+          {verifying ? "Verifying..." : "Verify & Continue"}
         </Button>
         
         <div className="w-full max-w-xs sm:max-w-sm space-y-2 sm:space-y-3">

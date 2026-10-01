@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import otpStore from '@/lib/otpStore';
+import { verifyOtp, OTP_TTL_MINUTES } from '@/lib/otpStore';
 
 export async function POST(request: Request) {
   try {
@@ -20,20 +20,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Server configuration error' }, { status: 500 });
     }
 
-    const storedOtp = otpStore.get(phone);
-
-    console.log('Stored OTP:', storedOtp);
-    console.log('All stored OTPs:', Array.from(otpStore.entries()));
+    const result = verifyOtp(phone, code);
 
     // Test phone number for Google Play review
     const isTestPhone = phone === '+919999999999';
     // Development bypass: accept 123456 or stored OTP
     const isDevelopment = process.env.NODE_ENV !== 'production';
-    const isValidOtp = storedOtp === code || (isDevelopment && code === '123456') || (isTestPhone && code === '123456');
+    const bypass = (isDevelopment && code === '123456') || (isTestPhone && code === '123456');
+    const isValidOtp = result.ok || bypass;
+
+    console.log('Verify result:', result.ok ? (result.replay ? 'ok (repeat request)' : 'ok') : result.reason);
 
     if (isValidOtp) {
-      if (storedOtp) otpStore.delete(phone);
-      
       const token = jwt.sign(
         { phone, role: role || 'customer' },
         jwtSecret,
@@ -50,9 +48,16 @@ export async function POST(request: Request) {
       });
     }
     
+    const message: Record<string, string> = {
+      mismatch: 'That OTP is not correct. Please check and try again.',
+      expired: `This OTP is more than ${OTP_TTL_MINUTES} minutes old. Please tap Resend OTP.`,
+      too_many_attempts: 'Too many wrong attempts. Please tap Resend OTP.',
+      not_found: 'No OTP is waiting for this number. Please tap Resend OTP.',
+    };
+
     return NextResponse.json({
       success: false,
-      error: storedOtp ? 'Invalid OTP' : 'OTP expired. Please request new OTP.'
+      error: result.ok ? 'Invalid OTP' : message[result.reason]
     }, { status: 400 });
   } catch (error: any) {
     console.error('Verify OTP error:', error);
