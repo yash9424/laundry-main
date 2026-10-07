@@ -273,21 +273,21 @@ const Prices = () => {
                       index !== filteredItems.length - 1 ? 'border-b border-gray-100' : ''
                     } hover:bg-blue-50 transition-colors`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3.5">
                       <button
                         type="button"
                         onClick={() => setPreviewItem(item)}
                         aria-label={`View ${item.name} details`}
                         className="relative flex-shrink-0 active:scale-95 transition-transform"
                       >
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md overflow-hidden ring-2 ring-purple-200" style={{ background: item.image ? 'transparent' : 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                        <div className="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-2xl flex items-center justify-center shadow-md overflow-hidden ring-2 ring-purple-100" style={{ background: item.image ? '#f3f4f6' : 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
                           {item.image
-                            ? <img src={item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`} alt={item.name} className="w-full h-full object-cover rounded-full" />
-                            : <Shirt className="w-5 h-5 text-white" />
+                            ? <img src={item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`} alt={item.name} className="w-full h-full object-cover rounded-2xl" />
+                            : <Shirt className="w-8 h-8 text-white" />
                           }
                         </div>
-                        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-white shadow flex items-center justify-center">
-                          <ZoomIn className="w-3 h-3" style={{ color: '#452D9B' }} />
+                        <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white shadow flex items-center justify-center">
+                          <ZoomIn className="w-3.5 h-3.5" style={{ color: '#452D9B' }} />
                         </span>
                       </button>
                       <div>

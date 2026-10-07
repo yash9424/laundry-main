@@ -22,15 +22,12 @@ export default function AddOnPage() {
   const [slotTime, setSlotTime] = useState('')
   const [slotType, setSlotType] = useState('both')
   const [slotAvailableFor, setSlotAvailableFor] = useState('both')
+  // Express runs its own shifts, so its windows are kept apart from Standard
+  const [slotServiceType, setSlotServiceType] = useState('both')
   const [editingSlot, setEditingSlot] = useState<string | null>(null)
   const [draggedItem, setDraggedItem] = useState<any>(null)
   const [editingVoucher, setEditingVoucher] = useState<string | null>(null)
   const [walletSettings, setWalletSettings] = useState({
-    pointsPerRupee: 2,
-    minRedeemPoints: 100,
-    referralPoints: 50,
-    signupBonusPoints: 25,
-    orderCompletionPoints: 10,
     minOrderPrice: 500
   })
   const [hubs, setHubs] = useState<any[]>([])
@@ -65,6 +62,11 @@ export default function AddOnPage() {
     expressDeliveryDescription: '',
     expressTurnaroundHours: 12,
     standardTurnaroundHours: 24,
+    expressCutoffHour: 18,
+    expressLeadTimeMinutes: 90,
+    orderIdSequential: false,
+    orderIdPrefix: 'US',
+    orderIdStart: 1001,
     invoiceGstNumber: '',
     invoiceSupportEmail: '',
     homeStandardTitle: '',
@@ -524,7 +526,7 @@ export default function AddOnPage() {
       const response = await fetch('/api/time-slots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ time: slotTime, type: slotType, availableFor: slotAvailableFor })
+        body: JSON.stringify({ time: slotTime, type: slotType, availableFor: slotAvailableFor, serviceType: slotServiceType })
       })
 
       if (response.ok) {
@@ -565,6 +567,7 @@ export default function AddOnPage() {
     setSlotTime(slot.time)
     setSlotType(slot.type)
     setSlotAvailableFor(slot.availableFor || 'both')
+    setSlotServiceType(slot.serviceType || 'both')
   }
 
   const updateTimeSlot = async () => {
@@ -574,7 +577,7 @@ export default function AddOnPage() {
       const response = await fetch(`/api/time-slots?id=${editingSlot}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ time: slotTime, type: slotType, availableFor: slotAvailableFor })
+        body: JSON.stringify({ time: slotTime, type: slotType, availableFor: slotAvailableFor, serviceType: slotServiceType })
       })
 
       if (response.ok) {
@@ -594,6 +597,7 @@ export default function AddOnPage() {
     setSlotTime('')
     setSlotType('both')
     setSlotAvailableFor('both')
+    setSlotServiceType('both')
   }
 
   const saveExpressEnabled = async (enabled: boolean) => {
@@ -1159,6 +1163,16 @@ export default function AddOnPage() {
                 <option value="tomorrow">Tomorrow Only</option>
               </select>
               <select
+                aria-label="Service Type"
+                value={slotServiceType}
+                onChange={(e) => setSlotServiceType(e.target.value)}
+                style={{ padding: '0.6rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontSize: '0.9rem' }}
+              >
+                <option value="both">Standard &amp; Express</option>
+                <option value="standard">Standard Only</option>
+                <option value="express">Express Only</option>
+              </select>
+              <select
                 aria-label="Slot Type"
                 value={slotType}
                 onChange={(e) => setSlotType(e.target.value)}
@@ -1201,6 +1215,11 @@ export default function AddOnPage() {
                           <div>
                             <span style={{ fontWeight: '600', fontSize: '0.875rem', color: slot.isActive ? '#1f2937' : '#9ca3af' }}>{slot.time}</span>
                             <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginLeft: '0.4rem' }}>{slot.availableFor === 'both' ? 'both days' : slot.availableFor}</span>
+                            {slot.serviceType && slot.serviceType !== 'both' && (
+                              <span style={{ fontSize: '0.65rem', marginLeft: '0.4rem', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 600, background: slot.serviceType === 'express' ? '#fef3c7' : '#e0e7ff', color: slot.serviceType === 'express' ? '#b45309' : '#3730a3' }}>
+                                {slot.serviceType === 'express' ? 'EXPRESS' : 'STANDARD'}
+                              </span>
+                            )}
                           </div>
                           <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
                             <button onClick={() => toggleSlotActive(slot)} style={{ padding: '0.2rem 0.5rem', backgroundColor: slot.isActive ? '#22c55e' : '#9ca3af', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer' }}>
@@ -1235,58 +1254,6 @@ export default function AddOnPage() {
                 style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
               />
               <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.25rem' }}>Minimum order value required to place order</p>
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Points Per Rupee</label>
-              <input
-                type="number"
-                aria-label="Points Per Rupee"
-                value={walletSettings.pointsPerRupee}
-                onChange={(e) => setWalletSettings({...walletSettings, pointsPerRupee: Number(e.target.value)})}
-                style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
-              />
-              <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.25rem' }}>₹1 = {walletSettings.pointsPerRupee} points</p>
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Minimum Redeem Points</label>
-              <input
-                type="number"
-                aria-label="Minimum Redeem Points"
-                value={walletSettings.minRedeemPoints}
-                onChange={(e) => setWalletSettings({...walletSettings, minRedeemPoints: Number(e.target.value)})}
-                style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Referral Bonus Points</label>
-              <input
-                type="number"
-                aria-label="Referral Bonus Points"
-                value={walletSettings.referralPoints}
-                onChange={(e) => setWalletSettings({...walletSettings, referralPoints: Number(e.target.value)})}
-                style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Order Completion Points</label>
-              <input
-                type="number"
-                aria-label="Order Completion Points"
-                value={walletSettings.orderCompletionPoints}
-                onChange={(e) => setWalletSettings({...walletSettings, orderCompletionPoints: Number(e.target.value)})}
-                style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Signup Bonus Points (Referred User)</label>
-              <input
-                type="number"
-                aria-label="Signup Bonus Points"
-                value={walletSettings.signupBonusPoints}
-                onChange={(e) => setWalletSettings({...walletSettings, signupBonusPoints: Number(e.target.value)})}
-                style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
-              />
-              <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.25rem' }}>Points given to new user who signs up with referral code</p>
             </div>
           </div>
           <button
@@ -1632,6 +1599,71 @@ export default function AddOnPage() {
                   onChange={(e) => setCharges({ ...charges, standardTurnaroundHours: Number(e.target.value) })}
                   style={{ width: '100%', padding: '0.75rem', border: '2px solid #eab308', borderRadius: '8px', fontSize: '0.9rem' }}
                 />
+              </div>
+              <div style={{ gridColumn: '1 / -1', padding: '0.85rem', border: '2px dashed #eab308', borderRadius: '10px', background: '#fffbeb' }}>
+                <p style={{ fontWeight: '700', fontSize: '0.85rem', color: '#a16207', margin: '0 0 0.2rem' }}>Express same-day rules</p>
+                <p style={{ fontSize: '0.75rem', color: '#92400e', margin: '0 0 0.7rem' }}>
+                  After {charges.expressCutoffHour > 12 ? charges.expressCutoffHour - 12 : charges.expressCutoffHour}
+                  {charges.expressCutoffHour >= 12 ? ' PM' : ' AM'} the customer can no longer book Express for today,
+                  and any Express slot must start at least {charges.expressLeadTimeMinutes} minutes ahead so the captain can reach them.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontWeight: '600', fontSize: '0.8rem', color: '#a16207', marginBottom: '0.3rem' }}>Same-day cut-off (hour, 24h)</label>
+                    <input
+                      type="number" min="0" max="23" placeholder="18"
+                      value={charges.expressCutoffHour}
+                      onChange={(e) => setCharges({ ...charges, expressCutoffHour: Number(e.target.value) })}
+                      style={{ width: '100%', padding: '0.6rem', border: '2px solid #eab308', borderRadius: '8px', fontSize: '0.9rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontWeight: '600', fontSize: '0.8rem', color: '#a16207', marginBottom: '0.3rem' }}>Minimum lead time (minutes)</label>
+                    <input
+                      type="number" min="0" placeholder="90"
+                      value={charges.expressLeadTimeMinutes}
+                      onChange={(e) => setCharges({ ...charges, expressLeadTimeMinutes: Number(e.target.value) })}
+                      style={{ width: '100%', padding: '0.6rem', border: '2px solid #eab308', borderRadius: '8px', fontSize: '0.9rem' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ gridColumn: '1 / -1', padding: '0.85rem', border: '2px dashed #eab308', borderRadius: '10px', background: '#fffbeb' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '600', fontSize: '0.85rem', color: '#a16207' }}>
+                  <input
+                    type="checkbox"
+                    checked={!!charges.orderIdSequential}
+                    onChange={(e) => setCharges({ ...charges, orderIdSequential: e.target.checked })}
+                    style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                  />
+                  Use sequential order numbers
+                </label>
+                <p style={{ fontSize: '0.75rem', color: '#92400e', margin: '0.35rem 0 0.6rem' }}>
+                  Off: random codes like ILKGB. On: {(charges.orderIdPrefix || 'US')}{charges.orderIdStart || 1001}, then {(charges.orderIdPrefix || 'US')}{(Number(charges.orderIdStart) || 1001) + 1}, and so on. Orders already placed keep the number they have.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontWeight: '600', fontSize: '0.8rem', color: '#a16207', marginBottom: '0.3rem' }}>Prefix</label>
+                    <input
+                      type="text" placeholder="US" maxLength={6}
+                      value={charges.orderIdPrefix}
+                      onChange={(e) => setCharges({ ...charges, orderIdPrefix: e.target.value.toUpperCase() })}
+                      disabled={!charges.orderIdSequential}
+                      style={{ width: '100%', padding: '0.6rem', border: '2px solid #eab308', borderRadius: '8px', fontSize: '0.9rem', opacity: charges.orderIdSequential ? 1 : 0.5 }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontWeight: '600', fontSize: '0.8rem', color: '#a16207', marginBottom: '0.3rem' }}>Start from</label>
+                    <input
+                      type="number" min="1" placeholder="1001"
+                      value={charges.orderIdStart}
+                      onChange={(e) => setCharges({ ...charges, orderIdStart: Number(e.target.value) })}
+                      disabled={!charges.orderIdSequential}
+                      style={{ width: '100%', padding: '0.6rem', border: '2px solid #eab308', borderRadius: '8px', fontSize: '0.9rem', opacity: charges.orderIdSequential ? 1 : 0.5 }}
+                    />
+                  </div>
+                </div>
               </div>
               <div>
                 <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#a16207', marginBottom: '0.4rem' }}>GST number (on invoices)</label>

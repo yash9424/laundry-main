@@ -5,7 +5,7 @@ import ResponsiveLayout from '../../components/ResponsiveLayout'
 
 export default function WalletPointsPage() {
   const [customers, setCustomers] = useState<any[]>([])
-  const [stats, setStats] = useState({ totalWalletBalance: 0, totalPoints: 0, totalReferrals: 0 })
+  const [stats, setStats] = useState({ totalWalletBalance: 0, totalReferrals: 0 })
   const [showModal, setShowModal] = useState(false)
   const [modalData, setModalData] = useState({ customerId: '', customerName: '', type: '', currentValue: 0 })
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -22,9 +22,8 @@ export default function WalletPointsPage() {
       if (data.success) {
         setCustomers(data.data)
         const totalBalance = data.data.reduce((s: number, c: any) => s + (c.walletBalance || 0), 0)
-        const totalPts = data.data.reduce((s: number, c: any) => s + (c.loyaltyPoints || 0), 0)
         const totalRefs = data.data.reduce((s: number, c: any) => s + (c.referralCodes?.filter((r: any) => r.used).length || 0), 0)
-        setStats({ totalWalletBalance: totalBalance, totalPoints: totalPts, totalReferrals: totalRefs })
+        setStats({ totalWalletBalance: totalBalance, totalReferrals: totalRefs })
       }
     } catch (error) {
       console.error('Failed to fetch customers:', error)
@@ -97,18 +96,14 @@ export default function WalletPointsPage() {
   const someSelected = selectedIds.size > 0
 
   return (
-    <ResponsiveLayout activePage="Wallet & Points" title="Wallet & Points Management" searchPlaceholder="Search by Customer ID">
+    <ResponsiveLayout activePage="Wallet" title="Wallet Management" searchPlaceholder="Search by Customer ID">
       <div style={{ padding: '1.5rem' }}>
 
         {/* Stats Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
           <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', textAlign: 'center' }}>
             <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#2563eb', marginBottom: '0.5rem' }}>₹{stats.totalWalletBalance.toLocaleString()}</div>
             <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>Total Wallet Balance in System</div>
-          </div>
-          <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#2563eb', marginBottom: '0.5rem' }}>{stats.totalPoints.toLocaleString()} pts</div>
-            <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>Total Points in System</div>
           </div>
           <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', textAlign: 'center' }}>
             <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#2563eb', marginBottom: '0.5rem' }}>{customers.length}</div>
@@ -127,9 +122,6 @@ export default function WalletPointsPage() {
             <button onClick={() => { setBulkType('balance'); setShowBulkModal(true) }} style={{ padding: '0.4rem 1rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer', fontWeight: '500' }}>
               Adjust Wallet Balance
             </button>
-            <button onClick={() => { setBulkType('points'); setShowBulkModal(true) }} style={{ padding: '0.4rem 1rem', backgroundColor: '#7c3aed', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer', fontWeight: '500' }}>
-              Adjust Points
-            </button>
             <button onClick={() => setSelectedIds(new Set())} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
               Clear
             </button>
@@ -138,14 +130,13 @@ export default function WalletPointsPage() {
 
         {/* Customer Table */}
         <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-          <div style={{ backgroundColor: '#2563eb', padding: '1rem', display: 'grid', gridTemplateColumns: '40px 1fr 2fr 1.5fr 1.5fr 2fr 2fr', gap: '1rem', fontSize: '0.9rem', fontWeight: '600', color: 'white', alignItems: 'center' }}>
+          <div style={{ backgroundColor: '#2563eb', padding: '1rem', display: 'grid', gridTemplateColumns: '40px 1fr 2fr 1.5fr 2fr 2fr', gap: '1rem', fontSize: '0.9rem', fontWeight: '600', color: 'white', alignItems: 'center' }}>
             <div>
               <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'white' }} title="Select all" />
             </div>
             <div>CUSTOMER ID</div>
             <div>NAME</div>
             <div>WALLET BALANCE (₹)</div>
-            <div>POINTS BALANCE</div>
             <div>LAST TRANSACTION</div>
             <div>ACTIONS</div>
           </div>
@@ -153,18 +144,16 @@ export default function WalletPointsPage() {
           {customers.length === 0 ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>No customers found</div>
           ) : customers.map((customer: any, index) => (
-            <div key={customer._id} style={{ padding: '1rem', display: 'grid', gridTemplateColumns: '40px 1fr 2fr 1.5fr 1.5fr 2fr 2fr', gap: '1rem', borderBottom: index < customers.length - 1 ? '1px solid #f3f4f6' : 'none', fontSize: '0.9rem', alignItems: 'center', backgroundColor: selectedIds.has(customer._id) ? '#eff6ff' : 'white' }}>
+            <div key={customer._id} style={{ padding: '1rem', display: 'grid', gridTemplateColumns: '40px 1fr 2fr 1.5fr 2fr 2fr', gap: '1rem', borderBottom: index < customers.length - 1 ? '1px solid #f3f4f6' : 'none', fontSize: '0.9rem', alignItems: 'center', backgroundColor: selectedIds.has(customer._id) ? '#eff6ff' : 'white' }}>
               <div>
                 <input type="checkbox" checked={selectedIds.has(customer._id)} onChange={() => toggleSelect(customer._id)} style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#2563eb' }} />
               </div>
               <div style={{ fontWeight: '500' }}>#{customer._id.slice(-6)}</div>
               <div>{customer.name}</div>
               <div>₹{customer.walletBalance || 0}</div>
-              <div>{customer.loyaltyPoints || 0} pts</div>
               <div>{customer.updatedAt ? new Date(customer.updatedAt).toLocaleString() : 'N/A'}</div>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <button onClick={() => { setModalData({ customerId: customer._id, customerName: customer.name, type: 'balance', currentValue: customer.walletBalance || 0 }); setShowModal(true) }} style={{ padding: '0.25rem 0.75rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}>Adjust Balance</button>
-                <button onClick={() => { setModalData({ customerId: customer._id, customerName: customer.name, type: 'points', currentValue: customer.loyaltyPoints || 0 }); setShowModal(true) }} style={{ padding: '0.25rem 0.75rem', backgroundColor: '#7c3aed', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}>Adjust Points</button>
               </div>
             </div>
           ))}
@@ -173,8 +162,8 @@ export default function WalletPointsPage() {
         {/* Individual Adjust Modal */}
         {showModal && (
           <AdjustModal
-            title={`Adjust ${modalData.type === 'balance' ? 'Balance' : 'Points'}`}
-            subtitle={`${modalData.customerName} — Current: ${modalData.type === 'balance' ? '₹' : ''}${modalData.currentValue}${modalData.type === 'points' ? ' pts' : ''}`}
+            title="Adjust Wallet Balance"
+            subtitle={`${modalData.customerName} — Current: ₹${modalData.currentValue}`}
             onSubmit={handleAdjust}
             onClose={() => setShowModal(false)}
           />
@@ -183,7 +172,7 @@ export default function WalletPointsPage() {
         {/* Bulk Adjust Modal */}
         {showBulkModal && (
           <AdjustModal
-            title={`Bulk Adjust ${bulkType === 'balance' ? 'Wallet Balance' : 'Points'} for ${selectedIds.size} customers`}
+            title={`Bulk Adjust Wallet Balance for ${selectedIds.size} customers`}
             subtitle={`This will apply to all ${selectedIds.size} selected customers`}
             onSubmit={handleBulkAdjust}
             onClose={() => setShowBulkModal(false)}

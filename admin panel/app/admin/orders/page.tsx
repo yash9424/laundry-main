@@ -684,13 +684,24 @@ export default function OrdersPage() {
                     }}>
                       COMPLETED
                     </span>
+                  ) : ['delivered', 'cancelled'].includes(dbOrder.status) ? (
+                    <span style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: '#f3f4f6',
+                      color: '#6b7280',
+                      borderRadius: '6px',
+                      fontSize: '0.8rem',
+                      fontWeight: '500'
+                    }}>
+                      {dbOrder.status === 'delivered' ? 'DELIVERED' : 'CANCELLED'}
+                    </span>
                   ) : (
                     <button 
                       onClick={() => {
                         setModal({
                           isOpen: true,
                           title: 'Cancel Order',
-                          message: 'Are you sure you want to cancel this order?',
+                          message: 'Are you sure you want to cancel this order? A cancellation fee may be charged to the customer.',
                           type: 'confirm',
                           onConfirm: async () => {
                             const response = await fetch(`/api/orders/${dbOrder._id}`, {
@@ -698,7 +709,12 @@ export default function OrdersPage() {
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ status: 'cancelled' })
                             });
-                            if (response.ok) fetchOrders();
+                            const result = await response.json().catch(() => ({}));
+                            if (response.ok) {
+                              fetchOrders();
+                            } else {
+                              alert(result?.message || 'Could not cancel this order.');
+                            }
                           }
                         })
                       }}

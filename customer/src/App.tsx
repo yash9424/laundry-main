@@ -112,6 +112,14 @@ const AppContent = () => {
   // Initialize order status monitoring
   useOrderStatusMonitor();
 
+  // Open every screen at the top. React Router keeps the previous page's scroll
+  // position, so arriving from a scrolled page — the long booking screen into the
+  // order confirmation, for instance — dropped people into the middle of it.
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.querySelectorAll('[data-scroll-container]').forEach((el) => { el.scrollTop = 0; });
+  }, [location.pathname]);
+
   // Check if user is logged in on app start
   useEffect(() => {
     const customerId = localStorage.getItem('customerId');

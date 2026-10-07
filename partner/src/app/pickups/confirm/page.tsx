@@ -153,6 +153,35 @@ function PickupConfirmContent() {
             {order.status === 'reached_location' ? 'Reached Location' : order.status === 'picked_up' ? 'Picked Up' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace(/_/g, ' ')}
           </span>
         </div>
+
+        {/* The captain needs the list in front of them while counting the clothes,
+            not only on the screen before this one. */}
+        {Array.isArray(order.items) && order.items.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-gray-200">
+            <p className="text-sm font-semibold text-black mb-2">
+              Items to collect ({order.items.reduce((n: number, it: any) => n + (Number(it.quantity) || 0), 0)})
+            </p>
+            <div className="space-y-1.5">
+              {order.items.map((it: any, i: number) => (
+                <div key={i} className="flex items-start justify-between gap-3 text-sm">
+                  <span className="text-black">
+                    <span className="font-semibold">{it.quantity}x</span> {it.name}
+                  </span>
+                  <span className="text-gray-600 whitespace-nowrap">
+                    &#8377;{(Number(it.price) || 0) * (Number(it.quantity) || 0)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between text-sm font-semibold text-black">
+              <span>Order total</span>
+              <span>&#8377;{order.totalAmount}</span>
+            </div>
+            {order.specialInstructions && (
+              <p className="mt-2 text-xs text-gray-600">Note: {order.specialInstructions}</p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="mt-4 mx-4">

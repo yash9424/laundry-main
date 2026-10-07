@@ -9,7 +9,6 @@ import { Capacitor } from '@capacitor/core';
 import { Filesystem } from '@capacitor/filesystem';
 import Header from "@/components/Header";
 import PickupChecklist from "@/components/PickupChecklist";
-import { getExpectedDeliveryText } from "@/utils/expectedDelivery";
 import { getOrderBreakdown } from "@/utils/orderBreakdown";
 
 const OrderDetails = () => {
@@ -192,14 +191,6 @@ const OrderDetails = () => {
               {['processing', 'ironing'].includes(order?.status) ? 'At hub' : order?.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1).replace(/_/g, ' ') : 'Unknown'}
             </span>
           </div>
-          {order && !['delivered', 'cancelled'].includes(order.status) && (
-            <div className="mt-3 pt-3 border-t flex items-center justify-between">
-              <span className="text-xs sm:text-sm text-muted-foreground">Expected Delivery</span>
-              <span className="text-xs sm:text-sm font-semibold">
-                {getExpectedDeliveryText({ expectedDeliveryAt: order.expectedDeliveryAt, slotDate: order.pickupSlot?.date, slotText: order.pickupSlot?.timeSlot, express: order.expressDelivery })}
-              </span>
-            </div>
-          )}
         </Card>
 
         <div className="space-y-3 sm:space-y-4">

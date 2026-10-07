@@ -6,6 +6,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
 import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
+import { directionsUrl, locationAccuracyLabel } from '@/utils/mapLinks';
+import LiveNavigationMap from '@/components/LiveNavigationMap';
 
 interface Order {
   _id: string;
@@ -90,12 +92,12 @@ function StartPickupContent() {
         </div>
       </header>
 
-      <div className="mt-3 mx-4 relative rounded-xl overflow-hidden h-48">
-        <LeafletMap address={order.pickupAddress} />
-        <div className="absolute left-4 bottom-4 bg-white shadow-sm rounded-xl px-4 py-2">
-          <p className="text-sm font-semibold text-black">Pickup Location</p>
-          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}`)}`} target="_blank" className="text-xs" style={{ color: '#452D9B' }}>Open in Google Maps</a>
-        </div>
+      <div className="mt-3 mx-4">
+        <LiveNavigationMap
+          destination={order.pickupAddress}
+          label="Pickup location"
+          customerName={order.customerId?.name}
+        />
       </div>
 
       <div className="mt-4 mx-4 rounded-xl border border-gray-200 bg-white shadow-sm p-4">
@@ -118,16 +120,25 @@ function StartPickupContent() {
         <p className="text-base font-semibold text-black">Order Details</p>
         <div className="mt-2 text-sm text-black">
           <p>Order ID: {order.orderId}</p>
-          <div className="mt-2">
-            <p className="font-medium">Items:</p>
+          <div className="mt-3">
+            {/* Laid out like a cart receipt so the captain can tick garments off
+                against it while counting. */}
+            <p className="font-medium mb-1.5">
+              Items{order.items?.length ? ` (${order.items.reduce((n: number, it: any) => n + (Number(it.quantity) || 0), 0)} pieces)` : ''}:
+            </p>
             {order.items && order.items.length > 0 ? (
-              <ul className="ml-2 mt-1">
+              <div className="rounded-lg border border-gray-200 divide-y divide-gray-100">
                 {order.items.map((item: any, index: number) => (
-                  <li key={index} className="text-xs text-gray-700">
-                    • {item.quantity}x {item.name} - ₹{item.price} each
-                  </li>
+                  <div key={index} className="flex items-start justify-between gap-3 px-3 py-2">
+                    <span className="text-sm text-black">
+                      <span className="font-semibold">{item.quantity}x</span> {item.name}
+                    </span>
+                    <span className="text-sm text-gray-600 whitespace-nowrap">
+                      ₹{(Number(item.price) || 0) * (Number(item.quantity) || 0)}
+                    </span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             ) : (
               <p className="text-xs text-gray-600 ml-2">No items found</p>
             )}

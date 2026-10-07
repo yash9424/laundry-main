@@ -91,8 +91,11 @@ const BookingHistory = () => {
       />
 
       <div className="px-4 sm:px-6 py-4">
-        <div className="overflow-x-auto pb-2 mb-4 sm:mb-6 scrollbar-hide">
-          <div className="flex gap-2 sm:gap-3 pl-1 pr-4">
+        {/* These used to sit in a scroller with a hidden scrollbar, so on a narrow
+            phone "Cancelled" was off-screen with nothing to suggest it existed.
+            Wrapping keeps every filter visible. */}
+        <div className="pb-2 mb-4 sm:mb-6">
+          <div className="flex flex-wrap gap-2 sm:gap-3 pl-1 pr-1">
             {["Scheduled", "In Progress", "Delivered", "Cancelled"].map((tab) => (
               <Button
                 key={tab}

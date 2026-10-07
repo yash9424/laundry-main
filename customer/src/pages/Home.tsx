@@ -440,7 +440,10 @@ const Home = () => {
   const handleDeliverySelect = (type: "standard" | "express") => {
     if (type === "express" && !expressEnabled) type = "standard";
     localStorage.setItem("selectedDeliveryType", type);
-    localStorage.removeItem("cartItems");
+    // The cart used to be emptied here. Standard and Express hold the same
+    // garments at the same rates — only the delivery fee differs — so there was
+    // nothing to reset, and anyone who left the app and came back through this
+    // screen lost everything they had added.
     navigate("/prices");
   };
 
@@ -576,7 +579,7 @@ const Home = () => {
                 {topupPlans.map((plan, idx) => {
                   const extra = plan.walletCredit > plan.price ? Math.round(((plan.walletCredit - plan.price) / plan.price) * 100) : 0;
                   return (
-                    <div key={plan._id} className="w-full flex-shrink-0 relative select-none" style={{ background: 'linear-gradient(135deg, #0f0228 0%, #2d1875 50%, #06869a 100%)', minHeight: 148 }}>
+                    <div key={plan._id} className="w-full flex-shrink-0 relative select-none" style={{ background: 'linear-gradient(135deg, #0f0228 0%, #2d1875 50%, #06869a 100%)', minHeight: 186 }}>
                       {/* Decorative blobs */}
                       <div style={{ position:'absolute', top:-28, right:-28, width:120, height:120, borderRadius:'50%', background:'rgba(7,200,208,0.15)', animation:'plan-blob1 4.5s ease-in-out infinite' }} />
                       <div style={{ position:'absolute', bottom:-24, left:-18, width:95, height:95, borderRadius:'50%', background:'rgba(69,45,155,0.3)', animation:'plan-blob2 5.5s ease-in-out infinite' }} />
@@ -587,9 +590,9 @@ const Home = () => {
                       </div>
 
                       {/* Content */}
-                      <div className="relative flex items-center gap-3 p-4 sm:p-5">
+                      <div className="relative flex items-center gap-3.5 p-5 sm:p-6">
                         {/* Icon / Image */}
-                        <div style={{ width:58, height:58, borderRadius:20, overflow:'hidden', flexShrink:0, border:'1.5px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.1)' }}>
+                        <div style={{ width:70, height:70, borderRadius:22, overflow:'hidden', flexShrink:0, border:'1.5px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.1)' }}>
                           {plan.image
                             ? <img src={plan.image.startsWith('http') ? plan.image : `${API_URL}${plan.image}`} alt={plan.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                             : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:28 }}>💎</div>
@@ -599,16 +602,16 @@ const Home = () => {
                         {/* Text */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-white font-extrabold text-base sm:text-lg leading-tight truncate">{plan.name}</span>
+                            <span className="text-white font-extrabold text-lg sm:text-xl leading-tight truncate">{plan.name}</span>
                             {extra > 0 && <span style={{ fontSize:'0.6rem', background:'linear-gradient(to right,#f59e0b,#ef4444)', color:'white', padding:'0.12rem 0.4rem', borderRadius:6, fontWeight:800, whiteSpace:'nowrap' }}>+{extra}% 🔥</span>}
                           </div>
                           <div className="flex items-baseline gap-1 mb-2">
-                            <span style={{ color:'#fde68a', fontWeight:700, fontSize:'0.9rem' }}>Pay ₹{plan.price}</span>
+                            <span style={{ color:'#fde68a', fontWeight:700, fontSize:'1rem' }}>Pay ₹{plan.price}</span>
                             <span style={{ color:'rgba(255,255,255,0.4)', fontSize:'0.8rem' }}>→</span>
-                            <span style={{ color:'#6ee7b7', fontWeight:800, fontSize:'1rem' }}>Get ₹{plan.walletCredit}</span>
+                            <span style={{ color:'#6ee7b7', fontWeight:800, fontSize:'1.15rem' }}>Get ₹{plan.walletCredit}</span>
                           </div>
                           {plan.benefits?.length > 0 && (
-                            <p style={{ color:'rgba(255,255,255,0.6)', fontSize:'0.72rem', lineHeight:1.4 }}>
+                            <p style={{ color:'rgba(255,255,255,0.72)', fontSize:'0.8rem', lineHeight:1.5 }}>
                               ✓ {plan.benefits.slice(0,2).join('  ✓ ')}
                             </p>
                           )}
@@ -638,6 +641,15 @@ const Home = () => {
                 ))}
               </div>
             )}
+
+            {/* Always available, including after a plan has been bought */}
+            <button
+              onClick={() => navigate('/subscriptions')}
+              className="w-full mt-3 rounded-2xl font-semibold text-sm sm:text-base"
+              style={{ padding:'0.75rem', border:'1.5px solid #452D9B', color:'#452D9B', background:'white' }}
+            >
+              View All Plans
+            </button>
           </div>
         )}
 

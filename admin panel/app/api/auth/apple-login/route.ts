@@ -73,7 +73,6 @@ export async function POST(request: NextRequest) {
         address: [],
         paymentMethods: [],
         walletBalance: 0,
-        loyaltyPoints: 0,
       });
       isNewUser = true;
     }

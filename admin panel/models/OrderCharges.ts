@@ -9,6 +9,19 @@ const OrderChargesSchema = new mongoose.Schema({
   expressDeliveryEnabled: { type: Boolean, default: true },
   expressTurnaroundHours: { type: Number, default: 12 },
   standardTurnaroundHours: { type: Number, default: 24 },
+  // Express same-day rules. The review asked what should happen when someone
+  // books Express later in the day; these make it a setting rather than a guess.
+  // expressCutoffHour: after this hour (24h clock) same-day Express closes.
+  // expressLeadTimeMinutes: a slot must start at least this far ahead, so the
+  // captain has time to reach the customer.
+  expressCutoffHour: { type: Number, default: 18 },
+  expressLeadTimeMinutes: { type: Number, default: 90 },
+
+  // Order numbering. Leave orderIdSequential off to keep the old random codes.
+  orderIdSequential: { type: Boolean, default: false },
+  orderIdPrefix: { type: String, default: 'US' },
+  orderIdStart: { type: Number, default: 1001 },
+
   invoiceGstNumber: { type: String, default: '29ACLFAA519M1ZW' },
   invoiceSupportEmail: { type: String, default: 'support@urbansteam.in' },
   // Customer Home screen — the two delivery buttons

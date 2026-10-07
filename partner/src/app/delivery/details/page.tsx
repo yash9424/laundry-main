@@ -8,6 +8,8 @@ import BottomNav from "@/components/BottomNav";
 import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
 import { getOrderBreakdown } from '@/utils/orderBreakdown';
+import { directionsUrl, locationAccuracyLabel } from '@/utils/mapLinks';
+import LiveNavigationMap from '@/components/LiveNavigationMap';
 
 // Live countdown for Express Delivery orders only (12hr SLA).
 function formatCountdown(expectedDeliveryAt: string, now: Date): { text: string; overdue: boolean } {
@@ -89,10 +91,14 @@ function DeliveryDetailsContent() {
             </div>
           </div>
         )}
-        <div className="absolute left-4 bottom-4 bg-white shadow-sm rounded-xl px-4 py-2">
-          <p className="text-sm font-semibold text-black">Delivery Location</p>
-          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.deliveryAddress?.street || order.pickupAddress?.street}, ${order.deliveryAddress?.city || order.pickupAddress?.city}`)}`} target="_blank" className="text-xs" style={{ color: '#452D9B' }}>Open in Google Maps</a>
-        </div>
+      </div>
+
+      <div className="mt-3 mx-4">
+        <LiveNavigationMap
+          destination={order.deliveryAddress || order.pickupAddress}
+          label="Delivery location"
+          customerName={order.customerId?.name}
+        />
       </div>
 
       {/* Order summary card */}

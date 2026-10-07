@@ -115,7 +115,7 @@ export default function Sidebar({ activePage, isMobileMenuOpen = false, onMobile
     { icon: <DeliveryIcon />, label: 'Delivery Partners', href: '/admin/delivery-partners', roles: ['Admin'] },
     { icon: <RoleIcon />, label: 'Partner KYC', href: '/admin/partner-kyc', roles: ['Admin'] },
     { icon: <PricingIcon />, label: 'Pricing', href: '/admin/pricing', roles: ['Admin'] },
-    { icon: <WalletIcon />, label: 'Wallet & Points', href: '/admin/wallet-points', roles: ['Admin'] },
+    { icon: <WalletIcon />, label: 'Wallet', href: '/admin/wallet-points', roles: ['Admin'] },
     { icon: <SubscriptionIcon />, label: 'Subscriptions', href: '/admin/subscriptions', roles: ['Admin'] },
     { icon: <ReportsIcon />, label: 'Reports', href: '/admin/reports', roles: ['Admin'] },
     { icon: <NotificationsIcon />, label: 'Notifications', href: '/admin/notifications', roles: ['Admin'] },

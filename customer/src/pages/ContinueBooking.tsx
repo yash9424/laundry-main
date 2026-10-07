@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
+import PickupChecklist from '@/components/PickupChecklist';
 import Header from "@/components/Header";
 
 declare global {
@@ -26,6 +27,9 @@ const ContinueBooking = () => {
   const [discount, setDiscount] = useState(0);
   const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
   const [couponError, setCouponError] = useState("");
+  // Offers are listed here so a voucher can be applied with one tap instead of
+  // being copied from the home screen and pasted back in.
+  const [availableVouchers, setAvailableVouchers] = useState<any[]>([]);
   const [customerInfo, setCustomerInfo] = useState<any>(null);
   const [pastOrders, setPastOrders] = useState<any[]>([]);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -46,6 +50,16 @@ const ContinueBooking = () => {
   const [policyAcknowledged, setPolicyAcknowledged] = useState(false);
   const [policyModal, setPolicyModal] = useState<'terms' | 'garment-care' | 'damage-loss' | null>(null);
   const [garmentCarePolicyText, setGarmentCarePolicyText] = useState('');
+  // The care note is the same text every single order, so let people turn it off.
+  // The agreement checkbox below it always stays.
+  const garmentNoteKey = `hideGarmentCareNote_${localStorage.getItem('customerId') || 'anonymous'}`;
+  const [showGarmentNote, setShowGarmentNote] = useState(() => {
+    try { return localStorage.getItem(garmentNoteKey) !== 'true'; } catch { return true; }
+  });
+  const dismissGarmentNote = () => {
+    try { localStorage.setItem(garmentNoteKey, 'true'); } catch {}
+    setShowGarmentNote(false);
+  };
   const [damageLossPolicyText, setDamageLossPolicyText] = useState('');
 
   useEffect(() => {
@@ -66,10 +80,26 @@ const ContinueBooking = () => {
   const dueAmount = customerInfo?.dueAmount || 0;
   const walletBalance = customerInfo?.walletBalance || 0;
   const expressDeliveryFee = expressDelivery ? expressDeliveryPrice : 0;
-  const amountAfterDiscount = totalAmount - discount + dueAmount + expressDeliveryFee;
+  // totalAmount is the garments alone; the grand total is what the order costs
+  // before anything is taken off it.
+  // The cart now offers four dates, so take the one the customer picked rather
+  // than assuming today or tomorrow.
+  const pickupDateForOrder = orderData.pickupDate
+    ? new Date(orderData.pickupDate)
+    : new Date(Date.now() + (orderData.pickupType === 'now' ? 0 : 24 * 60 * 60 * 1000));
+
+  const grandTotal = totalAmount + expressDeliveryFee + dueAmount;
+  const amountAfterDiscount = grandTotal - discount;
   const walletUsed = Math.min(walletBalance, amountAfterDiscount);
   const finalAmount = Math.max(0, amountAfterDiscount - walletUsed);
   
+  useEffect(() => {
+    fetch(`${API_URL}/api/vouchers`)
+      .then(r => r.json())
+      .then(d => { if (d.success) setAvailableVouchers((d.data || []).filter((v: any) => v.isActive)); })
+      .catch(err => console.error('Failed to load vouchers:', err));
+  }, []);
+
   useEffect(() => {
     fetchCustomerInfo();
     fetchPastOrders();
@@ -172,8 +202,10 @@ const ContinueBooking = () => {
     }
   };
   
-  const applyCoupon = async () => {
-    if (!couponCode.trim()) return;
+  const applyCoupon = async (codeFromList?: string) => {
+    const code = (codeFromList ?? couponCode).trim();
+    if (!code) return;
+    if (codeFromList) setCouponCode(codeFromList);
     
     try {
       const customerId = localStorage.getItem('customerId');
@@ -193,7 +225,7 @@ const ContinueBooking = () => {
           .map((order: any) => order.appliedVoucherCode)
           .filter((code: string) => code && code.trim());
         
-        const alreadyUsed = usedVoucherCodes.includes(couponCode.trim());
+        const alreadyUsed = usedVoucherCodes.includes(code);
         
         if (alreadyUsed) {
           setCouponError("You have already used this coupon");
@@ -207,7 +239,7 @@ const ContinueBooking = () => {
       const data = await response.json();
       
       if (data.success) {
-        const voucher = data.data.find((v: any) => v.code === couponCode.trim() && v.isActive);
+        const voucher = data.data.find((v: any) => v.code === code && v.isActive);
         
         if (voucher) {
           const discountAmount = Math.floor((totalAmount * voucher.discount) / 100);
@@ -400,12 +432,32 @@ const ContinueBooking = () => {
                 className="flex-1 h-10 sm:h-12 rounded-2xl border-2 bg-white text-sm sm:text-base"
               />
               <Button 
-                onClick={applyCoupon}
+                onClick={() => applyCoupon()}
                 className="h-10 sm:h-12 rounded-2xl px-4 sm:px-8 font-semibold bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white text-xs sm:text-sm shadow-md"
               >
                 Apply
               </Button>
             </div>
+            {availableVouchers.length > 0 && !appliedVoucher && (
+              <div className="space-y-2">
+                <p className="text-[11px] text-gray-500">Available offers - tap to apply</p>
+                {availableVouchers.map((v: any) => (
+                  <button
+                    key={v._id}
+                    type="button"
+                    onClick={() => applyCoupon(v.code)}
+                    className="w-full flex items-center justify-between gap-3 rounded-xl border-2 border-dashed px-3 py-2 text-left"
+                    style={{ borderColor: '#c7d2fe' }}
+                  >
+                    <span className="min-w-0">
+                      <span className="block text-sm font-bold" style={{ color: '#452D9B' }}>{v.code}</span>
+                      <span className="block text-[11px] text-gray-600 truncate">{v.slogan}</span>
+                    </span>
+                    <span className="text-xs font-semibold flex-shrink-0" style={{ color: '#07C8D0' }}>Apply</span>
+                  </button>
+                ))}
+              </div>
+            )}
             {couponError && (
               <p className="text-red-500 text-xs sm:text-sm">{couponError}</p>
             )}
@@ -414,54 +466,73 @@ const ContinueBooking = () => {
                 🎉 {appliedVoucher.slogan} - {appliedVoucher.discount}% discount applied!
               </p>
             )}
+            {/* Grand Total -> Discount -> Wallet used -> Amount to Pay, in that order,
+                so the cost, what came off and what is still owed are all plain. */}
             <div className="space-y-2 text-xs sm:text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Sub Total (Included GST):</span>
+                <span className="text-gray-600">Items total</span>
                 <span className="text-black">₹{totalAmount}</span>
               </div>
-              {discount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Discount Added:</span>
-                  <span>-₹{discount}</span>
-                </div>
-              )}
               {expressDelivery && expressDeliveryFee > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Express Delivery Fee:</span>
-                  <span className="text-black">₹{expressDeliveryFee}</span>
+                  <span className="text-gray-600">Express delivery fee</span>
+                  <span className="text-black">+₹{expressDeliveryFee}</span>
                 </div>
               )}
               {dueAmount > 0 && (
                 <div className="flex justify-between text-red-600">
-                  <span>Pending Due:</span>
+                  <span>Previous pending due</span>
                   <span>+₹{dueAmount}</span>
                 </div>
               )}
-              {walletUsed > 0 && (
-                <div className="flex justify-between text-blue-600">
-                  <span>Wallet Balance Used:</span>
-                  <span>-₹{walletUsed}</span>
-                </div>
-              )}
+              <div className="flex justify-between pt-2 border-t font-semibold text-black">
+                <span>Grand Total (incl. GST)</span>
+                <span>₹{grandTotal}</span>
+              </div>
+              <div className="flex justify-between text-green-600">
+                <span>{appliedVoucher ? `Discount (${appliedVoucher.code})` : 'Discount / Voucher'}</span>
+                <span>{discount > 0 ? `-₹${discount}` : '₹0'}</span>
+              </div>
+              <div className="flex justify-between text-blue-600">
+                <span>Paid from Urban Steam Wallet</span>
+                <span>{walletUsed > 0 ? `-₹${walletUsed}` : '₹0'}</span>
+              </div>
               {walletBalance > 0 && (
                 <div className="flex justify-between text-gray-500 text-xs">
-                  <span>Available Wallet Balance:</span>
+                  <span>Wallet balance available</span>
                   <span>₹{walletBalance}</span>
                 </div>
               )}
-              <div className="flex justify-between text-base sm:text-lg font-bold text-black">
-                <span>Amount to Pay:</span>
+              <div className="flex justify-between pt-2 border-t text-base sm:text-lg font-bold text-black">
+                <span>Amount to Pay</span>
                 <span>₹{finalAmount}</span>
               </div>
             </div>
           </div>
         </div>
 
+        {/* What to have ready belongs before paying, not on the receipt afterwards */}
+        <div className="mb-4">
+          <PickupChecklist />
+        </div>
+
         <div className="bg-white rounded-2xl p-4 mb-4 shadow-md">
-          <h3 className="text-sm font-semibold text-black mb-1">Garment care note</h3>
-          <p className="text-xs text-gray-600 leading-relaxed mb-3">
-            Urban Steam provides steam ironing services. Steam ironing and transportation may result in very minor wrinkles, folds or compression during handling and transit. Results may also vary depending on the fabric, construction and existing condition of each garment.
-          </p>
+          {showGarmentNote && (
+            <>
+              <h3 className="text-sm font-semibold text-black mb-1">Garment care note</h3>
+              <p className="text-xs text-gray-600 leading-relaxed mb-2">
+                Urban Steam provides steam ironing services. Steam ironing and transportation may result in very minor wrinkles, folds or compression during handling and transit. Results may also vary depending on the fabric, construction and existing condition of each garment.
+              </p>
+              <button
+                type="button"
+                onClick={dismissGarmentNote}
+                className="text-[11px] underline mb-3"
+                style={{ color: '#6b7280' }}
+              >
+                Don't show this again
+              </button>
+            </>
+          )}
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -560,7 +631,7 @@ const ContinueBooking = () => {
                   totalAmount: amountAfterDiscount,
                   pickupAddress: orderData.address || customerInfo?.address?.[0],
                   pickupSlot: orderData.selectedSlot || 'Next Available',
-                  pickupDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
+                  pickupDate: pickupDateForOrder,
                   paymentMethod: 'Wallet',
                   paymentStatus: 'paid',
                   walletUsed: walletUsed,
@@ -663,7 +734,7 @@ const ContinueBooking = () => {
                         totalAmount: amountAfterDiscount,
                         pickupAddress: orderData.address || customerInfo?.address?.[0],
                         pickupSlot: orderData.selectedSlot || 'Next Available',
-                        pickupDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
+                        pickupDate: pickupDateForOrder,
                         paymentMethod: paymentMethod,
                         paymentStatus: 'paid',
                         razorpayOrderId: response.razorpay_order_id,

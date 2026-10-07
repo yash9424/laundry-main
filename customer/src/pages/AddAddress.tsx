@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronDown, X, AlertCircle } from "lucide-react";
 import { API_URL } from '@/config/api';
 import Header from "@/components/Header";
+import LocationPicker, { PickedLocation } from '@/components/LocationPicker';
 import LeafletMap from "@/components/LeafletMap";
 
 const AddAddress = () => {
@@ -20,6 +21,8 @@ const AddAddress = () => {
     isPrimary: false
   });
   const [showServiceMessage, setShowServiceMessage] = useState(false);
+  // Where the customer actually dropped the pin, sent along with the address
+  const [pickedLocation, setPickedLocation] = useState<PickedLocation | null>(null);
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
@@ -28,8 +31,12 @@ const AddAddress = () => {
   useEffect(() => {
     fetchAddresses();
     if (editAddress) {
-      const [city, statePin] = editAddress.subtitle.split(", ");
-      const [state, pincode] = statePin.split(" - ");
+      // "City, State - 560032". A city containing a comma used to shift these
+      // apart and leave the pincode undefined, which then read as unserviceable.
+      const [city, ...rest] = editAddress.subtitle.split(", ");
+      const statePin = rest.join(", ");
+      const pincode = (statePin.match(/(\d{6})\s*$/) || [])[1] || "";
+      const state = statePin.replace(/\s*-\s*\d{6}\s*$/, "").trim();
       
       setAddress({
         addressLine1: editAddress.title,
@@ -39,6 +46,10 @@ const AddAddress = () => {
         pincode: pincode,
         isPrimary: editAddress.isDefault || false
       });
+      // Keep the pin they set last time so editing the text does not lose it
+      if (typeof editAddress.latitude === 'number' && typeof editAddress.longitude === 'number') {
+        setPickedLocation({ latitude: editAddress.latitude, longitude: editAddress.longitude });
+      }
       setShowAddForm(true);
     }
   }, [editAddress]);
@@ -104,6 +115,22 @@ const AddAddress = () => {
     setShowCitySuggestions(false);
   };
 
+  // Returns true only when the server definitely says the pincode is not served.
+  // A malformed pincode or a failed request must never show "coming soon".
+  const isDefinitelyUnserviceable = async (rawPincode) => {
+    const pincode = String(rawPincode || '').trim();
+    if (!/^\d{6}$/.test(pincode)) return false;
+    try {
+      const res = await fetch(`${API_URL}/api/check-serviceable?pincode=${pincode}`);
+      if (!res.ok) return false;
+      const data = await res.json();
+      return data?.serviceable === false;
+    } catch (error) {
+      console.error('Serviceable check failed:', error);
+      return false;
+    }
+  };
+
   const handlePincodeChange = async (value) => {
     setAddress({...address, pincode: value});
     setShowServiceMessage(false);
@@ -121,13 +148,8 @@ const AddAddress = () => {
           }));
         }
         
-        // Check serviceability for display only
-        const serviceableResponse = await fetch(`${API_URL}/api/check-serviceable?pincode=${value}`);
-        const serviceableData = await serviceableResponse.json();
-        
-        if (!serviceableData.serviceable) {
-          setShowServiceMessage(true);
-        }
+        // Display only - saving is never blocked on this
+        setShowServiceMessage(await isDefinitelyUnserviceable(value));
       } catch (error) {
         console.error('Error fetching location:', error);
       }
@@ -139,17 +161,8 @@ const AddAddress = () => {
     if (address.addressLine1.trim() && address.city.trim() && address.state && address.pincode.trim()) {
       setIsSubmitting(true);
       try {
-        // Check serviceability but don't block saving
-        try {
-          const serviceableResponse = await fetch(`${API_URL}/api/check-serviceable?pincode=${address.pincode}`)
-          const serviceableData = await serviceableResponse.json()
-          
-          if (!serviceableData.serviceable) {
-            setShowServiceMessage(true)
-          }
-        } catch (error) {
-          console.log('Service check failed, continuing with save')
-        }
+        // Informational only - saving is never blocked on this
+        setShowServiceMessage(await isDefinitelyUnserviceable(address.pincode))
         
         // Save address to customer database
         const customerId = localStorage.getItem('customerId');
@@ -159,6 +172,8 @@ const AddAddress = () => {
             city: address.city,
             state: address.state,
             pincode: address.pincode,
+            // Only sent once a pin has actually been placed
+            ...(pickedLocation ? { latitude: pickedLocation.latitude, longitude: pickedLocation.longitude } : {}),
             isDefault: address.isPrimary
           };
           
@@ -353,26 +368,21 @@ const AddAddress = () => {
           />
         </div>
         
-        {/* Map Preview - Show when address is partially filled */}
-        {(address.addressLine1 && address.city && address.state && address.pincode) && (
-          <div className="bg-white rounded-2xl p-4 shadow-lg">
-            <h3 className="text-lg font-bold text-black mb-3">📍 Verify Your Location</h3>
-            <div className="h-48 rounded-xl overflow-hidden mb-3">
-              <LeafletMap 
-                address={{
-                  street: `${address.addressLine1} ${address.addressLine2}`.trim(),
-                  city: address.city,
-                  state: address.state,
-                  pincode: address.pincode
-                }} 
-              />
-            </div>
-            <p className="text-sm text-gray-600 text-center">
-              Please verify this is your correct location before saving
-            </p>
-          </div>
+        {/* An interactive pin, not a text search. The captain gets these exact
+            coordinates instead of guessing from the address line. */}
+        {(address.addressLine1 && address.city && address.pincode) && (
+          <LocationPicker
+            address={{
+              street: `${address.addressLine1} ${address.addressLine2}`.trim(),
+              city: address.city,
+              state: address.state,
+              pincode: address.pincode,
+            }}
+            value={pickedLocation}
+            onChange={setPickedLocation}
+          />
         )}
-        
+
         {showServiceMessage && (
           <div className="bg-orange-50 border border-orange-200 rounded-2xl p-3 sm:p-4 text-center">
             <p className="text-orange-700 text-sm sm:text-base font-medium mb-1">

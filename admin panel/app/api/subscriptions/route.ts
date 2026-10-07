@@ -55,8 +55,20 @@ export async function POST(request: NextRequest) {
     })
 
     if (status === 'active' || !status) {
-      const creditAmount = Number(plan.walletCredit) || 0
-      const previousBalance = buyer.walletBalance || 0
+      const rawCredit = Number(plan.walletCredit)
+      // Never let a broken plan figure reach the wallet. An Infinity or NaN here
+      // serialises to null and wipes the balance, which is how customers lost
+      // money before.
+      const creditAmount = Number.isFinite(rawCredit) && rawCredit > 0 ? Math.round(rawCredit) : 0
+
+      // A balance that is already null or otherwise non-numeric makes $inc throw,
+      // so the customer gets charged and credited nothing. Reset it to a number
+      // first, then apply the credit.
+      if (!Number.isFinite(buyer.walletBalance as number)) {
+        console.warn(`Customer ${buyer._id} had a non-numeric wallet balance (${buyer.walletBalance}); resetting to 0 before crediting`)
+        await Customer.findByIdAndUpdate(buyer._id, { $set: { walletBalance: 0 } })
+      }
+      const previousBalance = Number.isFinite(buyer.walletBalance as number) ? (buyer.walletBalance as number) : 0
 
       // $inc is atomic: two purchases at the same moment cannot overwrite each other,
       // and the credit is scoped to this one customer's document.

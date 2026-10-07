@@ -14,3 +14,6 @@ customer/jdk21.zip
 
 # Local release artifacts (APK/AAB) - not for git
 builds/
+
+# Signed commercial contract - confidential, not for the repository
+*Final Contract*.pdf

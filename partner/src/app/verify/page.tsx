@@ -8,7 +8,7 @@ export default function Verify() {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [mobile, setMobile] = useState("");
   const [loading, setLoading] = useState(false);
-  const [countdown, setCountdown] = useState(30);
+  const [countdown, setCountdown] = useState(60);
   const router = useRouter();
   const nextEmptyIndex = otp.findIndex((d) => d === "");
 

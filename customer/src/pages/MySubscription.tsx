@@ -38,7 +38,7 @@ const MySubscription = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 page-with-bottom-nav">
-      <Header title="My Subscriptions" variant="gradient" />
+      <Header title="My Wallet Plans" variant="gradient" />
 
       <div style={{ padding: "1.25rem" }}>
         {loading && (

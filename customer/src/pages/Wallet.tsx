@@ -10,14 +10,8 @@ import Header from "@/components/Header";
 
 const Wallet = () => {
   const navigate = useNavigate();
-  const [redeemPoints, setRedeemPoints] = useState(0);
-  const [pointsPerRupee, setPointsPerRupee] = useState(2);
-  const [minRedeemPoints, setMinRedeemPoints] = useState(100);
-  const [referralPoints, setReferralPoints] = useState(50);
-
   const [walletData, setWalletData] = useState({
     availableBalance: 0,
-    points: 0,
     dueAmount: 0
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -84,7 +78,6 @@ const Wallet = () => {
       if (data.success && data.data) {
         setWalletData({
           availableBalance: data.data.walletBalance || 0,
-          points: data.data.loyaltyPoints || 0,
           dueAmount: data.data.dueAmount || 0
         });
       }
@@ -105,9 +98,6 @@ const Wallet = () => {
         : await fetchWithCache('wallet_settings', fetcher, 300000);
       
       if (data.success) {
-        setPointsPerRupee(data.data.pointsPerRupee);
-        setMinRedeemPoints(data.data.minRedeemPoints);
-        setReferralPoints(data.data.referralPoints);
       }
     } catch (error) {
       console.error('Failed to fetch wallet settings:', error);
@@ -143,9 +133,9 @@ const Wallet = () => {
       if (data.success && data.data) {
         const formattedTransactions = data.data.map((t: any) => ({
           id: t._id,
-          title: `${t.type === 'balance' ? 'Balance' : 'Points'} ${t.action === 'increase' ? 'Added' : 'Deducted'}`,
+          title: `Balance ${t.action === 'increase' ? 'Added' : 'Deducted'}`,
           subtitle: t.reason,
-          amount: `${t.action === 'increase' ? '+' : '-'}${t.type === 'balance' ? '₹' : ''}${t.amount}${t.type === 'points' ? ' pts' : ''}`,
+          amount: `${t.action === 'increase' ? '+' : '-'}₹${t.amount}`,
           type: t.action === 'increase' ? 'credit' : 'debit',
           date: new Date(t.createdAt).toLocaleDateString(),
           rawReason: t.reason
@@ -160,71 +150,6 @@ const Wallet = () => {
       }
     } catch (error) {
       console.error('Failed to fetch transactions:', error);
-    }
-  };
-
-  const handleUsePoints = async () => {
-    if (walletData.points < minRedeemPoints) {
-      alert(`Insufficient points! You need at least ${minRedeemPoints} points to redeem.`);
-      return;
-    }
-    if (walletData.points >= minRedeemPoints) {
-      const cashValue = Math.floor(100 / pointsPerRupee);
-      const newPoints = walletData.points - 100;
-      const newBalance = walletData.availableBalance + cashValue;
-      
-      await updateWalletInDB(newBalance, newPoints, 100, cashValue);
-      
-      setWalletData({
-        points: newPoints,
-        availableBalance: newBalance
-      });
-      
-      fetchWalletTransactions();
-    }
-  };
-
-  const updateWalletInDB = async (balance: number, points: number, pointsRedeemed: number, cashValue: number) => {
-    try {
-      const customerId = localStorage.getItem('customerId');
-      if (!customerId) return;
-      
-      const response = await fetch(`${API_URL}/api/customers/${customerId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          walletBalance: balance,
-          loyaltyPoints: points
-        })
-      });
-      
-      if (response.ok) {
-        await fetch(`${API_URL}/api/customers/${customerId}/adjust`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'points',
-            action: 'decrease',
-            amount: pointsRedeemed,
-            reason: `Redeemed ${pointsRedeemed} points for ₹${cashValue}`
-          })
-        });
-        
-        await fetch(`${API_URL}/api/customers/${customerId}/adjust`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'balance',
-            action: 'increase',
-            amount: cashValue,
-            reason: `Redeemed ${pointsRedeemed} points`
-          })
-        });
-        
-        await fetchCustomerWallet();
-      }
-    } catch (error) {
-      console.error('Failed to update wallet:', error);
     }
   };
 
@@ -257,15 +182,7 @@ const Wallet = () => {
             <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Available Balance:</span>
           </div>
           <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent mb-2">₹{walletData.availableBalance}</p>
-          <p className="text-gray-700 mb-4 text-sm sm:text-base font-medium">You have {walletData.points} points ({pointsPerRupee} points = ₹1)</p>
-          <Button 
-            onClick={handleUsePoints}
-            disabled={walletData.points < minRedeemPoints}
-            className="w-full h-12 sm:h-14 rounded-2xl font-semibold text-white text-base shadow-lg"
-            style={walletData.points >= minRedeemPoints ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { background: '#9ca3af', cursor: 'not-allowed' }}
-          >
-            Use {minRedeemPoints} Points {walletData.points < minRedeemPoints ? `(Need ${minRedeemPoints - walletData.points} more)` : ''}
-          </Button>
+          <p className="text-gray-700 text-sm sm:text-base font-medium">Use this balance on any order</p>
         </div>
 
         {walletData.dueAmount > 0 && (
@@ -297,73 +214,6 @@ const Wallet = () => {
             )}
           </div>
         )}
-
-        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-shadow">
-          <h2 className="text-lg sm:text-xl font-bold mb-4 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Redeem Points</h2>
-          <div className="mb-4">
-            <div className="relative mb-4">
-              <input
-                type="range"
-                min="0"
-                max={walletData.points}
-                value={redeemPoints}
-                onChange={(e) => setRedeemPoints(parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(redeemPoints / walletData.points) * 100}%, #e5e7eb ${(redeemPoints / walletData.points) * 100}%, #e5e7eb 100%)`
-                }}
-              />
-              <style>{`
-                input[type="range"]::-webkit-slider-thumb {
-                  appearance: none;
-                  width: 16px;
-                  height: 16px;
-                  border-radius: 50%;
-                  background: #3b82f6;
-                  cursor: pointer;
-                }
-                input[type="range"]::-moz-range-thumb {
-                  width: 16px;
-                  height: 16px;
-                  border-radius: 50%;
-                  background: #3b82f6;
-                  cursor: pointer;
-                  border: none;
-                }
-              `}</style>
-            </div>
-            <p className="text-center text-gray-600 mb-4 text-sm sm:text-base">{redeemPoints} Points = ₹{Math.floor(redeemPoints / pointsPerRupee)}</p>
-          </div>
-          <Button 
-            onClick={async () => {
-              if (redeemPoints < minRedeemPoints) {
-                alert(`Minimum ${minRedeemPoints} points required to redeem!`);
-                return;
-              }
-              if (walletData.points >= redeemPoints && redeemPoints > 0) {
-                const cashValue = Math.floor(redeemPoints / pointsPerRupee);
-                const newPoints = walletData.points - redeemPoints;
-                const newBalance = walletData.availableBalance + cashValue;
-                
-                await updateWalletInDB(newBalance, newPoints, redeemPoints, cashValue);
-                
-                setWalletData(prev => ({
-                  ...prev,
-                  points: newPoints,
-                  availableBalance: newBalance
-                }));
-                
-                fetchWalletTransactions();
-                setRedeemPoints(0);
-              }
-            }}
-            disabled={redeemPoints < minRedeemPoints || walletData.points < redeemPoints}
-            className="w-full h-12 sm:h-14 rounded-2xl font-semibold text-white text-base shadow-lg"
-            style={redeemPoints >= minRedeemPoints && walletData.points >= redeemPoints ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { background: '#9ca3af', cursor: 'not-allowed' }}
-          >
-            Redeem Now {redeemPoints < minRedeemPoints ? `(Min ${minRedeemPoints} points)` : walletData.points < redeemPoints ? '(Insufficient)' : ''}
-          </Button>
-        </div>
 
         <div>
           <h2 className="text-lg sm:text-xl font-bold mb-4 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Wallet History (Last 5)</h2>
@@ -400,7 +250,7 @@ const Wallet = () => {
         </div>
 
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-4 sm:p-6 shadow-lg flex items-center justify-between gap-4 border-2 border-green-200 hover:shadow-xl transition-shadow">
-          <p className="text-gray-800 text-sm sm:text-base flex-1 font-medium">Earn {referralPoints} points for every friend you invite.</p>
+          <p className="text-gray-800 text-sm sm:text-base flex-1 font-medium">Invite a friend to Urban Steam.</p>
           <button className="bg-gradient-to-r from-blue-500 to-blue-700 p-2 rounded-full shadow-md hover:shadow-lg transition-shadow flex-shrink-0">
             <Share2 className="w-5 h-5 text-white" />
           </button>

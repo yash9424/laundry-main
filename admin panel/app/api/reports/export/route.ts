@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     
     // Fetch comprehensive data
     const orders = await Order.find(orderFilter)
-      .populate('customerId', 'name mobile email totalSpend loyaltyPoints')
+      .populate('customerId', 'name mobile email totalSpend')
       .populate('partnerId', 'name mobile hub')
       .sort({ createdAt: -1 })
     
@@ -48,7 +48,6 @@ export async function GET(request: NextRequest) {
       customerMobile: order.customerId?.mobile || 'N/A',
       customerEmail: order.customerId?.email || 'N/A',
       customerTotalSpend: order.customerId?.totalSpend || 0,
-      customerLoyaltyPoints: order.customerId?.loyaltyPoints || 0,
       partnerName: order.partnerId?.name || 'Not Assigned',
       partnerMobile: order.partnerId?.mobile || 'N/A',
       partnerHub: order.partnerId?.hub || 'N/A',
@@ -78,7 +77,6 @@ export async function GET(request: NextRequest) {
       mobile: customer.mobile || 'N/A',
       email: customer.email || 'N/A',
       totalSpend: customer.totalSpend || 0,
-      loyaltyPoints: customer.loyaltyPoints || 0,
       totalOrders: orders.filter(o => o.customerId?._id?.toString() === customer._id.toString()).length,
       lastOrderDate: orders.find(o => o.customerId?._id?.toString() === customer._id.toString())?.createdAt?.toISOString().split('T')[0] || 'Never',
       joinDate: customer.createdAt?.toISOString().split('T')[0] || '',

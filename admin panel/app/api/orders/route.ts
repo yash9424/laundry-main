@@ -6,6 +6,8 @@ import Partner from '@/models/Partner'
 import WalletSettings from '@/models/WalletSettings'
 import WalletTransaction from '@/models/WalletTransaction'
 import Hub from '@/models/Hub'
+import Counter from '@/models/Counter'
+import OrderCharges from '@/models/OrderCharges'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +16,30 @@ export async function POST(request: NextRequest) {
     const orderData = await request.json()
 
     // Generate unique 5-character alphanumeric order ID
-    const orderId = Math.random().toString(36).substr(2, 5).toUpperCase()
+    // Order numbering. Sequential is off by default so nothing changes until the
+    // admin turns it on and picks a starting number.
+    const numbering = await OrderCharges.findOne().select('orderIdSequential orderIdPrefix orderIdStart')
+    let orderId: string
+
+    if (numbering?.orderIdSequential) {
+      const start = Number(numbering.orderIdStart) || 1001
+      const prefix = (numbering.orderIdPrefix || 'US').toString().trim().toUpperCase()
+
+      // $inc is atomic, so two orders placed together still get different numbers.
+      const counter = await Counter.findOneAndUpdate(
+        { _id: 'orderId' },
+        { $inc: { seq: 1 }, $setOnInsert: {} },
+        { new: true, upsert: true }
+      )
+      // The counter begins below the configured start, so lift it on first use.
+      const next = counter.seq < start ? start : counter.seq
+      if (counter.seq < start) {
+        await Counter.updateOne({ _id: 'orderId' }, { $set: { seq: start } })
+      }
+      orderId = `${prefix}${next}`
+    } else {
+      orderId = Math.random().toString(36).substr(2, 5).toUpperCase()
+    }
 
     // expectedDeliveryAt is intentionally NOT set here. Per spec, the 24hr/12hr
     // turnaround counts from actual PICKUP time, not order placement — it gets
@@ -175,90 +200,28 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Award points to customer and handle referral
+    // Count the order against the customer, and close out their referral code if
+    // this was their first order. Loyalty points were removed from the product:
+    // the Urban Steam Wallet is the only value the customer holds.
     try {
-      const settings = await WalletSettings.findOne()
       const customer = await Customer.findById(orderData.customerId)
-      
+
       if (customer) {
-        // Award only order completion points (no spending points)
-        const orderCompletionPoints = settings?.orderCompletionPoints || 10
-        
-        // Award order points to loyaltyPoints
+        const isFirstOrder = (customer.totalOrders || 0) === 0
+
         await Customer.findByIdAndUpdate(orderData.customerId, {
-          $inc: { loyaltyPoints: orderCompletionPoints, totalOrders: 1 }
+          $inc: { totalOrders: 1 }
         })
-        
-        // Create wallet transaction for order points
-        await WalletTransaction.create({
-          customerId: customer._id,
-          type: 'points',
-          action: 'increase',
-          amount: orderCompletionPoints,
-          reason: `Order #${orderId} completed - ${orderCompletionPoints} points earned`,
-          previousValue: customer.loyaltyPoints || 0,
-          newValue: (customer.loyaltyPoints || 0) + orderCompletionPoints,
-          adjustedBy: 'System'
-        })
-        
-        // Check if this is first order and customer was referred
-        if (customer.totalOrders === 0 && customer.referredBy) {
-          // Award signup bonus to new customer
-          const signupBonus = settings?.signupBonusPoints || 25
-          const newCustomerPoints = (customer.loyaltyPoints || 0) + orderCompletionPoints
-          
-          await Customer.findByIdAndUpdate(orderData.customerId, {
-            $inc: { loyaltyPoints: signupBonus }
-          })
-          
-          // Create wallet transaction for signup bonus
-          await WalletTransaction.create({
-            customerId: customer._id,
-            type: 'points',
-            action: 'increase',
-            amount: signupBonus,
-            reason: `Signup bonus for first order`,
-            previousValue: newCustomerPoints,
-            newValue: newCustomerPoints + signupBonus,
-            adjustedBy: 'System'
-          })
-          
-          // Find referrer and award referral points
-          const referrer = await Customer.findOne({ 
-            'referralCodes.code': customer.referredBy,
-            'referralCodes.used': false
-          })
-          
-          if (referrer) {
-            const referralBonus = settings?.referralPoints || 50
-            
-            // Award referral bonus to referrer's loyaltyPoints
-            await Customer.findByIdAndUpdate(referrer._id, {
-              $inc: { loyaltyPoints: referralBonus }
-            })
-            
-            // Create wallet transaction for referral bonus
-            await WalletTransaction.create({
-              customerId: referrer._id,
-              type: 'points',
-              action: 'increase',
-              amount: referralBonus,
-              reason: `Referral bonus - ${customer.name} completed first order`,
-              previousValue: referrer.loyaltyPoints || 0,
-              newValue: (referrer.loyaltyPoints || 0) + referralBonus,
-              adjustedBy: 'System'
-            })
-            
-            // Mark referral code as used
-            await Customer.updateOne(
-              { _id: referrer._id, 'referralCodes.code': customer.referredBy },
-              { $set: { 'referralCodes.$.used': true, 'referralCodes.$.usedBy': customer.name, 'referralCodes.$.usedAt': new Date() } }
-            )
-          }
+
+        if (isFirstOrder && customer.referredBy) {
+          await Customer.updateOne(
+            { 'referralCodes.code': customer.referredBy, 'referralCodes.used': false },
+            { $set: { 'referralCodes.$.used': true, 'referralCodes.$.usedBy': customer.name, 'referralCodes.$.usedAt': new Date() } }
+          )
         }
       }
     } catch (error) {
-      console.error('Error awarding points:', error)
+      console.error('Error updating customer order count:', error)
     }
     
     return NextResponse.json({

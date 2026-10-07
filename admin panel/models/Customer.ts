@@ -12,6 +12,11 @@ const CustomerSchema = new mongoose.Schema({
     city: String,
     state: String,
     pincode: String,
+    // Where the customer actually dropped the pin. A typed address alone left the
+    // captain searching for a text match, which Google often answered with the
+    // wrong end of the street.
+    latitude: Number,
+    longitude: Number,
     isDefault: { type: Boolean, default: false }
   }],
   paymentMethods: [{

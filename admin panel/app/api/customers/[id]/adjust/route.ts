@@ -41,10 +41,22 @@ export async function POST(
       );
     }
 
-    // Calculate new value
-    const currentValue = type === 'balance' ? (customer.walletBalance || 0) : (customer.loyaltyPoints || 0);
-    const adjustmentAmount = action === 'increase' ? amount : -amount;
-    const newValue = Math.max(0, currentValue + adjustmentAmount);
+    // Calculate new value. Everything here is guarded against non-finite numbers:
+    // an Infinity or NaN reaching the document serialises to null, which both
+    // empties the balance and makes every later $inc on it fail.
+    const rawCurrent = type === 'balance' ? customer.walletBalance : customer.loyaltyPoints;
+    const currentValue = Number.isFinite(Number(rawCurrent)) ? Number(rawCurrent) : 0;
+
+    const rawAmount = Number(amount);
+    if (!Number.isFinite(rawAmount) || rawAmount < 0) {
+      return NextResponse.json(
+        { success: false, error: 'Amount must be a positive number' },
+        { status: 400 }
+      );
+    }
+
+    const adjustmentAmount = action === 'increase' ? rawAmount : -rawAmount;
+    const newValue = Math.max(0, Math.round(currentValue + adjustmentAmount));
 
     // Update customer
     const updateField = type === 'balance' ? 'walletBalance' : 'loyaltyPoints';

@@ -12,28 +12,13 @@ const ReferEarn = () => {
 
   const [referralData, setReferralData] = useState({
     userCode: "Loading...",
-    pointsEarned: 0,
     pendingRewards: 0
   });
-  const [referralPoints, setReferralPoints] = useState(50);
 
   useEffect(() => {
-    fetchReferralSettings();
     fetchCustomerReferralCode();
     fetchPastReferrals();
   }, []);
-
-  const fetchReferralSettings = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/wallet-settings`);
-      const data = await response.json();
-      if (data.success) {
-        setReferralPoints(data.data.referralPoints);
-      }
-    } catch (error) {
-      console.error('Failed to fetch referral settings:', error);
-    }
-  };
 
   const fetchCustomerReferralCode = async () => {
     try {
@@ -95,22 +80,16 @@ const ReferEarn = () => {
         const codes = data.data.referralCodes || [];
         const usedCodes = codes.filter((c: any) => c.used);
         
-        const settingsRes = await fetch(`${API_URL}/api/wallet-settings`);
-        const settingsData = await settingsRes.json();
-        const currentReferralPoints = settingsData.success ? settingsData.data.referralPoints : referralPoints;
-        
         const referrals = usedCodes.map((code: any) => ({
           id: code._id,
           name: code.usedBy || 'Unknown',
           status: 'completed',
-          points: currentReferralPoints,
           joinedDate: code.usedAt ? new Date(code.usedAt).toLocaleDateString() : 'N/A'
         }));
         
         setPastReferrals(referrals);
         setReferralData(prev => ({
           ...prev,
-          pointsEarned: data.data.walletBalance || 0,
           pendingRewards: codes.filter((c: any) => !c.used).length
         }));
       }
@@ -126,11 +105,11 @@ const ReferEarn = () => {
   };
 
   const handleShareCode = async () => {
-    const shareText = `🎁 Join our laundry service and get FREE points on your first order!\n\nUse my referral code: ${referralData.userCode}\n\nSign up now: ${window.location.origin}\n\nDon't miss out on this exclusive offer! 🚀`;
+    const shareText = `🎁 Join Urban Steam and get an offer on your first order!\n\nUse my referral code: ${referralData.userCode}\n\nSign up now: ${window.location.origin}\n\nDon't miss out on this exclusive offer! 🚀`;
     
     try {
       await Share.share({
-        title: 'Get Free Points - Laundry Service',
+        title: 'Urban Steam - Refer a friend',
         text: shareText,
         dialogTitle: 'Share your referral code'
       });
@@ -153,7 +132,7 @@ const ReferEarn = () => {
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-4 sm:p-6 lg:p-8 text-white relative overflow-hidden min-h-[140px] sm:min-h-[160px]">
           <div className="relative z-10 max-w-[60%] sm:max-w-[70%]">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 leading-tight">Invite friends, earn rewards!</h2>
-            <p className="text-blue-100 text-xs sm:text-sm lg:text-base leading-relaxed">Get {referralPoints} points when your friend places their first order.</p>
+            <p className="text-blue-100 text-xs sm:text-sm lg:text-base leading-relaxed">Your friend gets a welcome offer on their first order.</p>
           </div>
           
           {/* Background illustration */}
@@ -248,9 +227,6 @@ const ReferEarn = () => {
           <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent mb-4">Your Rewards</h3>
           <div className="space-y-2 sm:space-y-3">
             <div>
-              <p className="bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent font-bold text-base sm:text-lg">Points Earned: {referralData.pointsEarned}</p>
-            </div>
-            <div>
               <p className="text-gray-700 text-sm sm:text-base font-medium">Pending Rewards: {referralData.pendingRewards} invites not yet completed.</p>
             </div>
           </div>
@@ -266,12 +242,12 @@ const ReferEarn = () => {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-black text-sm sm:text-base truncate">{referral.name}</p>
                   {referral.status === 'completed' && (
-                    <p className="text-xs sm:text-sm text-blue-500">Joined - Earned {referral.points} Points</p>
+                    <p className="text-xs sm:text-sm text-blue-500">Joined</p>
                   )}
                 </div>
                 <div className="text-right flex-shrink-0">
                   {referral.status === 'completed' ? (
-                    <span className="text-blue-500 font-semibold text-xs sm:text-sm">Earned {referral.points} Points</span>
+                    <span className="text-blue-500 font-semibold text-xs sm:text-sm">Completed</span>
                   ) : (
                     <span className="text-gray-500 font-semibold text-xs sm:text-sm">Pending</span>
                   )}

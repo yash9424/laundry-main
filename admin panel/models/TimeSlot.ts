@@ -21,6 +21,19 @@ const TimeSlotSchema = new mongoose.Schema({
     enum: ['today', 'tomorrow', 'both'],
     default: 'both'
   },
+  // Express runs on its own shifts, so its pickup windows are not the same ones
+  // Standard uses. Existing slots default to 'both' and keep working as before.
+  serviceType: {
+    type: String,
+    enum: ['standard', 'express', 'both'],
+    default: 'both'
+  },
+  // How many days ahead this slot can be booked. The customer app shows the next
+  // four dates; a slot is offered on every one of them unless this is narrowed.
+  maxDaysAhead: {
+    type: Number,
+    default: 4
+  },
   order: {
     type: Number,
     default: 0

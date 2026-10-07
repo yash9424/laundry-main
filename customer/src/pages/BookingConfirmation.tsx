@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Toast, ConfirmDialog } from "@/components/Toast";
 import { API_URL } from '@/config/api';
-import { getExpectedDeliveryText } from '@/utils/expectedDelivery';
-import PickupChecklist from '@/components/PickupChecklist';
 
 const BookingConfirmation = () => {
   const navigate = useNavigate();
@@ -22,6 +20,9 @@ const BookingConfirmation = () => {
   const service = orderData.service || 'Steam Iron';
   const total = orderData.total || 150;
   const status = orderData.status || 'Scheduled';
+  // Once the clothes are back with the customer there is nothing to cancel, and
+  // going ahead charged them a cancellation fee on a completed order.
+  const isFinished = ['delivered', 'cancelled'].includes(String(status).toLowerCase());
 
   useEffect(() => {
     fetchCancellationCharges();
@@ -118,17 +119,6 @@ const BookingConfirmation = () => {
               <span className="font-semibold text-primary text-sm sm:text-base">{status}</span>
             </div>
             <div className="flex justify-between items-start gap-3">
-              <span className="text-muted-foreground text-sm sm:text-base whitespace-nowrap">Expected Delivery:</span>
-              <span className="font-semibold text-sm sm:text-base text-right">
-                {getExpectedDeliveryText({
-                  expectedDeliveryAt: orderData.expectedDeliveryAt,
-                  slotDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
-                  slotText: orderData.selectedSlot,
-                  express: orderData.expressDelivery
-                })}
-              </span>
-            </div>
-            <div className="flex justify-between items-start gap-3">
               <span className="text-muted-foreground text-sm sm:text-base">Payment Method:</span>
               <span className="font-semibold text-sm sm:text-base">{orderData.customerInfo?.paymentMethods?.find((pm: { isPrimary?: boolean; type?: string }) => pm.isPrimary)?.type || 'Cash on Delivery'}</span>
             </div>
@@ -140,10 +130,6 @@ const BookingConfirmation = () => {
             </div>
           </div>
         </Card>
-
-        <div className="mb-4">
-          <PickupChecklist />
-        </div>
 
         <Button
           onClick={() => navigate("/order-details", { state: orderData })}
@@ -163,13 +149,15 @@ const BookingConfirmation = () => {
           Back to Home
         </Button>
 
-        <Button
-          onClick={() => setShowConfirmDialog(true)}
-          className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold mb-4 sm:mb-6 text-white shadow-lg"
-          style={{ background: 'linear-gradient(to right, #ef4444, #dc2626)' }}
-        >
-          Cancel Order
-        </Button>
+        {!isFinished && (
+          <Button
+            onClick={() => setShowConfirmDialog(true)}
+            className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold mb-4 sm:mb-6 text-white shadow-lg"
+            style={{ background: 'linear-gradient(to right, #ef4444, #dc2626)' }}
+          >
+            Cancel Order
+          </Button>
+        )}
 
         <button 
           onClick={() => setShowCancellationModal(true)}

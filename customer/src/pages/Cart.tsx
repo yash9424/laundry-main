@@ -6,6 +6,7 @@ import { API_URL } from '@/config/api';
 import BottomNavigation from "@/components/BottomNavigation";
 import Header from "@/components/Header";
 import { App } from '@capacitor/app';
+import { ConfirmDialog } from "@/components/Toast";
 
 interface CartItem {
   id: string;
@@ -23,17 +24,29 @@ interface TimeSlot {
 
 const Cart = () => {
   const navigate = useNavigate();
+  const [showClearCartDialog, setShowClearCartDialog] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [showSlotModal, setShowSlotModal] = useState(false);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string>('');
-  const [pickupType, setPickupType] = useState<"now" | "later">("now");
+  // The customer picks a real date now, not just Today/Tomorrow. Index 0 is today.
+  const PICKUP_DAYS = 4;
+  const [dayIndex, setDayIndex] = useState(0);
+  // Kept because the rest of the flow and the order payload still speak in these terms
+  const pickupType: "now" | "later" = dayIndex === 0 ? "now" : "later";
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [showSlotError, setShowSlotError] = useState(false);
   const [minOrderPrice, setMinOrderPrice] = useState(500);
-  const [daySettings, setDaySettings] = useState({ todaySlotsEnabled: true, tomorrowSlotsEnabled: true });
+  const [daySettings, setDaySettings] = useState({
+    todaySlotsEnabled: true,
+    tomorrowSlotsEnabled: true,
+    // Same-day Express closes after this hour, and a slot must start at least
+    // this many minutes ahead so the captain can actually reach the customer.
+    expressCutoffHour: 18,
+    expressLeadTimeMinutes: 90,
+  });
   const [garmentConfirmed, setGarmentConfirmed] = useState(false);
   const [expressDeliveryFee, setExpressDeliveryFee] = useState(0);
   const isExpressSelected = typeof window !== 'undefined' && localStorage.getItem('selectedDeliveryType') === 'express';
@@ -58,7 +71,7 @@ const Cart = () => {
 
   useEffect(() => {
     loadCartItems();
-    fetchTimeSlots('now');
+    fetchTimeSlots(0);
     fetchMinOrderPrice();
     fetchDaySettings();
     
@@ -94,17 +107,31 @@ const Cart = () => {
         setDaySettings({
           todaySlotsEnabled: data.data.todaySlotsEnabled !== false,
           tomorrowSlotsEnabled: data.data.tomorrowSlotsEnabled !== false,
+          expressCutoffHour: Number(data.data.expressCutoffHour ?? 18),
+          expressLeadTimeMinutes: Number(data.data.expressLeadTimeMinutes ?? 90),
         });
       }
     } catch {}
   };
 
-  const fetchTimeSlots = async (day: 'now' | 'later') => {
+  // If every slot today has already gone, open on the next date rather than
+  // leaving the customer looking at a greyed-out list.
+  const advanceIfDayIsOver = (slots: TimeSlot[], offset: number) => {
+    if (offset !== 0 || slots.length === 0) return false;
+    const anyLeft = slots.some((slot) => !isSlotPassed(slot.time));
+    if (anyLeft) return false;
+    setDayIndex(1);
+    fetchTimeSlots(1);
+    return true;
+  };
+
+  const fetchTimeSlots = async (offset: number) => {
     try {
-      const dayParam = day === 'now' ? 'today' : 'tomorrow';
-      const response = await fetch(`${API_URL}/api/time-slots?day=${dayParam}`);
+      const serviceType = isExpressSelected ? 'express' : 'standard';
+      const response = await fetch(`${API_URL}/api/time-slots?dayOffset=${offset}&serviceType=${serviceType}`);
       const data = await response.json();
       if (data.success) {
+        if (advanceIfDayIsOver(data.data, offset)) return;
         setTimeSlots(data.data);
         const availableSlots = getAvailableSlots(data.data);
         if (availableSlots.length > 0) {
@@ -118,41 +145,81 @@ const Cart = () => {
     }
   };
 
+  // "Today, 6 Oct" reads better than just "Today" when someone is choosing a day.
+  const formatHour = (hour: number) => {
+    const h = ((hour % 24) + 24) % 24;
+    const suffix = h < 12 ? 'AM' : 'PM';
+    const display = h % 12 === 0 ? 12 : h % 12;
+    return `${display} ${suffix}`;
+  };
+
+  const dayParts = (offset: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    return {
+      top: offset === 0 ? 'Today' : offset === 1 ? 'Tomorrow' : d.toLocaleDateString('en-IN', { weekday: 'short' }),
+      bottom: d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+    };
+  };
+
+  const dayLabel = (offset: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    const name = offset === 0 ? 'Today' : offset === 1 ? 'Tomorrow' : d.toLocaleDateString('en-IN', { weekday: 'short' });
+    return `${name}, ${d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
+  };
+
+  // Slot labels are free text typed by the admin, so they turn up in several
+  // shapes: "9:00 AM", "1-2pm", "10:00 AM - 12:00 PM". Returns minutes since
+  // midnight, or null when nothing recognisable is in the string.
+  const minutesFromLabel = (label: string, preferLast: boolean) => {
+    const matches = [...String(label).matchAll(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/gi)]
+      .filter((m) => m[3] || m[2] || /\d/.test(m[1]));
+    if (matches.length === 0) return null;
+
+    // A range is "start - end"; what matters for availability is when it ends.
+    const chosen = preferLast && matches.length > 1 ? matches[matches.length - 1] : matches[0];
+    // A start time with no am/pm ("1-2pm") borrows the period from the end time.
+    const period = (chosen[3] || matches[matches.length - 1][3] || '').toLowerCase();
+
+    let hour = parseInt(chosen[1], 10);
+    const minute = chosen[2] ? parseInt(chosen[2], 10) : 0;
+    if (Number.isNaN(hour)) return null;
+
+    if (period === 'pm' && hour !== 12) hour += 12;
+    if (period === 'am' && hour === 12) hour = 0;
+
+    return hour * 60 + minute;
+  };
+
+  // Same-day Express shuts at the cutoff hour, whatever slots remain on paper.
+  const expressClosedForToday =
+    isExpressSelected && new Date().getHours() >= daySettings.expressCutoffHour;
+
   const isSlotPassed = (slotTime: string) => {
-    if (pickupType === 'later') return false; // Tomorrow slots are always available
-    
+    if (dayIndex > 0) return false; // A future date's slots are all still ahead
+    if (expressClosedForToday) return true;
+
+    // A range is gone once it ends; a single time is gone once it arrives.
+    const isRange = /-/.test(slotTime);
+    const slotMinutes = minutesFromLabel(slotTime, isRange);
+    if (slotMinutes === null) return false;
+
     const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    
-    // Extract start and end time from slot (e.g., "1 PM - 2 PM" -> start: 1, end: 2, period: PM)
-    const timeMatch = slotTime.match(/(\d+)\s*(AM|PM)?\s*-\s*(\d+)\s*(AM|PM)/i);
-    if (!timeMatch) return false;
-    
-    const startHour = parseInt(timeMatch[1]);
-    const startPeriod = timeMatch[2] || timeMatch[4]; // Use end period if start period is missing
-    const endHour = parseInt(timeMatch[3]);
-    const endPeriod = timeMatch[4];
-    
-    // Convert end time to 24-hour format (this is what matters for slot availability)
-    let slotEndHour = endHour;
-    if (endPeriod?.toUpperCase() === 'PM' && endHour !== 12) {
-      slotEndHour = endHour + 12;
-    } else if (endPeriod?.toUpperCase() === 'AM' && endHour === 12) {
-      slotEndHour = 0; // 12 AM is midnight (0 hours)
-    }
-    
-    // Slot is passed only if current time is past the END time of the slot
-    return currentHour > slotEndHour || (currentHour === slotEndHour && currentMinute > 0);
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    // Express needs a head start; Standard only needs the slot not to have gone.
+    const lead = isExpressSelected ? daySettings.expressLeadTimeMinutes : 0;
+    return nowMinutes + lead >= slotMinutes;
   };
   
   const getAvailableSlots = (slots: TimeSlot[]) => {
     return slots.filter(slot => !isSlotPassed(slot.time));
   };
 
-  const handlePickupTypeChange = (type: "now" | "later") => {
-    setPickupType(type);
-    fetchTimeSlots(type);
+  const handleDayChange = (offset: number) => {
+    setDayIndex(offset);
+    setSelectedSlot('');
+    fetchTimeSlots(offset);
   };
 
   const handleSlotSelection = (slotTime: string) => {
@@ -225,6 +292,7 @@ const Cart = () => {
   const clearCart = () => {
     setCartItems([]);
     localStorage.removeItem('cartItems');
+    setShowClearCartDialog(false);
   };
 
   const getFilteredItems = () => {
@@ -263,10 +331,15 @@ const Cart = () => {
     }
     
     const selectedCartItems = getSelectedCartItems();
+    const pickupDate = new Date();
+    pickupDate.setDate(pickupDate.getDate() + dayIndex);
+
     const orderData = {
       cartItems: selectedCartItems,
       totalAmount: getSelectedTotal(),
       pickupType,
+      pickupDate: pickupDate.toISOString(),
+      pickupDayLabel: dayLabel(dayIndex),
       selectedSlot,
       items: selectedCartItems.map(item => ({
         name: item.name,
@@ -294,7 +367,7 @@ const Cart = () => {
       <Header 
         title={`My Cart (${getTotalItems()})`}
         rightAction={cartItems.length > 0 ? (
-          <button onClick={clearCart} className="text-red-500">
+          <button onClick={() => setShowClearCartDialog(true)} className="text-red-500" aria-label="Delete entire cart">
             <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         ) : undefined}
@@ -440,22 +513,37 @@ const Cart = () => {
               </div>
             </div>
 
-            <Button
-              onClick={handleProceedToCheckout}
-              disabled={selectedItems.size === 0 || getSelectedTotal() < minOrderPrice}
-              className={`w-full h-12 sm:h-14 rounded-2xl text-base font-semibold shadow-lg ${
-                selectedItems.size === 0 || getSelectedTotal() < minOrderPrice
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white'
-              }`}
+            {/* The total and the button stay in view while the item list scrolls.
+                On a short screen they used to sit below the fold entirely. */}
+            <div
+              className="sticky z-30 -mx-4 px-4 pt-3 pb-2 bg-gray-50/95 backdrop-blur border-t"
+              style={{ bottom: 'calc(5rem + max(env(safe-area-inset-bottom), 0px))' }}
             >
-              {selectedItems.size === 0
-                ? 'Select Items to Order'
-                : getSelectedTotal() < minOrderPrice
-                  ? `Minimum Order ₹${minOrderPrice} Required`
-                  : `Select Pickup Slot - ₹${getOrderTotal()}`
-              }
-            </Button>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-600">
+                  Order Total{selectedItems.size > 0 ? ` (${selectedItems.size} item${selectedItems.size > 1 ? 's' : ''})` : ''}
+                </span>
+                <span className="text-xl font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  ₹{getSelectedTotal() < minOrderPrice ? getSelectedTotal() : getOrderTotal()}
+                </span>
+              </div>
+              <Button
+                onClick={handleProceedToCheckout}
+                disabled={selectedItems.size === 0 || getSelectedTotal() < minOrderPrice}
+                className={`w-full h-12 sm:h-14 rounded-2xl text-base font-semibold shadow-lg ${
+                  selectedItems.size === 0 || getSelectedTotal() < minOrderPrice
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white'
+                }`}
+              >
+                {selectedItems.size === 0
+                  ? 'Select Items to Order'
+                  : getSelectedTotal() < minOrderPrice
+                    ? `Minimum Order ₹${minOrderPrice} Required`
+                    : `Select Pickup Slot - ₹${getOrderTotal()}`
+                }
+              </Button>
+            </div>
           </>
         )}
       </div>
@@ -472,39 +560,48 @@ const Cart = () => {
               </button>
             </div>
             
+            {/* Four real dates to choose from, with that day's slots underneath */}
             <div className="mb-4">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handlePickupTypeChange("now")}
-                  className={`flex-1 h-10 rounded-2xl font-semibold text-sm shadow-md ${
-                    pickupType === "now"
-                      ? "text-white"
-                      : "bg-white border border-gray-300 hover:bg-gray-50"
-                  }`}
-                  style={pickupType === "now" ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { color: '#452D9B' }}
-                >
-                  Pickup Today
-                </button>
-                <button
-                  onClick={() => handlePickupTypeChange("later")}
-                  className={`flex-1 h-10 rounded-2xl font-semibold text-sm shadow-md ${
-                    pickupType === "later"
-                      ? "text-white"
-                      : "bg-white border border-gray-300 hover:bg-gray-50"
-                  }`}
-                  style={pickupType === "later" ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { color: '#452D9B' }}
-                >
-                  Pickup Tomorrow
-                </button>
+              <p className="text-xs text-gray-500 mb-2">
+                {isExpressSelected ? 'Express pickup date' : 'Pickup date'}
+              </p>
+              <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                {Array.from({ length: PICKUP_DAYS }, (_, offset) => {
+                  const parts = dayParts(offset);
+                  const selected = dayIndex === offset;
+                  const disabled =
+                    (offset === 0 && !daySettings.todaySlotsEnabled) ||
+                    (offset === 1 && !daySettings.tomorrowSlotsEnabled);
+                  return (
+                    <button
+                      key={offset}
+                      onClick={() => !disabled && handleDayChange(offset)}
+                      disabled={disabled}
+                      className={`flex-shrink-0 min-w-[76px] rounded-2xl py-2 px-3 shadow-md text-center ${
+                        disabled
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : selected
+                            ? 'text-white'
+                            : 'bg-white border border-gray-300 hover:bg-gray-50'
+                      }`}
+                      style={!disabled && selected
+                        ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' }
+                        : (!disabled ? { color: '#452D9B' } : undefined)}
+                    >
+                      <span className="block text-[11px] font-medium opacity-90">{parts.top}</span>
+                      <span className="block text-sm font-bold">{parts.bottom}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
             
             <div className="mb-4">
-              <h4 className="font-semibold mb-3 text-black">{pickupType === 'now' ? "Today's" : "Tomorrow's"} Pickup Slots</h4>
-              {((pickupType === 'now' && !daySettings.todaySlotsEnabled) || (pickupType === 'later' && !daySettings.tomorrowSlotsEnabled)) ? (
+              <h4 className="font-semibold mb-3 text-black">{isExpressSelected ? 'Express slots' : 'Pickup slots'} for {dayLabel(dayIndex)}</h4>
+              {((dayIndex === 0 && !daySettings.todaySlotsEnabled) || (dayIndex === 1 && !daySettings.tomorrowSlotsEnabled)) ? (
                 <div className="rounded-2xl bg-orange-50 border border-orange-200 p-4 text-center">
                   <p className="text-orange-600 font-semibold text-sm">
-                    {pickupType === 'now' ? 'Today' : 'Tomorrow'} pickup is currently unavailable.
+                    Pickup on {dayLabel(dayIndex)} is currently unavailable.
                   </p>
                   <p className="text-orange-500 text-xs mt-1">Please select the other day or try again later.</p>
                 </div>
@@ -530,7 +627,13 @@ const Cart = () => {
                     ))}
                   </div>
                   <p className="text-xs mt-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                    Next available slot: {pickupType === "now" ? "Today" : "Tomorrow"}, {selectedSlot || 'No slots available'}
+                    {selectedSlot
+                      ? `Selected: ${dayLabel(dayIndex)}, ${selectedSlot}`
+                      : dayIndex === 0 && expressClosedForToday
+                        ? `Same-day Express closes at ${formatHour(daySettings.expressCutoffHour)} - pick another date above`
+                        : dayIndex === 0
+                          ? "Today's slots have all passed - pick another date above"
+                          : 'Pick a slot above'}
                   </p>
                 </>
               )}
@@ -597,6 +700,17 @@ const Cart = () => {
             </p>
           </div>
         </div>
+      )}
+
+      {showClearCartDialog && (
+        <ConfirmDialog
+          title="Delete entire cart?"
+          message="Are you sure you want to delete the entire cart? All the items you have added will be removed."
+          confirmText="Yes, delete"
+          cancelText="No, keep it"
+          onConfirm={clearCart}
+          onCancel={() => setShowClearCartDialog(false)}
+        />
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { embedUrl } from '@/utils/mapLinks';
 
 interface LeafletMapProps {
   address: {
@@ -6,6 +7,9 @@ interface LeafletMapProps {
     city: string;
     state: string;
     pincode: string;
+    // Present once the customer has pinned their door
+    latitude?: number;
+    longitude?: number;
   };
 }
 
@@ -13,19 +17,9 @@ const LeafletMap = ({ address }: LeafletMapProps) => {
   const [mapUrl, setMapUrl] = useState('');
 
   useEffect(() => {
-    // Build complete address string for better accuracy
-    const addressParts = [
-      address.street ? String(address.street).trim() : '',
-      address.city ? String(address.city).trim() : '', 
-      address.state ? String(address.state).trim() : '',
-      address.pincode ? String(address.pincode).trim() : '',
-      'India'
-    ].filter(Boolean); // Remove empty parts
-    
-    const fullAddress = addressParts.join(', ');
-    const encodedQuery = encodeURIComponent(fullAddress);
-    
-    setMapUrl(`https://maps.google.com/maps?q=${encodedQuery}&t=&z=13&ie=UTF8&iwloc=&output=embed`);
+    // Centres on the customer's pin when there is one, and only falls back to
+    // searching the address text when there is not.
+    setMapUrl(embedUrl(address));
   }, [address]);
 
   if (!mapUrl) {

@@ -12,7 +12,6 @@ interface Customer {
   totalSpend: number
   totalOrders: number
   walletBalance: number
-  loyaltyPoints: number
   isActive: boolean
   lastOrderDate?: string
   address: Array<{
@@ -144,10 +143,6 @@ export default function CustomerProfilePage() {
               <div style={{ textAlign: 'center', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2563eb' }}>₹{customer.walletBalance}</div>
                 <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>Wallet Balance</div>
-              </div>
-              <div style={{ textAlign: 'center', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2563eb' }}>{customer.loyaltyPoints}</div>
-                <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>Loyalty Points</div>
               </div>
             </div>
           </div>

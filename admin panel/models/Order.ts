@@ -20,13 +20,19 @@ const OrderSchema = new mongoose.Schema({
     street: String,
     city: String,
     state: String,
-    pincode: String
+    pincode: String,
+    // Carried over from the address the customer pinned, so the captain is given
+    // a point to navigate to rather than a string to search for.
+    latitude: Number,
+    longitude: Number
   },
   deliveryAddress: {
     street: String,
     city: String,
     state: String,
-    pincode: String
+    pincode: String,
+    latitude: Number,
+    longitude: Number
   },
   pickupSlot: {
     date: Date,

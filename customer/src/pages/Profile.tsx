@@ -2,23 +2,6 @@ import { useState, useEffect } from "react";
 
 const ReferAndEarn = () => {
   const navigate = useNavigate();
-  const [referralPoints, setReferralPoints] = useState(50);
-
-  useEffect(() => {
-    fetchReferralPoints();
-  }, []);
-
-  const fetchReferralPoints = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/wallet-settings`);
-      const data = await response.json();
-      if (data.success) {
-        setReferralPoints(data.data.referralPoints);
-      }
-    } catch (error) {
-      console.error('Failed to fetch referral points:', error);
-    }
-  };
 
   return (
     <div>
@@ -28,7 +11,7 @@ const ReferAndEarn = () => {
         className="w-full bg-white rounded-2xl p-3 sm:p-4 shadow-lg flex items-center gap-2 sm:gap-3 hover:shadow-xl transition-shadow"
       >
         <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
-        <span className="font-medium text-black text-sm sm:text-base">Earn {referralPoints} points for every referral</span>
+        <span className="font-medium text-black text-sm sm:text-base">Refer a friend to Urban Steam</span>
       </button>
     </div>
   );
@@ -37,6 +20,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Settings, MapPin, Edit, Trash2, CreditCard, Wallet, Gift, HelpCircle, Mail, Bell, FileText, LogOut, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, CheckCircle2, Banknote, Smartphone, Building2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { API_URL } from '@/config/api';
+import NotificationService from '@/services/notificationService';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import BottomNavigation from "@/components/BottomNavigation";
@@ -745,13 +729,13 @@ const Profile = () => {
         </div>
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>My Subscriptions</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>My Wallet Plans</h2>
           <button
             onClick={() => navigate('/my-subscription')}
             className="w-full bg-white rounded-2xl p-3 sm:p-4 shadow-lg flex items-center gap-2 sm:gap-3 hover:shadow-xl transition-shadow"
           >
             <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
-            <span className="font-medium text-black text-sm sm:text-base">View My Subscriptions</span>
+            <span className="font-medium text-black text-sm sm:text-base">View My Wallet Plans</span>
           </button>
         </div>
 
@@ -805,13 +789,16 @@ const Profile = () => {
               'customer_notifications', 'cleared_notifications',
               'deleted_notifications', 'pushed_notifications',
             ];
-            const prefixes = ['wallet_', 'transactions_', 'cache_'];
+            const prefixes = ['wallet_', 'transactions_', 'cache_',
+              'customer_notifications_', 'cleared_notifications_',
+              'deleted_notifications_', 'pushed_notifications_'];
             try {
               exactKeys.forEach((key) => localStorage.removeItem(key));
               Object.keys(localStorage)
                 .filter((key) => prefixes.some((prefix) => key.startsWith(prefix)))
                 .forEach((key) => localStorage.removeItem(key));
               sessionStorage.clear();
+              NotificationService.getInstance().resetForLogout();
             } catch (error) {
               console.error('Could not fully clear stored data on logout:', error);
             }

@@ -113,6 +113,15 @@ class NotificationService {
     };
   }
 
+  // Every notification store is scoped to the signed-in customer. These used to
+  // be plain keys shared by the device, so a second person signing in on the same
+  // phone inherited the previous customer's notifications - including their
+  // wallet balance messages.
+  private key(name: string) {
+    const customerId = localStorage.getItem('customerId') || 'anonymous';
+    return `${name}_${customerId}`;
+  }
+
   // Notify all listeners
   private notifyListeners() {
     this.listeners.forEach(listener => listener(this.notifications));
@@ -121,7 +130,7 @@ class NotificationService {
   // Load notifications from localStorage
   loadNotifications() {
     try {
-      const stored = localStorage.getItem('customer_notifications');
+      const stored = localStorage.getItem(this.key('customer_notifications'));
       if (stored) {
         const allNotifications = JSON.parse(stored);
         const clearedIds = this.getClearedNotificationIds();
@@ -143,7 +152,7 @@ class NotificationService {
   // Save notifications to localStorage
   private saveNotifications() {
     try {
-      localStorage.setItem('customer_notifications', JSON.stringify(this.notifications));
+      localStorage.setItem(this.key('customer_notifications'), JSON.stringify(this.notifications));
     } catch (error) {
       console.error('Failed to save notifications:', error);
     }
@@ -285,6 +294,15 @@ class NotificationService {
     this.notifyListeners();
   }
 
+  // Drop whatever is held in memory when someone signs out. The stored copies
+  // stay behind under that customer's own key, so signing back in restores them
+  // and the next person to use the phone never sees them.
+  resetForLogout() {
+    this.notifications = [];
+    this.notifyListeners();
+    this.clearAllMobileNotifications();
+  }
+
   // Clear all notifications permanently
   clearAllNotifications() {
     // Save ALL notification keys to prevent showing again
@@ -321,7 +339,7 @@ class NotificationService {
   // Get cleared notification IDs
   private getClearedNotificationIds(): string[] {
     try {
-      const cleared = localStorage.getItem('cleared_notifications');
+      const cleared = localStorage.getItem(this.key('cleared_notifications'));
       return cleared ? JSON.parse(cleared) : [];
     } catch (error) {
       return [];
@@ -334,7 +352,7 @@ class NotificationService {
       const clearedIds = this.getClearedNotificationIds();
       if (!clearedIds.includes(key)) {
         clearedIds.push(key);
-        localStorage.setItem('cleared_notifications', JSON.stringify(clearedIds));
+        localStorage.setItem(this.key('cleared_notifications'), JSON.stringify(clearedIds));
       }
     } catch (error) {
       console.error('Failed to save cleared notification ID:', error);
@@ -376,7 +394,7 @@ class NotificationService {
   // Get pushed notification keys
   private getPushedNotificationKeys(): string[] {
     try {
-      const pushed = localStorage.getItem('pushed_notifications');
+      const pushed = localStorage.getItem(this.key('pushed_notifications'));
       return pushed ? JSON.parse(pushed) : [];
     } catch (error) {
       return [];
@@ -389,7 +407,7 @@ class NotificationService {
       const pushedKeys = this.getPushedNotificationKeys();
       if (!pushedKeys.includes(key)) {
         pushedKeys.push(key);
-        localStorage.setItem('pushed_notifications', JSON.stringify(pushedKeys));
+        localStorage.setItem(this.key('pushed_notifications'), JSON.stringify(pushedKeys));
       }
     } catch (error) {
       console.error('Failed to save pushed notification key:', error);
@@ -602,7 +620,7 @@ class NotificationService {
   // Get deleted notification IDs for this user
   private getDeletedNotificationIds(): string[] {
     try {
-      const deleted = localStorage.getItem('deleted_notifications');
+      const deleted = localStorage.getItem(this.key('deleted_notifications'));
       return deleted ? JSON.parse(deleted) : [];
     } catch (error) {
       return [];
@@ -615,7 +633,7 @@ class NotificationService {
       const deletedIds = this.getDeletedNotificationIds();
       if (!deletedIds.includes(id)) {
         deletedIds.push(id);
-        localStorage.setItem('deleted_notifications', JSON.stringify(deletedIds));
+        localStorage.setItem(this.key('deleted_notifications'), JSON.stringify(deletedIds));
       }
     } catch (error) {
       console.error('Failed to save deleted notification ID:', error);

@@ -8,6 +8,7 @@ import Toast from "@/components/Toast";
 import ConfirmModal from "@/components/ConfirmModal";
 import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
+import { directionsUrl, locationAccuracyLabel } from '@/utils/mapLinks';
 
 interface Order {
   _id: string;
@@ -117,7 +118,7 @@ export default function StartPickup() {
         />
         <div className="absolute left-4 bottom-4 bg-white shadow-sm rounded-xl px-4 py-2">
           <p className="text-sm font-semibold text-black">Pickup Location</p>
-          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}`)}`} target="_blank" className="text-xs" style={{ color: '#452D9B' }}>Open in Google Maps</a>
+          <a href={directionsUrl(order.pickupAddress)} target="_blank" className="text-xs" style={{ color: '#452D9B' }}>Open in Google Maps</a>
         </div>
       </div>
 

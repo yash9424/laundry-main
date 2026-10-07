@@ -91,7 +91,7 @@ const Subscriptions = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 page-with-bottom-nav">
-      <Header title="Top-Up Wallet" variant="gradient" />
+      <Header title="Wallet Plans" variant="gradient" />
 
       <div style={{ padding: "1.25rem 1.25rem 2rem" }}>
 
@@ -228,7 +228,7 @@ const Subscriptions = () => {
             onClick={() => navigate("/my-subscription")}
             style={{ width: "100%", padding: "0.75rem", background: "white", color: "#452D9B", border: "2px solid #452D9B", borderRadius: "14px", fontWeight: "700", fontSize: "0.9rem", cursor: "pointer" }}
           >
-            View My Subscriptions →
+            View My Wallet Plans →
           </button>
         )}
       </div>

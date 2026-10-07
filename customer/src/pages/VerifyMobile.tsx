@@ -10,7 +10,7 @@ const VerifyMobile = () => {
   const mobileNumber = location.state?.mobileNumber || "XXXXXXXXX";
   
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [resendTimer, setResendTimer] = useState(30);
+  const [resendTimer, setResendTimer] = useState(60);
   // An OTP is single use: the server deletes it the moment it verifies. A second
   // tap while the first request is still running therefore came back as
   // "OTP expired" even though the login had just succeeded.
@@ -143,7 +143,7 @@ const VerifyMobile = () => {
                   });
                   const data = await response.json();
                   if (data.success) {
-                    setResendTimer(30);
+                    setResendTimer(60);
                     alert('OTP resent successfully');
                   }
                 } catch (error) {

@@ -100,6 +100,19 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     console.log('Total Amount:', currentOrder.totalAmount)
     console.log('===========================')
     
+    // An order that has already been handed over cannot be cancelled. This used
+    // to go through and charge the customer a cancellation fee on an order they
+    // had already received.
+    const FINAL_STATUSES = ['delivered', 'cancelled']
+    if (updateData.status === 'cancelled' && currentOrder && FINAL_STATUSES.includes(currentOrder.status)) {
+      return NextResponse.json({
+        success: false,
+        message: currentOrder.status === 'delivered'
+          ? 'This order has already been delivered and can no longer be cancelled.'
+          : 'This order is already cancelled.'
+      }, { status: 400 })
+    }
+
     // Handle cancellation fee logic
     if (updateData.status === 'cancelled' && currentOrder && currentOrder.status !== 'cancelled') {
       let cancellationFee = 0
@@ -369,23 +382,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }
     }
 
-    // Award order completion points when order is delivered
-    if (updateData.status === 'delivered' && currentOrder?.status !== 'delivered' && currentOrder?.customerId) {
-      const customer = await Customer.findById(currentOrder.customerId)
-      const settings = await WalletSettings.findOne()
-      
-      if (customer && settings) {
-        // Award order completion points (loyalty points, not wallet balance)
-        await Customer.findByIdAndUpdate(customer._id, {
-          $inc: { 
-            loyaltyPoints: settings.orderCompletionPoints,
-            totalOrders: 1
-          }
-        })
-        console.log(`Awarded ${settings.orderCompletionPoints} loyalty points to customer ${customer._id} for order completion`)
-      }
-    }
-    
+    // Nothing is awarded on delivery. Loyalty points were removed from the
+    // product, and totalOrders is already counted when the order is placed —
+    // counting it again here was inflating every customer's order total.
+
     // Update using the found order's _id
     const order = await Order.findByIdAndUpdate(
       currentOrder._id,
