@@ -213,11 +213,67 @@ export async function POST(request: NextRequest) {
           $inc: { totalOrders: 1 }
         })
 
+        // A referral pays out here, on the first order, not at sign-up. Paying at
+        // sign-up would reward anyone willing to make an account; paying here
+        // means the business has gained a paying customer first. The reward is
+        // wallet credit, so it comes back as a future order rather than as cash
+        // out of the door.
         if (isFirstOrder && customer.referredBy) {
-          await Customer.updateOne(
-            { 'referralCodes.code': customer.referredBy, 'referralCodes.used': false },
-            { $set: { 'referralCodes.$.used': true, 'referralCodes.$.usedBy': customer.name, 'referralCodes.$.usedAt': new Date() } }
-          )
+          const referrer = await Customer.findOne({
+            'referralCodes.code': customer.referredBy,
+            'referralCodes.used': false,
+          })
+
+          // Nobody earns by referring themselves
+          if (referrer && String(referrer._id) !== String(customer._id)) {
+            const settings = await WalletSettings.findOne()
+            const toReferrer = Math.max(0, Math.round(Number(settings?.referralRewardAmount ?? 50)) || 0)
+            const toNewCustomer = Math.max(0, Math.round(Number(settings?.referredUserRewardAmount ?? 25)) || 0)
+
+            // Spend the code first, so a retry cannot pay twice
+            const spent = await Customer.updateOne(
+              { _id: referrer._id, 'referralCodes.code': customer.referredBy, 'referralCodes.used': false },
+              { $set: {
+                'referralCodes.$.used': true,
+                'referralCodes.$.usedBy': customer.name,
+                'referralCodes.$.usedAt': new Date(),
+              } }
+            )
+
+            if (spent.modifiedCount > 0) {
+              if (toReferrer > 0) {
+                const before = Number.isFinite(referrer.walletBalance) ? referrer.walletBalance : 0
+                await Customer.findByIdAndUpdate(referrer._id, { $inc: { walletBalance: toReferrer } })
+                await WalletTransaction.create({
+                  customerId: referrer._id,
+                  type: 'balance',
+                  action: 'increase',
+                  amount: toReferrer,
+                  reason: `Referral reward - ${customer.name || 'a friend'} placed their first order`,
+                  previousValue: before,
+                  newValue: before + toReferrer,
+                  adjustedBy: 'System',
+                })
+              }
+
+              if (toNewCustomer > 0) {
+                const before = Number.isFinite(customer.walletBalance) ? customer.walletBalance : 0
+                await Customer.findByIdAndUpdate(customer._id, { $inc: { walletBalance: toNewCustomer } })
+                await WalletTransaction.create({
+                  customerId: customer._id,
+                  type: 'balance',
+                  action: 'increase',
+                  amount: toNewCustomer,
+                  reason: 'Welcome reward for joining with a referral code',
+                  previousValue: before,
+                  newValue: before + toNewCustomer,
+                  adjustedBy: 'System',
+                })
+              }
+
+              console.log(`Referral paid: ${toReferrer} to referrer ${referrer._id}, ${toNewCustomer} to ${customer._id}`)
+            }
+          }
         }
       }
     } catch (error) {

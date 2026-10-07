@@ -11,7 +11,7 @@ const ReferAndEarn = () => {
         className="w-full bg-white rounded-2xl p-3 sm:p-4 shadow-lg flex items-center gap-2 sm:gap-3 hover:shadow-xl transition-shadow"
       >
         <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
-        <span className="font-medium text-black text-sm sm:text-base">Refer a friend to Urban Steam</span>
+        <span className="font-medium text-black text-sm sm:text-base">Refer a friend, earn wallet credit</span>
       </button>
     </div>
   );

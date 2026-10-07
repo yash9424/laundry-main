@@ -15,6 +15,20 @@ const ReferEarn = () => {
     pendingRewards: 0
   });
 
+  const [rewards, setRewards] = useState({ referrer: 50, friend: 25 });
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/wallet-settings`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) setRewards({
+          referrer: Number(d.data.referralRewardAmount ?? 50),
+          friend: Number(d.data.referredUserRewardAmount ?? 25),
+        });
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     fetchCustomerReferralCode();
     fetchPastReferrals();
@@ -105,7 +119,7 @@ const ReferEarn = () => {
   };
 
   const handleShareCode = async () => {
-    const shareText = `🎁 Join Urban Steam and get an offer on your first order!\n\nUse my referral code: ${referralData.userCode}\n\nSign up now: ${window.location.origin}\n\nDon't miss out on this exclusive offer! 🚀`;
+    const shareText = `🎁 Join Urban Steam and get ₹${rewards.friend} in your wallet on your first order!\n\nUse my referral code: ${referralData.userCode}\n\nSign up now: ${window.location.origin}\n\nDon't miss out on this exclusive offer! 🚀`;
     
     try {
       await Share.share({
@@ -132,7 +146,7 @@ const ReferEarn = () => {
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-4 sm:p-6 lg:p-8 text-white relative overflow-hidden min-h-[140px] sm:min-h-[160px]">
           <div className="relative z-10 max-w-[60%] sm:max-w-[70%]">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 leading-tight">Invite friends, earn rewards!</h2>
-            <p className="text-blue-100 text-xs sm:text-sm lg:text-base leading-relaxed">Your friend gets a welcome offer on their first order.</p>
+            <p className="text-blue-100 text-xs sm:text-sm lg:text-base leading-relaxed">{`Get ₹${rewards.referrer} in your wallet when a friend places their first order. They get ₹${rewards.friend} too.`}</p>
           </div>
           
           {/* Background illustration */}
@@ -227,7 +241,7 @@ const ReferEarn = () => {
           <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent mb-4">Your Rewards</h3>
           <div className="space-y-2 sm:space-y-3">
             <div>
-              <p className="text-gray-700 text-sm sm:text-base font-medium">Pending Rewards: {referralData.pendingRewards} invites not yet completed.</p>
+              <p className="text-gray-700 text-sm sm:text-base font-medium">{referralData.pendingRewards} invite{referralData.pendingRewards === 1 ? '' : 's'} not yet used — worth ₹{referralData.pendingRewards * rewards.referrer} once those friends place their first order.</p>
             </div>
           </div>
         </div>

@@ -81,19 +81,14 @@ export async function POST(request: NextRequest) {
         updatedAt: new Date()
       }
       
-      // Referrals are still tracked, they just no longer pay out points
+      // Note who referred them, but leave the code unspent. Nothing is paid out
+      // at sign-up: the reward lands when this person actually places their
+      // first order, which is what makes a referral worth anything. Marking the
+      // code used here also meant the reward could never fire later.
       if (body.referralCode) {
         const referrer = await Customer.findOne({ 'referralCodes.code': body.referralCode, 'referralCodes.used': false })
         if (referrer) {
           customerData.referredBy = body.referralCode
-          
-          const codeIndex = referrer.referralCodes.findIndex((c: any) => c.code === body.referralCode && !c.used)
-          if (codeIndex !== -1) {
-            referrer.referralCodes[codeIndex].used = true
-            referrer.referralCodes[codeIndex].usedBy = body.name
-            referrer.referralCodes[codeIndex].usedAt = new Date()
-            await referrer.save()
-          }
         }
       }
       

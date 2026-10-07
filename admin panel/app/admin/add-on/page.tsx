@@ -28,7 +28,9 @@ export default function AddOnPage() {
   const [draggedItem, setDraggedItem] = useState<any>(null)
   const [editingVoucher, setEditingVoucher] = useState<string | null>(null)
   const [walletSettings, setWalletSettings] = useState({
-    minOrderPrice: 500
+    minOrderPrice: 500,
+    referralRewardAmount: 50,
+    referredUserRewardAmount: 25
   })
   const [hubs, setHubs] = useState<any[]>([])
   const [hubForm, setHubForm] = useState({
@@ -1254,6 +1256,39 @@ export default function AddOnPage() {
                 style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
               />
               <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.25rem' }}>Minimum order value required to place order</p>
+            </div>
+            <div style={{ gridColumn: '1 / -1', padding: '1rem', border: '2px dashed #2563eb', borderRadius: '10px', background: '#eff6ff' }}>
+              <p style={{ fontWeight: '700', fontSize: '0.95rem', color: '#1d4ed8', margin: '0 0 0.2rem' }}>Referral rewards</p>
+              <p style={{ fontSize: '0.8rem', color: '#1e40af', margin: '0 0 0.9rem' }}>
+                Paid as wallet credit, and only once the referred friend has placed their first order —
+                so nothing is given away for simply creating an account. Set either box to 0 to switch that side off.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: '600', fontSize: '0.85rem' }}>To the referrer (₹)</label>
+                  <input
+                    type="number" min="0" placeholder="50"
+                    aria-label="Referral reward to the referrer"
+                    value={walletSettings.referralRewardAmount}
+                    onChange={(e) => setWalletSettings({...walletSettings, referralRewardAmount: Number(e.target.value)})}
+                    style={{ width: '100%', padding: '0.7rem', border: '1px solid #93c5fd', borderRadius: '8px', fontSize: '1rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: '600', fontSize: '0.85rem' }}>To the new customer (₹)</label>
+                  <input
+                    type="number" min="0" placeholder="25"
+                    aria-label="Referral reward to the new customer"
+                    value={walletSettings.referredUserRewardAmount}
+                    onChange={(e) => setWalletSettings({...walletSettings, referredUserRewardAmount: Number(e.target.value)})}
+                    style={{ width: '100%', padding: '0.7rem', border: '1px solid #93c5fd', borderRadius: '8px', fontSize: '1rem' }}
+                  />
+                </div>
+              </div>
+              <p style={{ fontSize: '0.78rem', color: '#1e40af', marginTop: '0.7rem' }}>
+                Each referral currently costs ₹{(Number(walletSettings.referralRewardAmount) || 0) + (Number(walletSettings.referredUserRewardAmount) || 0)} in credit,
+                and only after an order worth at least ₹{walletSettings.minOrderPrice} has been placed.
+              </p>
             </div>
           </div>
           <button
