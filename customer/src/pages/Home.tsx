@@ -19,6 +19,7 @@ const Home = () => {
     return cached || 'No address added yet';
   });
   const [expressEnabled, setExpressEnabled] = useState(true);
+  const [expressFee, setExpressFee] = useState(0);
   const [deliveryText, setDeliveryText] = useState({
     standardTitle: 'Standard Delivery',
     standardSubtitle: '24-hour turnaround',
@@ -284,6 +285,8 @@ const Home = () => {
           setExpressEnabled(false);
           localStorage.setItem("selectedDeliveryType", "standard");
         }
+        // "for a small fee" leaves people guessing; the card can just say how much
+        setExpressFee(Number(data.data.expressDeliveryPrice) || 0);
         // Button wording is admin-editable (Add-On > Charges); keep the defaults if unset
         setDeliveryText({
           standardTitle: data.data.homeStandardTitle || 'Standard Delivery',
@@ -395,24 +398,44 @@ const Home = () => {
           </div>
         )}
 
-        {/* Quick Actions - Delivery Type Selection */}
-        <div className={`mb-4 sm:mb-5 grid ${expressEnabled ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
+        {/* Pick how fast you want it back.
+            These were two fixed-height boxes with everything centred, so the
+            text had barely half the card to sit in: the express line wrapped
+            onto two cramped rows while the standard one did not, and the two
+            cards read as the same thing twice. Left-aligned now, equal height
+            whatever the wording, with the express fee stated rather than
+            hinted at. */}
+        <div className={`mb-4 sm:mb-5 grid ${expressEnabled ? 'grid-cols-2' : 'grid-cols-1'} gap-3 items-stretch`}>
           <button
             onClick={() => handleDeliverySelect("standard")}
-            className="h-20 sm:h-24 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1 transition-all"
+            className="relative overflow-hidden rounded-2xl shadow-lg text-white text-left p-3.5 flex flex-col min-h-[7rem] active:scale-[0.98] transition-transform"
+            style={{ background: 'linear-gradient(135deg, #452D9B 0%, #3b6fc0 55%, #07C8D0 100%)' }}
           >
-            <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-sm sm:text-base font-semibold">{deliveryText.standardTitle}</span>
-            <span className="text-[10px] sm:text-xs text-white/80">{deliveryText.standardSubtitle}</span>
+            <span className="w-9 h-9 rounded-xl flex items-center justify-center mb-2.5" style={{ background: 'rgba(255,255,255,0.18)' }}>
+              <ShoppingCart className="w-[18px] h-[18px]" />
+            </span>
+            <span className="text-sm font-bold leading-tight">{deliveryText.standardTitle}</span>
+            <span className="text-[11px] leading-snug mt-0.5 text-white/85">{deliveryText.standardSubtitle}</span>
           </button>
 
           {expressEnabled && <button
             onClick={() => handleDeliverySelect("express")}
-            className="h-20 sm:h-24 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl shadow-lg flex flex-col items-center justify-center gap-1 transition-all"
+            className="relative overflow-hidden rounded-2xl shadow-lg text-white text-left p-3.5 flex flex-col min-h-[7rem] active:scale-[0.98] transition-transform"
+            style={{ background: 'linear-gradient(135deg, #1b0f4d 0%, #452D9B 55%, #06869a 100%)' }}
           >
-            <Zap className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-sm sm:text-base font-semibold">{deliveryText.expressTitle}</span>
-            <span className="text-[10px] sm:text-xs text-white/80">{deliveryText.expressSubtitle}</span>
+            {expressFee > 0 && (
+              <span
+                className="absolute top-3 right-3 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full"
+                style={{ background: 'linear-gradient(to right,#f59e0b,#ef4444)' }}
+              >
+                +₹{expressFee}
+              </span>
+            )}
+            <span className="w-9 h-9 rounded-xl flex items-center justify-center mb-2.5" style={{ background: 'linear-gradient(135deg,#f59e0b,#ef4444)' }}>
+              <Zap className="w-[18px] h-[18px]" />
+            </span>
+            <span className="text-sm font-bold leading-tight">{deliveryText.expressTitle}</span>
+            <span className="text-[11px] leading-snug mt-0.5 text-white/85">{deliveryText.expressSubtitle}</span>
           </button>}
         </div>
 
