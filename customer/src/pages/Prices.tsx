@@ -302,10 +302,12 @@ const Prices = () => {
 
                       <div className="flex-1 min-w-0">
                         <p className="text-[15px] font-bold text-gray-900 leading-snug line-clamp-2">{item.name}</p>
-                        <p className="flex items-center gap-1 text-[12px] text-gray-500 truncate mt-0.5">
-                          <Shirt className="w-3 h-3 flex-shrink-0" style={{ color: '#a5b4fc' }} />
-                          <span className="truncate">{item.description?.trim() || 'Professional steam ironing'}</span>
-                        </p>
+                        {/* Only the item's own description. There used to be a
+                            "Professional steam ironing" line underneath every
+                            garment, which said the same thing 159 times. */}
+                        {item.description?.trim() && (
+                          <p className="text-[12px] text-gray-500 truncate mt-0.5">{item.description.trim()}</p>
+                        )}
                         <p
                           className="text-[15px] font-bold mt-0.5"
                           style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
