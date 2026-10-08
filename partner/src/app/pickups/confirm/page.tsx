@@ -39,6 +39,7 @@ function PickupConfirmContent() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
   const [showImageOptions, setShowImageOptions] = useState(false);
+  const [showItems, setShowItems] = useState(false);
 
   // Request camera permissions on component mount
   useEffect(() => {
@@ -154,33 +155,32 @@ function PickupConfirmContent() {
           </span>
         </div>
 
-        {/* The captain needs the list in front of them while counting the clothes,
-            not only on the screen before this one. */}
+        {/* The list opened flat on the screen, so on a big order the photo
+            upload and the confirm button were pushed well below the fold. It
+            opens on a tap now and covers the screen while the captain counts. */}
         {Array.isArray(order.items) && order.items.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-gray-200">
-            <p className="text-sm font-semibold text-black mb-2">
-              Items to collect ({order.items.reduce((n: number, it: any) => n + (Number(it.quantity) || 0), 0)})
-            </p>
-            <div className="space-y-1.5">
-              {order.items.map((it: any, i: number) => (
-                <div key={i} className="flex items-start justify-between gap-3 text-sm">
-                  <span className="text-black">
-                    <span className="font-semibold">{it.quantity}x</span> {it.name}
-                  </span>
-                  <span className="text-gray-600 whitespace-nowrap">
-                    &#8377;{(Number(it.price) || 0) * (Number(it.quantity) || 0)}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between text-sm font-semibold text-black">
-              <span>Order total</span>
-              <span>&#8377;{order.totalAmount}</span>
-            </div>
-            {order.specialInstructions && (
-              <p className="mt-2 text-xs text-gray-600">Note: {order.specialInstructions}</p>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowItems(true)}
+            className="mt-3 w-full flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left active:scale-[0.99] transition-transform"
+            style={{ borderColor: '#c7d2fe', background: 'linear-gradient(135deg, #f5f3ff 0%, #ecfeff 100%)' }}
+          >
+            <span className="flex items-center gap-2 min-w-0">
+              <span
+                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-white text-base"
+                style={{ background: 'linear-gradient(135deg, #452D9B, #07C8D0)' }}
+              >
+                &#128203;
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-bold" style={{ color: '#452D9B' }}>View order items</span>
+                <span className="block text-[11px] text-gray-600">
+                  {order.items.reduce((n: number, it: any) => n + (Number(it.quantity) || 0), 0)} garments &middot; &#8377;{order.totalAmount}
+                </span>
+              </span>
+            </span>
+            <span className="text-lg flex-shrink-0" style={{ color: '#452D9B' }}>&rsaquo;</span>
+          </button>
         )}
       </div>
 
@@ -358,6 +358,55 @@ function PickupConfirmContent() {
             >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {showItems && order && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
+          onClick={() => setShowItems(false)}
+        >
+          <div
+            className="bg-white w-full rounded-t-3xl max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0">
+              <p className="text-base font-bold text-black">
+                Items to collect ({order.items.reduce((n: number, it: any) => n + (Number(it.quantity) || 0), 0)})
+              </p>
+              <button onClick={() => setShowItems(false)} aria-label="Close" className="text-2xl leading-none text-gray-500">&times;</button>
+            </div>
+
+            <div className="overflow-y-auto px-4 py-2 divide-y">
+              {order.items.map((it: any, i: number) => (
+                <div key={i} className="flex items-start justify-between gap-3 py-2.5">
+                  <span className="text-sm text-black">
+                    <span className="font-bold" style={{ color: '#452D9B' }}>{it.quantity}x</span> {it.name}
+                  </span>
+                  <span className="text-sm text-gray-600 whitespace-nowrap">
+                    &#8377;{(Number(it.price) || 0) * (Number(it.quantity) || 0)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="px-4 py-3 border-t flex-shrink-0">
+              <div className="flex items-center justify-between text-sm font-bold text-black">
+                <span>Order total</span>
+                <span>&#8377;{order.totalAmount}</span>
+              </div>
+              {order.specialInstructions && (
+                <p className="mt-2 text-xs text-gray-600">Note: {order.specialInstructions}</p>
+              )}
+              <button
+                onClick={() => setShowItems(false)}
+                className="w-full mt-3 py-2.5 rounded-xl text-white font-semibold"
+                style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}
