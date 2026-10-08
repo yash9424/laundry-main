@@ -265,58 +265,70 @@ const Prices = () => {
               <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                 {selectedCategory === 'All' ? 'All Items' : selectedCategory}
               </h2>
-              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                {filteredItems.map((item: any, index: number) => (
+              {/* A grid of picture cards rather than a list of rows. The garment
+                  was a 64px thumbnail squeezed between the name and the quantity
+                  buttons; here the picture is the card, roughly three times the
+                  width, with the name, price and buttons underneath. Tapping the
+                  picture still opens the full view. */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {filteredItems.map((item: any) => (
                   <div
                     key={item._id}
-                    className={`flex items-center justify-between p-4 ${
-                      index !== filteredItems.length - 1 ? 'border-b border-gray-100' : ''
-                    } hover:bg-blue-50 transition-colors`}
+                    className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col"
                   >
-                    <div className="flex items-center gap-3.5">
-                      <button
-                        type="button"
-                        onClick={() => setPreviewItem(item)}
-                        aria-label={`View ${item.name} details`}
-                        className="relative flex-shrink-0 active:scale-95 transition-transform"
-                      >
-                        <div className="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-2xl flex items-center justify-center shadow-md overflow-hidden ring-2 ring-purple-100" style={{ background: item.image ? '#f3f4f6' : 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-                          {item.image
-                            ? <img src={item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`} alt={item.name} className="w-full h-full object-cover rounded-2xl" />
-                            : <Shirt className="w-8 h-8 text-white" />
-                          }
-                        </div>
-                        <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white shadow flex items-center justify-center">
-                          <ZoomIn className="w-3.5 h-3.5" style={{ color: '#452D9B' }} />
-                        </span>
-                      </button>
-                      <div>
-                        <span className="font-semibold text-gray-800 block">{item.name}</span>
-                        <span className="text-lg font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                          ₹{item.price}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        title="Decrease quantity"
-                        onClick={() => updateQuantity(item._id, false)}
-                        className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
-                        style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
-                      >
-                        <Minus className="w-4 h-4" />
-                      </button>
-                      <span className="w-8 text-center font-semibold text-black">
-                        {quantities[item._id] || 0}
+                    <button
+                      type="button"
+                      onClick={() => setPreviewItem(item)}
+                      aria-label={`View ${item.name} details`}
+                      className="relative w-full aspect-square overflow-hidden active:scale-[0.98] transition-transform"
+                      style={{ background: item.image ? '#f3f4f6' : 'linear-gradient(135deg, #f5f3ff 0%, #ecfeff 100%)' }}
+                    >
+                      {item.image
+                        ? <img
+                            src={item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`}
+                            alt={item.name}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                          />
+                        : <span className="w-full h-full flex items-center justify-center">
+                            <Shirt className="w-12 h-12" style={{ color: '#c4b5fd' }} />
+                          </span>
+                      }
+                      <span className="absolute bottom-1.5 right-1.5 w-7 h-7 rounded-full bg-white/95 shadow flex items-center justify-center">
+                        <ZoomIn className="w-4 h-4" style={{ color: '#452D9B' }} />
                       </span>
-                      <button
-                        title="Increase quantity"
-                        onClick={() => updateQuantity(item._id, true)}
-                        className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
-                        style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                    </button>
+
+                    <div className="p-2.5 flex flex-col flex-1">
+                      <span className="text-[13px] font-semibold text-gray-800 leading-snug line-clamp-2 min-h-[2.3rem]">
+                        {item.name}
+                      </span>
+                      <span
+                        className="text-base font-bold mt-0.5"
+                        style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
                       >
-                        <Plus className="w-4 h-4" />
-                      </button>
+                        ₹{item.price}
+                      </span>
+
+                      <div className="flex items-center justify-between mt-2">
+                        <button
+                          title="Decrease quantity"
+                          onClick={() => updateQuantity(item._id, false)}
+                          className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
+                          style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <span className="font-semibold text-black">{quantities[item._id] || 0}</span>
+                        <button
+                          title="Increase quantity"
+                          onClick={() => updateQuantity(item._id, true)}
+                          className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
+                          style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -396,6 +408,11 @@ const Prices = () => {
             </div>
 
             <div className="p-5">
+              {previewItem.category && (
+                <span className="inline-block text-[10px] font-bold tracking-wide px-2 py-0.5 rounded-full mb-2" style={{ background: '#ede9fe', color: '#452D9B' }}>
+                  {previewItem.category.toUpperCase()}
+                </span>
+              )}
               <div className="flex items-start justify-between gap-3">
                 <h3 className="text-xl font-bold text-gray-800">{previewItem.name}</h3>
                 <span className="text-xl font-bold flex-shrink-0" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
@@ -405,6 +422,37 @@ const Prices = () => {
               {previewItem.description && (
                 <p className="mt-3 text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{previewItem.description}</p>
               )}
+
+              {/* Add it from here too. Closing the picture just to find the same
+                  garment again in the grid is a step nobody needs. */}
+              <div className="flex items-center justify-between gap-3 mt-5">
+                <div className="flex items-center gap-3">
+                  <button
+                    title="Decrease quantity"
+                    onClick={() => updateQuantity(previewItem._id, false)}
+                    className="w-10 h-10 rounded-xl text-white flex items-center justify-center shadow-md"
+                    style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="w-6 text-center font-bold text-lg text-black">{quantities[previewItem._id] || 0}</span>
+                  <button
+                    title="Increase quantity"
+                    onClick={() => updateQuantity(previewItem._id, true)}
+                    className="w-10 h-10 rounded-xl text-white flex items-center justify-center shadow-md"
+                    style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+                <button
+                  onClick={() => setPreviewItem(null)}
+                  className="flex-1 h-10 rounded-xl font-semibold text-sm"
+                  style={{ border: '1.5px solid #452D9B', color: '#452D9B', background: 'white' }}
+                >
+                  Done
+                </button>
+              </div>
             </div>
           </div>
         </div>
