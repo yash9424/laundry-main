@@ -200,6 +200,13 @@ const ContinueBooking = () => {
     }
   };
   
+  const removeVoucher = () => {
+    setAppliedVoucher(null);
+    setDiscount(0);
+    setCouponError("");
+    setShowOffersSheet(false);
+  };
+
   const applyCoupon = async (codeFromList: string) => {
     const code = codeFromList.trim();
     if (!code) return;
@@ -446,9 +453,35 @@ const ContinueBooking = () => {
               <p className="text-red-500 text-xs sm:text-sm">{couponError}</p>
             )}
             {appliedVoucher && (
-              <p className="text-green-600 text-xs sm:text-sm font-semibold">
-                🎉 {appliedVoucher.slogan} - {appliedVoucher.discount}% discount applied!
-              </p>
+              <div
+                key={appliedVoucher.code}
+                className="offer-applied relative overflow-hidden rounded-2xl border-2 px-3 py-2.5 flex items-center gap-3"
+              >
+                <span
+                  className="offer-applied-tick w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg, #16a34a, #07C8D0)' }}
+                >
+                  <Check className="w-5 h-5 text-white" strokeWidth={3} />
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-sm font-bold" style={{ color: '#15803d' }}>
+                    {appliedVoucher.code} applied
+                  </span>
+                  <span className="block text-[11px] leading-snug" style={{ color: '#166534' }}>
+                    You saved &#8377;{discount} &middot; {appliedVoucher.slogan}
+                  </span>
+                </span>
+                {availableVouchers.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowOffersSheet(true)}
+                    className="flex-shrink-0 text-xs font-bold px-2 py-1"
+                    style={{ color: '#452D9B' }}
+                  >
+                    Change
+                  </button>
+                )}
+              </div>
             )}
             {/* Grand Total -> Discount -> Wallet used -> Amount to Pay, in that order,
                 so the cost, what came off and what is still owed are all plain. */}
@@ -473,7 +506,10 @@ const ContinueBooking = () => {
                 <span>Grand Total (incl. GST)</span>
                 <span>₹{grandTotal}</span>
               </div>
-              <div className="flex justify-between text-green-600">
+              <div
+                key={appliedVoucher?.code || 'no-voucher'}
+                className={`flex justify-between text-green-600${appliedVoucher ? ' offer-discount-flash' : ''}`}
+              >
                 <span>{appliedVoucher ? `Discount (${appliedVoucher.code})` : 'Discount / Voucher'}</span>
                 <span>{discount > 0 ? `-₹${discount}` : '₹0'}</span>
               </div>
@@ -844,17 +880,35 @@ const ContinueBooking = () => {
                     </div>
                     <p className="text-[11px] text-gray-600 leading-snug mt-0.5">{v.slogan}</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => { applyCoupon(v.code); setShowOffersSheet(false); }}
-                    className="flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg"
-                    style={{ color: '#07C8D0' }}
-                  >
-                    APPLY
-                  </button>
+                  {appliedVoucher?.code === v.code ? (
+                    <span className="flex-shrink-0 text-xs font-bold px-3 py-1.5" style={{ color: '#16a34a' }}>
+                      APPLIED
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => { applyCoupon(v.code); setShowOffersSheet(false); }}
+                      className="flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg"
+                      style={{ color: '#07C8D0' }}
+                    >
+                      APPLY
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
+
+            {appliedVoucher && (
+              <div className="px-4 py-3 border-t flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={removeVoucher}
+                  className="w-full text-xs font-semibold text-gray-500 py-1"
+                >
+                  Remove offer
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
