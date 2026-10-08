@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
 import ConfirmModal from "@/components/ConfirmModal";
-import BottomNav from "@/components/BottomNav";
 import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
 import { getOrderBreakdown } from '@/utils/orderBreakdown';
@@ -248,8 +247,6 @@ function DeliveryDetailsContent() {
           </div>
         )}
       </div>
-
-      <BottomNav />
 
       <ConfirmModal
         isOpen={showCancelConfirm}

@@ -76,6 +76,11 @@ button {
 }
 
 /* Bottom navigation safe area */
+.bottom-nav-spacer {
+  height: calc(6.25rem + env(safe-area-inset-bottom));
+  flex-shrink: 0;
+}
+
 .bottom-nav-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }

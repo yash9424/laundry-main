@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import BottomNav from "@/components/BottomNav";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
@@ -181,8 +180,6 @@ export default function DeliveryDetails() {
           </div>
         )}
       </div>
-
-      <BottomNav />
 
       {/* Failure Reason Modal */}
       {showFailureModal && (

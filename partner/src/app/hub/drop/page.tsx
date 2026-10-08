@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
-import BottomNav from "@/components/BottomNav";
 import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
@@ -431,7 +430,6 @@ export default function DropToHub() {
           Drop to Hub ({selectedOrders.length > 0 ? selectedOrders.length : orders.length})
         </button>
       </div>
-      <BottomNav />
     </div>
   );
 }

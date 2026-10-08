@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
-import BottomNav from "@/components/BottomNav";
 import { API_URL } from '@/config/api';
 
 // Live countdown for Express Delivery orders only (12hr SLA). Standard orders
@@ -345,8 +344,6 @@ export default function PickForDelivery() {
           Confirm Selection ({selected.size})
         </button>
       </div>
-
-      <BottomNav />
     </div>
   );
 }

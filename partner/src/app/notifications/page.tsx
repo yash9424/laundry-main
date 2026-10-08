@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import BottomNav from "@/components/BottomNav";
 import { API_URL } from '@/config/api';
 import PartnerNotificationService, { PartnerNotification } from '@/services/notificationService';
 
@@ -256,8 +255,6 @@ export default function Notifications() {
           ))
         )}
       </div>
-
-      <BottomNav />
     </div>
   );
 }

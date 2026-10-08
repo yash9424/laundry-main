@@ -128,6 +128,11 @@ export default function BottomNav() {
   ] as const;
 
   return (
+    <>
+    {/* The bar is fixed, so it floats over whatever is underneath. Without this
+        spacer the last thing on a page -- "Drop to Hub", "Start Pickup" -- sat
+        behind it and could not be reached. */}
+    <div aria-hidden className="bottom-nav-spacer" />
     <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 bottom-nav-safe" style={{ zIndex: 50 }}>
       <div className="mx-auto max-w-md px-4 py-3">
         <ul className="grid grid-cols-5 items-center gap-1">
@@ -142,5 +147,6 @@ export default function BottomNav() {
         </ul>
       </div>
     </nav>
+    </>
   );
 }

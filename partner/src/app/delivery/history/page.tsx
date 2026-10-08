@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import BottomNav from "@/components/BottomNav";
 import { useState, useEffect } from "react";
 import { API_URL } from '@/config/api';
 
@@ -203,8 +202,6 @@ export default function DeliveryHistory() {
           </div>
         </div>
       )}
-
-      <BottomNav />
     </div>
   );
 }
