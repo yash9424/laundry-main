@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react';
+import { useAuthId } from './useAuthId';
 import { API_URL } from '@/config/api';
 
 interface Order {
@@ -54,8 +55,16 @@ export const usePartnerOrderMonitor = () => {
   const lastCheckedOrders = useRef<Set<string>>(new Set());
   const myPincodes = useRef<string[]>([]);
 
+  // Watched, not read once: this used to start only at app launch, so a captain
+  // who signed in afterwards got no notifications until the app was restarted,
+  // and signing out left it polling under the previous captain's id.
+  const partnerId = useAuthId('partnerId');
+
   useEffect(() => {
-    const partnerId = localStorage.getItem('partnerId');
+    // Whoever was here before is gone; nothing of theirs should carry over
+    lastOrderStatuses.current = new Map();
+    lastCheckedOrders.current = new Set();
+    myPincodes.current = [];
     if (!partnerId) return;
 
     const loadMyPincodes = async () => {
@@ -132,11 +141,21 @@ export const usePartnerOrderMonitor = () => {
       }
     };
 
-    loadMyPincodes().then(checkPartnerOrders);
-    const interval = setInterval(checkPartnerOrders, 10000); // Check every 10 seconds
+    const poll = () => {
+      // No point polling for a captain who is not looking; it only costs them
+      // battery and data.
+      if (document.hidden) return;
+      checkPartnerOrders();
+    };
+
+    loadMyPincodes().then(poll);
+    const interval = setInterval(poll, 10000);
+    // Catch up as soon as they come back to the app
+    document.addEventListener('visibilitychange', poll);
 
     return () => {
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', poll);
     };
-  }, []);
+  }, [partnerId]);
 };

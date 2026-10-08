@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { AUTH_CHANGED } from '@/hooks/useAuthId';
 import { useRouter } from "next/navigation";
 import { API_URL } from '@/config/api';
 
@@ -92,6 +93,9 @@ export default function ProfilePage() {
     try {
       keys.forEach((key) => localStorage.removeItem(key));
       sessionStorage.clear();
+      // Stop the order monitor now rather than on its next read, so it cannot
+      // make one more call under the captain who just left.
+      window.dispatchEvent(new Event(AUTH_CHANGED));
     } catch (error) {
       console.error("Could not fully clear stored data on logout:", error);
     }

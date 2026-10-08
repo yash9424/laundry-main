@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { API_URL } from '@/config/api';
 import NotificationService from '@/services/notificationService';
+import { useAuthId } from './useAuthId';
 
 interface Order {
   _id: string;
@@ -27,12 +28,17 @@ const NOTIFICATION_STATUSES = [
 export const useOrderStatusMonitor = () => {
   const lastOrderStatuses = useRef<Map<string, string>>(new Map());
   const notificationService = NotificationService.getInstance();
+  // Watched, not read once: this used to start only at app launch, so signing
+  // in brought no notifications until the app was restarted, and signing out
+  // left it polling under the previous customer's id.
+  const customerId = useAuthId('customerId');
 
   useEffect(() => {
-    const customerId = localStorage.getItem('customerId');
+    // Whoever was here before is gone; their statuses must not carry over
+    lastOrderStatuses.current = new Map();
     if (!customerId) return;
 
-    // Request notification permission on first load
+    notificationService.loadNotifications();
     notificationService.requestPermission();
 
     const checkOrderStatuses = async () => {
@@ -64,26 +70,28 @@ export const useOrderStatusMonitor = () => {
       }
     };
 
-    // Initial check
-    checkOrderStatuses();
-    // Also check server notifications immediately
-    notificationService.fetchServerNotifications();
-
-    // Set up polling every 2 seconds for faster updates
-    const interval = setInterval(() => {
+    const poll = () => {
+      // Nothing to report to someone who is not looking, and polling in the
+      // background only costs the customer battery and data.
+      if (document.hidden) return;
       checkOrderStatuses();
       notificationService.fetchServerNotifications();
-    }, 2000);
+    };
+
+    poll();
+    const interval = setInterval(poll, 2000);
+    // Catch up the moment they come back to the app
+    document.addEventListener('visibilitychange', poll);
 
     return () => {
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', poll);
     };
-  }, []);
+  }, [customerId]);
 
   return {
     // Manually trigger a status check
     checkNow: async () => {
-      const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
 
       try {

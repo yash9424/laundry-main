@@ -21,6 +21,7 @@ import { Settings, MapPin, Edit, Trash2, CreditCard, Wallet, Gift, HelpCircle, M
 import { Switch } from "@/components/ui/switch";
 import { API_URL } from '@/config/api';
 import NotificationService from '@/services/notificationService';
+import { AUTH_CHANGED } from '@/hooks/useAuthId';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import BottomNavigation from "@/components/BottomNavigation";
@@ -799,6 +800,9 @@ const Profile = () => {
                 .forEach((key) => localStorage.removeItem(key));
               sessionStorage.clear();
               NotificationService.getInstance().resetForLogout();
+              // Stop the order monitor now rather than on its next read, so it
+              // cannot make one more call under the customer who just left.
+              window.dispatchEvent(new Event(AUTH_CHANGED));
             } catch (error) {
               console.error('Could not fully clear stored data on logout:', error);
             }
