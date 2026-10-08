@@ -67,17 +67,9 @@ const Booking = () => {
     fetchCustomerAddress();
     fetchDaySettings();
     
-    // Handle hardware back button
-    const handleBackButton = () => {
-      navigate('/home');
-      return true; // Prevent default behavior
-    };
-    
-    App.addListener('backButton', handleBackButton);
-    
-    return () => {
-      App.removeAllListeners();
-    };
+    // No back-button listener here. The global one in App.tsx already does
+    // this, and the cleanup used to call App.removeAllListeners(), which
+    // removed the global handler along with this one.
   }, [navigate]);
 
   useEffect(() => {

@@ -48,10 +48,14 @@ const Prices = () => {
       return true; // Prevent default behavior
     };
     
-    App.addListener('backButton', handleBackButton);
-    
+    // Remove only this listener on the way out. It used to call
+    // App.removeAllListeners(), which also tore out the global handler in
+    // App.tsx -- so after visiting this screen once, back did nothing anywhere.
+    let handle: { remove: () => void } | null = null;
+    App.addListener('backButton', handleBackButton).then((h) => { handle = h; });
+
     return () => {
-      App.removeAllListeners();
+      handle?.remove();
     };
   }, [navigate, selectedCategory, previewItem]);
 

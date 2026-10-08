@@ -39,6 +39,8 @@ import OrderDetails from "./pages/OrderDetails";
 import Profile from "./pages/Profile";
 import AddAddress from "./pages/AddAddress";
 import Cart from "./pages/Cart";
+import PickupChecklistPage from "./pages/PickupChecklistPage";
+import PickupSlot from "./pages/PickupSlot";
 import Wallet from "./pages/Wallet";
 import ReferEarn from "./pages/ReferEarn";
 import RateOrder from "./pages/RateOrder";
@@ -107,10 +109,12 @@ const AppContent = () => {
       CapApp.addListener('backButton', ({ canGoBack }) => {
         const currentPath = location.pathname;
         
-        // Define main pages where back should exit app
-        const mainPages = ['/home', '/prices', '/cart', '/booking-history', '/profile'];
-        
-        if (mainPages.includes(currentPath)) {
+        // Only the home screen closes the app. Back from the cart, the
+        // catalogue or the profile used to quit outright, which is why people
+        // kept losing the app mid-order instead of stepping back one screen.
+        const exitPages = ['/home'];
+
+        if (exitPages.includes(currentPath)) {
           CapApp.exitApp();
         } else if (canGoBack) {
           navigate(-1);
@@ -153,6 +157,8 @@ const AppContent = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/add-address" element={<AddAddress />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/pickup-checklist" element={<PickupChecklistPage />} />
+        <Route path="/pickup-slot" element={<PickupSlot />} />
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/refer-earn" element={<ReferEarn />} />
         <Route path="/rate-order/:orderId" element={<RateOrder />} />
