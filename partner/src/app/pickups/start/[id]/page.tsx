@@ -127,16 +127,25 @@ export default function StartPickup() {
         <p className="text-base font-semibold text-black">{order.customerId?.name || 'Customer'}</p>
         <p className="text-xs text-black mt-1">{order.customerId?.mobile}</p>
         <p className="text-xs text-black mt-1">📍 {order.pickupAddress.street}, {order.pickupAddress.city}</p>
-        <div className="mt-3 flex items-center gap-3">
-          <a href={`tel:${order.customerId?.mobile}`} className="inline-flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>
-            <span>📞</span>
-            Call Customer
-          </a>
-          <a href={`https://wa.me/${order.customerId?.mobile.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>
-            <span>💬</span>
-            Message
-          </a>
-        </div>
+        {/* Only when there is a number to call. The WhatsApp link used to read
+            customerId?.mobile.replace(...), which guards the customer being
+            missing but not the number: on an order without one it threw and
+            took the whole screen down, so the captain could not get past
+            "I have reached" at all. */}
+        {order.customerId?.mobile ? (
+          <div className="mt-3 flex items-center gap-3">
+            <a href={`tel:${order.customerId.mobile}`} className="inline-flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>
+              <span>📞</span>
+              Call Customer
+            </a>
+            <a href={`https://wa.me/${String(order.customerId.mobile).replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>
+              <span>💬</span>
+              Message
+            </a>
+          </div>
+        ) : (
+          <p className="mt-3 text-xs text-gray-500">No contact number on this order.</p>
+        )}
       </div>
 
       {/* Order Details */}
