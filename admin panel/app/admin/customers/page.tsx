@@ -726,19 +726,6 @@ export default function CustomersPage() {
                   }}>
                     Block
                   </button>
-                  <button style={{
-                    backgroundColor: '#2563eb',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.5rem 0.75rem',
-                    borderRadius: '6px',
-                    fontSize: '0.75rem',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    Adjust Points
-                  </button>
                   </div>
                 </div>
               ))
@@ -1040,19 +1027,6 @@ export default function CustomersPage() {
                             whiteSpace: 'nowrap'
                           }}>
                             Block
-                          </button>
-                          <button style={{
-                            backgroundColor: '#2563eb',
-                            color: 'white',
-                            border: 'none',
-                            padding: '0.5rem 0.75rem',
-                            borderRadius: '6px',
-                            fontSize: '0.75rem',
-                            fontWeight: '500',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            Adjust Points
                           </button>
                         </div>
                       </div>

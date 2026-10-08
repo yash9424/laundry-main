@@ -9,13 +9,11 @@ export default function ReportsPage() {
     ordersTrend: any[];
     revenueByDay: any[];
     partnerPerformance: any[];
-    loyaltyData: { redemptionRate: number };
   }>({
     stats: { totalOrders: 0, totalRevenue: 0, activePartners: 0, activeCustomers: 0, avgDeliveryTime: '0 mins' },
     ordersTrend: [],
     revenueByDay: [],
     partnerPerformance: [],
-    loyaltyData: { redemptionRate: 0 }
   })
   const [loading, setLoading] = useState(true)
   const [fromDate, setFromDate] = useState('')
@@ -135,7 +133,7 @@ export default function ReportsPage() {
 
   const generateCSV = (data: any) => {
     const headers = [
-      'Order ID', 'Customer Name', 'Customer Mobile', 'Customer Email', 'Customer Total Spend', 'Customer Loyalty Points',
+      'Order ID', 'Customer Name', 'Customer Mobile', 'Customer Email', 'Customer Total Spend',
       'Partner Name', 'Partner Mobile', 'Order Date', 'Order Time', 'Order Amount',
       'Payment Method', 'Payment Status', 'Order Status', 'Items', 'Pickup Address', 'Delivery Address',
       'Pickup Slot', 'Delivery Slot', 'Special Instructions', 'Delivery Fee', 'Discount', 'Tax'
@@ -163,7 +161,6 @@ export default function ReportsPage() {
         order.customerMobile || '',
         order.customerEmail || '',
         order.customerTotalSpend || 0,
-        order.customerLoyaltyPoints || 0,
         `"${order.partnerName || ''}"`,
         order.partnerMobile || '',
         order.orderDate || '',
@@ -480,47 +477,6 @@ export default function ReportsPage() {
     )
   }
 
-  const renderLoyaltyPoints = () => {
-    const redemptionRate = data.loyaltyData.redemptionRate || 0
-    const segments = [
-      { label: 'Redeemed', value: redemptionRate, color: '#3b82f6' },
-      { label: 'Available', value: 100 - redemptionRate, color: '#e5e7eb' }
-    ]
-    
-    return (
-      <div style={{ position: 'relative', height: '200px', background: 'linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%)', borderRadius: '8px', padding: '20px' }}>
-        <svg width="100%" height="160" viewBox="0 0 400 160">
-          <defs>
-            <linearGradient id="loyaltyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.8"/>
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.3"/>
-            </linearGradient>
-          </defs>
-          <circle cx="200" cy="80" r="60" fill="none" stroke="#e5e7eb" strokeWidth="12"/>
-          <circle 
-            cx="200" 
-            cy="80" 
-            r="60" 
-            fill="none" 
-            stroke="url(#loyaltyGradient)" 
-            strokeWidth="12"
-            strokeDasharray={`${(redemptionRate / 100) * 377} 377`}
-            strokeLinecap="round"
-            transform="rotate(-90 200 80)"
-          />
-          <text x="200" y="75" textAnchor="middle" fontSize="24" fontWeight="bold" fill="#f59e0b">
-            {redemptionRate}%
-          </text>
-          <text x="200" y="95" textAnchor="middle" fontSize="12" fill="#6b7280">
-            Redeemed
-          </text>
-        </svg>
-        <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', color: '#6b7280' }}>
-          🎯 Loyalty Rate
-        </div>
-      </div>
-    )
-  }
   return (
     <ResponsiveLayout activePage="Reports" title="Reports & Analytics">
       <div style={{ backgroundColor: 'white', padding: '1rem 2rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -740,20 +696,13 @@ export default function ReportsPage() {
           </div>
 
           {/* Charts Row 2 */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginBottom: '2rem' }}>
             <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid #f1f5f9' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1e293b', margin: 0 }}>🚚 Partner Performance</h3>
                 <div style={{ fontSize: '0.8rem', color: '#64748b', background: '#f1f5f9', padding: '4px 8px', borderRadius: '12px' }}>Updated</div>
               </div>
               {renderPartnerPerformance()}
-            </div>
-            <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', border: '1px solid #f1f5f9' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1e293b', margin: 0 }}>🎯 Customer Loyalty & Points</h3>
-                <div style={{ fontSize: '0.8rem', color: '#64748b', background: '#f1f5f9', padding: '4px 8px', borderRadius: '12px' }}>Active</div>
-              </div>
-              {renderLoyaltyPoints()}
             </div>
           </div>
 

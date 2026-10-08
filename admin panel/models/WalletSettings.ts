@@ -1,11 +1,6 @@
 import mongoose from 'mongoose'
 
 const WalletSettingsSchema = new mongoose.Schema({
-  pointsPerRupee: { type: Number, required: true, default: 2 },
-  minRedeemPoints: { type: Number, default: 100 },
-  referralPoints: { type: Number, default: 50 },
-  signupBonusPoints: { type: Number, default: 25 },
-  orderCompletionPoints: { type: Number, default: 10 },
   minOrderPrice: { type: Number, default: 500 },
 
   // Referral rewards, paid as wallet credit rather than cash. Credit only

@@ -40,7 +40,6 @@ const CustomerSchema = new mongoose.Schema({
   totalSpend: { type: Number, default: 0 },
   totalOrders: { type: Number, default: 0 },
   walletBalance: { type: Number, default: 0 },
-  loyaltyPoints: { type: Number, default: 0 },
   dueAmount: { type: Number, default: 0 },
   lastAdjustmentReason: { type: String },
   lastAdjustmentAction: { type: String },

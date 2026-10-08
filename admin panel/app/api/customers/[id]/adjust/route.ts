@@ -29,6 +29,15 @@ export async function POST(
       );
     }
 
+    // The wallet is the only thing a customer holds. Points were removed from
+    // the product, so this no longer accepts a request to adjust them.
+    if (type !== 'balance') {
+      return NextResponse.json(
+        { success: false, error: 'Only the wallet balance can be adjusted' },
+        { status: 400 }
+      );
+    }
+
     // Get customer details
     const customer = await db.collection('customers').findOne({
       _id: new ObjectId(id)
@@ -44,7 +53,7 @@ export async function POST(
     // Calculate new value. Everything here is guarded against non-finite numbers:
     // an Infinity or NaN reaching the document serialises to null, which both
     // empties the balance and makes every later $inc on it fail.
-    const rawCurrent = type === 'balance' ? customer.walletBalance : customer.loyaltyPoints;
+    const rawCurrent = customer.walletBalance;
     const currentValue = Number.isFinite(Number(rawCurrent)) ? Number(rawCurrent) : 0;
 
     const rawAmount = Number(amount);
@@ -59,12 +68,11 @@ export async function POST(
     const newValue = Math.max(0, Math.round(currentValue + adjustmentAmount));
 
     // Update customer
-    const updateField = type === 'balance' ? 'walletBalance' : 'loyaltyPoints';
     await db.collection('customers').updateOne(
       { _id: new ObjectId(id) },
       {
         $set: {
-          [updateField]: newValue,
+          walletBalance: newValue,
           updatedAt: new Date().toISOString()
         }
       }
@@ -84,13 +92,9 @@ export async function POST(
     });
 
     // Create and send notification
-    const notificationTitle = type === 'balance' 
-      ? `Wallet ${action === 'increase' ? 'Credited' : 'Debited'}`
-      : `Points ${action === 'increase' ? 'Awarded' : 'Deducted'}`;
+    const notificationTitle = `Wallet ${action === 'increase' ? 'Credited' : 'Debited'}`;
     
-    const notificationMessage = type === 'balance'
-      ? `Your wallet has been ${action === 'increase' ? 'credited with' : 'debited by'} ₹${amount}. Reason: ${reason}. Current balance: ₹${newValue}`
-      : `${amount} loyalty points have been ${action === 'increase' ? 'awarded to' : 'deducted from'} your account. Reason: ${reason}. Current points: ${newValue}`;
+    const notificationMessage = `Your wallet has been ${action === 'increase' ? 'credited with' : 'debited by'} ₹${amount}. Reason: ${reason}. Current balance: ₹${newValue}`;
 
     // Save notification to database
     await db.collection('notifications').insertOne({

@@ -76,9 +76,6 @@ export async function GET(request: NextRequest) {
     
     // Loyalty data (mock for now)
     const totalCustomers = await Customer.countDocuments()
-    const loyaltyData = {
-      redemptionRate: Math.round((totalCustomers * 0.35)) // 35% redemption rate
-    }
     
     return NextResponse.json({
       success: true,
@@ -92,7 +89,6 @@ export async function GET(request: NextRequest) {
         ordersTrend,
         revenueByDay,
         partnerPerformance: partnerStats,
-        loyaltyData,
         orders // Include orders for export
       }
     })

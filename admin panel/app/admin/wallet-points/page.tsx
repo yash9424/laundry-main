@@ -9,7 +9,6 @@ export default function WalletPointsPage() {
   const [showModal, setShowModal] = useState(false)
   const [modalData, setModalData] = useState({ customerId: '', customerName: '', type: '', currentValue: 0 })
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [bulkType, setBulkType] = useState<'balance' | 'points'>('balance')
   const [showBulkModal, setShowBulkModal] = useState(false)
   const [toast, setToast] = useState({ show: false, message: '', type: '' })
 
@@ -76,7 +75,7 @@ export default function WalletPointsPage() {
       const response = await fetch('/api/customers/bulk-adjust', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerIds: Array.from(selectedIds), type: bulkType, action, amount, reason })
+        body: JSON.stringify({ customerIds: Array.from(selectedIds), type: 'balance', action, amount, reason })
       })
       const data = await response.json()
       if (response.ok) {
@@ -119,7 +118,7 @@ export default function WalletPointsPage() {
         {someSelected && (
           <div style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '0.75rem 1.25rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <span style={{ fontWeight: '600', color: '#1d4ed8', fontSize: '0.9rem' }}>{selectedIds.size} customer{selectedIds.size > 1 ? 's' : ''} selected</span>
-            <button onClick={() => { setBulkType('balance'); setShowBulkModal(true) }} style={{ padding: '0.4rem 1rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer', fontWeight: '500' }}>
+            <button onClick={() => setShowBulkModal(true)} style={{ padding: '0.4rem 1rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer', fontWeight: '500' }}>
               Adjust Wallet Balance
             </button>
             <button onClick={() => setSelectedIds(new Set())} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>

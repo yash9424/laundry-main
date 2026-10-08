@@ -13,7 +13,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
 
-    const updateField = type === 'balance' ? 'walletBalance' : 'loyaltyPoints';
+    // Wallet only: points are no longer part of the product.
+    if (type !== 'balance') {
+      return NextResponse.json({ success: false, error: 'Only the wallet balance can be adjusted' }, { status: 400 });
+    }
+
+    const updateField = 'walletBalance';
     const adjustmentAmount = action === 'increase' ? amount : -amount;
     await connectDB();
 
@@ -43,13 +48,9 @@ export async function POST(request: NextRequest) {
           adjustedBy: 'Admin'
         });
 
-        const notificationTitle = type === 'balance'
-          ? `Wallet ${action === 'increase' ? 'Credited' : 'Debited'}`
-          : `Points ${action === 'increase' ? 'Awarded' : 'Deducted'}`;
+        const notificationTitle = `Wallet ${action === 'increase' ? 'Credited' : 'Debited'}`;
 
-        const notificationMessage = type === 'balance'
-          ? `Your wallet has been ${action === 'increase' ? 'credited with' : 'debited by'} ₹${amount}. Reason: ${reason}. Current balance: ₹${newValue}`
-          : `${amount} loyalty points have been ${action === 'increase' ? 'awarded to' : 'deducted from'} your account. Reason: ${reason}. Current points: ${newValue}`;
+        const notificationMessage = `Your wallet has been ${action === 'increase' ? 'credited with' : 'debited by'} ₹${amount}. Reason: ${reason}. Current balance: ₹${newValue}`;
 
         await db.collection('notifications').insertOne({
           title: notificationTitle,
