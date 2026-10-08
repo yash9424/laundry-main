@@ -61,6 +61,13 @@ const AppContent = () => {
   // order confirmation, for instance — dropped people into the middle of it.
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    // #root is what actually scrolls: index.css gives it height 100dvh and
+    // overflow-y auto, so the window itself never scrolls and scrolling it did
+    // nothing at all. Nothing in the app carries data-scroll-container either,
+    // which is why arriving at the order confirmation from the bottom of the
+    // booking screen landed you at the bottom of the confirmation too.
+    const root = document.getElementById('root');
+    if (root) root.scrollTop = 0;
     document.querySelectorAll('[data-scroll-container]').forEach((el) => { el.scrollTop = 0; });
   }, [location.pathname]);
 
