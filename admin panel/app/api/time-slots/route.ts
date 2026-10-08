@@ -59,19 +59,35 @@ export async function GET(request: NextRequest) {
     // people's phones carry on working untouched.
     const offset = dayOffset !== null ? Number(dayOffset) : (day === 'tomorrow' ? 1 : day === 'today' ? 0 : null)
 
+    // Settings added after a slot was saved are simply absent on that document,
+    // and an absent field matches no $in. Each one therefore has to allow for
+    // the field not being there at all, or older slots quietly vanish from the
+    // app -- which is what happened when Express got its own shifts: every slot
+    // predating serviceType stopped being offered to anybody.
+    const conditions: any[] = []
+
     if (offset === 0) {
       query.availableFor = { $in: ['today', 'both'] }
     } else if (offset !== null && offset >= 1) {
       query.availableFor = { $in: ['tomorrow', 'both'] }
-      query.$or = [
-        { maxDaysAhead: { $exists: false } },
-        { maxDaysAhead: { $gte: offset } },
-      ]
+      conditions.push({
+        $or: [
+          { maxDaysAhead: { $exists: false } },
+          { maxDaysAhead: { $gte: offset } },
+        ],
+      })
     }
 
     if (serviceType === 'standard' || serviceType === 'express') {
-      query.serviceType = { $in: [serviceType, 'both'] }
+      conditions.push({
+        $or: [
+          { serviceType: { $exists: false } },
+          { serviceType: { $in: [serviceType, 'both'] } },
+        ],
+      })
     }
+
+    if (conditions.length > 0) query.$and = conditions
 
     const timeSlots = await TimeSlot.find(query).sort({ order: 1, createdAt: 1 }).lean()
     return NextResponse.json({ success: true, data: byClock(timeSlots as any) })
