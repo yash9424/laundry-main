@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Shirt, CheckCircle2, MapPin, Circle, Check, X, Clock } from "lucide-react";
+import { Shirt, CheckCircle2, MapPin, Circle, Check, X, Clock, Tag, ChevronRight } from "lucide-react";
 import { TermsContent } from "@/pages/TermsConditions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ const ContinueBooking = () => {
   // Offers are listed here so a voucher can be applied with one tap instead of
   // being copied from the home screen and pasted back in.
   const [availableVouchers, setAvailableVouchers] = useState<any[]>([]);
+  const [showOffersSheet, setShowOffersSheet] = useState(false);
   const [customerInfo, setCustomerInfo] = useState<any>(null);
   const [pastOrders, setPastOrders] = useState<any[]>([]);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -438,43 +439,20 @@ const ContinueBooking = () => {
               </Button>
             </div>
             {availableVouchers.length > 0 && !appliedVoucher && (
-              <div>
-                <div className="flex items-baseline justify-between mb-2">
-                  <p className="text-[11px] font-semibold text-gray-500">Available offers</p>
-                  {availableVouchers.length > 1 && (
-                    <p className="text-[10px] text-gray-400">swipe for more &rarr;</p>
-                  )}
-                </div>
-                {/* Offers run sideways. Stacked full-width rows pushed the total
-                    and the pay button off the screen once a few vouchers were live. */}
-                <div
-                  className="flex gap-2.5 overflow-x-auto scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 pb-1"
-                  style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
-                >
-                  {availableVouchers.map((v: any) => (
-                    <button
-                      key={v._id}
-                      type="button"
-                      onClick={() => applyCoupon(v.code)}
-                      className="flex-shrink-0 w-44 rounded-2xl overflow-hidden text-left bg-white border-2 border-dashed shadow-sm active:scale-[0.98] transition-transform"
-                      style={{ borderColor: '#c7d2fe', scrollSnapAlign: 'start' }}
-                    >
-                      <div
-                        className="px-3 py-2 flex items-baseline justify-between"
-                        style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
-                      >
-                        <span className="text-white font-extrabold text-lg leading-none">{v.discount}%</span>
-                        <span className="text-white/90 text-[10px] font-bold tracking-widest">OFF</span>
-                      </div>
-                      <div className="px-3 py-2">
-                        <span className="block text-sm font-bold tracking-wide" style={{ color: '#452D9B' }}>{v.code}</span>
-                        <span className="block text-[11px] text-gray-600 leading-snug line-clamp-2 min-h-[2rem]">{v.slogan}</span>
-                        <span className="mt-1 inline-block text-[11px] font-bold" style={{ color: '#07C8D0' }}>Tap to apply</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowOffersSheet(true)}
+                className="w-full flex items-center gap-3 py-1 text-left"
+              >
+                <Tag className="w-4 h-4 flex-shrink-0" style={{ color: '#452D9B' }} />
+                <span className="flex-1 min-w-0">
+                  <span className="block text-sm font-semibold text-black">View all offers</span>
+                  <span className="block text-[11px] text-gray-500">
+                    {availableVouchers.length} offer{availableVouchers.length > 1 ? 's' : ''} available
+                  </span>
+                </span>
+                <ChevronRight className="w-4 h-4 flex-shrink-0 text-gray-400" />
+              </button>
             )}
             {couponError && (
               <p className="text-red-500 text-xs sm:text-sm">{couponError}</p>
@@ -850,6 +828,49 @@ const ContinueBooking = () => {
       </div>
 
       {/* Policy Modal */}
+      {/* Offers open in their own sheet, listed as rows. They used to sit inline
+          on the booking screen, which pushed the total and the pay button down
+          the page as soon as more than one voucher was live. */}
+      {showOffersSheet && (
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50" onClick={() => setShowOffersSheet(false)}>
+          <div
+            className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl max-h-[75vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0">
+              <h3 className="text-base font-bold text-black">Offers for you</h3>
+              <button onClick={() => setShowOffersSheet(false)} className="text-gray-500" aria-label="Close offers">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto divide-y">
+              {availableVouchers.map((v: any) => (
+                <div key={v._id} className="flex items-center gap-3 px-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold tracking-wide" style={{ color: '#452D9B' }}>{v.code}</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: '#ede9fe', color: '#452D9B' }}>
+                        {v.discount}% OFF
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-600 leading-snug mt-0.5">{v.slogan}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { applyCoupon(v.code); setShowOffersSheet(false); }}
+                    className="flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg"
+                    style={{ color: '#07C8D0' }}
+                  >
+                    APPLY
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {policyModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setPolicyModal(null)}>
           <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
