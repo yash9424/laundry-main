@@ -265,73 +265,90 @@ const Prices = () => {
               <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                 {selectedCategory === 'All' ? 'All Items' : selectedCategory}
               </h2>
-              {/* A grid of picture cards rather than a list of rows. The garment
-                  was a 64px thumbnail squeezed between the name and the quantity
-                  buttons; here the picture is the card, roughly three times the
-                  width, with the name, price and buttons underneath. Tapping the
-                  picture still opens the full view. */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {filteredItems.map((item: any) => (
-                  <div
-                    key={item._id}
-                    className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setPreviewItem(item)}
-                      aria-label={`View ${item.name} details`}
-                      className="relative w-full aspect-square overflow-hidden active:scale-[0.98] transition-transform"
-                      style={{ background: item.image ? '#f3f4f6' : 'linear-gradient(135deg, #f5f3ff 0%, #ecfeff 100%)' }}
-                    >
-                      {item.image
-                        ? <img
-                            src={item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`}
-                            alt={item.name}
-                            loading="lazy"
-                            className="w-full h-full object-cover"
-                          />
-                        : <span className="w-full h-full flex items-center justify-center">
-                            <Shirt className="w-12 h-12" style={{ color: '#c4b5fd' }} />
-                          </span>
-                      }
-                      <span className="absolute bottom-1.5 right-1.5 w-7 h-7 rounded-full bg-white/95 shadow flex items-center justify-center">
-                        <ZoomIn className="w-4 h-4" style={{ color: '#452D9B' }} />
-                      </span>
-                    </button>
-
-                    <div className="p-2.5 flex flex-col flex-1">
-                      <span className="text-[13px] font-semibold text-gray-800 leading-snug line-clamp-2 min-h-[2.3rem]">
-                        {item.name}
-                      </span>
-                      <span
-                        className="text-base font-bold mt-0.5"
-                        style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
+              {/* A catalogue row: the garment, then its name, what we do to it
+                  and the price, then one button to add it. The picture used to
+                  be a 64px thumbnail wedged between the name and a three-part
+                  stepper; it is half as wide again now and the stepper only
+                  appears once there is something to count. */}
+              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                {filteredItems.map((item: any) => {
+                  const qty = quantities[item._id] || 0;
+                  return (
+                    <div key={item._id} className="flex items-center gap-3.5 px-3.5 py-3">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewItem(item)}
+                        aria-label={`View ${item.name} details`}
+                        className="relative flex-shrink-0 active:scale-95 transition-transform"
                       >
-                        ₹{item.price}
-                      </span>
+                        <div
+                          className="w-[84px] h-[84px] rounded-[22px] overflow-hidden flex items-center justify-center"
+                          style={{ background: item.image ? '#f4f2ef' : 'linear-gradient(135deg, #f5f3ff 0%, #ecfeff 100%)' }}
+                        >
+                          {item.image
+                            ? <img
+                                src={item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`}
+                                alt={item.name}
+                                loading="lazy"
+                                className="w-full h-full object-cover"
+                              />
+                            : <Shirt className="w-8 h-8" style={{ color: '#c4b5fd' }} />
+                          }
+                        </div>
+                        <span className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-white shadow flex items-center justify-center">
+                          <ZoomIn className="w-3.5 h-3.5" style={{ color: '#452D9B' }} />
+                        </span>
+                      </button>
 
-                      <div className="flex items-center justify-between mt-2">
-                        <button
-                          title="Decrease quantity"
-                          onClick={() => updateQuantity(item._id, false)}
-                          className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
-                          style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[15px] font-bold text-gray-900 leading-snug line-clamp-2">{item.name}</p>
+                        <p className="flex items-center gap-1 text-[12px] text-gray-500 truncate mt-0.5">
+                          <Shirt className="w-3 h-3 flex-shrink-0" style={{ color: '#a5b4fc' }} />
+                          <span className="truncate">{item.description?.trim() || 'Professional steam ironing'}</span>
+                        </p>
+                        <p
+                          className="text-[15px] font-bold mt-0.5"
+                          style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
                         >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="font-semibold text-black">{quantities[item._id] || 0}</span>
-                        <button
-                          title="Increase quantity"
-                          onClick={() => updateQuantity(item._id, true)}
-                          className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
-                          style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
+                          ₹{item.price}
+                        </p>
+                      </div>
+
+                      <div className="flex-shrink-0">
+                        {qty === 0 ? (
+                          <button
+                            title={`Add ${item.name}`}
+                            onClick={() => updateQuantity(item._id, true)}
+                            className="w-10 h-10 rounded-xl text-white flex items-center justify-center shadow-md active:scale-95 transition-transform"
+                            style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                          >
+                            <Plus className="w-5 h-5" strokeWidth={2.5} />
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              title="Decrease quantity"
+                              onClick={() => updateQuantity(item._id, false)}
+                              className="w-8 h-8 rounded-lg text-white flex items-center justify-center shadow-md"
+                              style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="w-5 text-center font-bold text-gray-900">{qty}</span>
+                            <button
+                              title="Increase quantity"
+                              onClick={() => updateQuantity(item._id, true)}
+                              className="w-8 h-8 rounded-lg text-white flex items-center justify-center shadow-md"
+                              style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
