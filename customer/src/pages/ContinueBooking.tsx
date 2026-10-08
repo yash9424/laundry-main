@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Shirt, CheckCircle2, MapPin, Circle, Check, X, Clock, Tag, ChevronRight } from "lucide-react";
 import { TermsContent } from "@/pages/TermsConditions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
 import Header from "@/components/Header";
@@ -22,7 +21,6 @@ const ContinueBooking = () => {
   // Check if coming from cart
   const isFromCart = orderData.cartItems && Array.isArray(orderData.cartItems);
   
-  const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
   const [couponError, setCouponError] = useState("");
@@ -202,10 +200,9 @@ const ContinueBooking = () => {
     }
   };
   
-  const applyCoupon = async (codeFromList?: string) => {
-    const code = (codeFromList ?? couponCode).trim();
+  const applyCoupon = async (codeFromList: string) => {
+    const code = codeFromList.trim();
     if (!code) return;
-    if (codeFromList) setCouponCode(codeFromList);
     
     try {
       const customerId = localStorage.getItem('customerId');
@@ -422,36 +419,27 @@ const ContinueBooking = () => {
         )}
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Coupon Code</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Offers &amp; Payment</h2>
           <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg space-y-3 sm:space-y-4">
-            <div className="flex gap-2 sm:gap-3">
-              <Input
-                placeholder="Enter coupon code"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                className="flex-1 h-10 sm:h-12 rounded-2xl border-2 bg-white text-sm sm:text-base"
-              />
-              <Button 
-                onClick={() => applyCoupon()}
-                className="h-10 sm:h-12 rounded-2xl px-4 sm:px-8 font-semibold bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white text-xs sm:text-sm shadow-md"
-              >
-                Apply
-              </Button>
-            </div>
             {availableVouchers.length > 0 && !appliedVoucher && (
               <button
                 type="button"
                 onClick={() => setShowOffersSheet(true)}
-                className="w-full flex items-center gap-3 py-1 text-left"
+                className="offer-row relative w-full overflow-hidden rounded-2xl border-2 border-dashed px-3 py-2.5 flex items-center gap-3 text-left active:scale-[0.99] transition-transform"
               >
-                <Tag className="w-4 h-4 flex-shrink-0" style={{ color: '#452D9B' }} />
+                <span
+                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg, #452D9B, #07C8D0)' }}
+                >
+                  <Tag className="w-4 h-4 text-white" />
+                </span>
                 <span className="flex-1 min-w-0">
-                  <span className="block text-sm font-semibold text-black">View all offers</span>
+                  <span className="block text-sm font-bold" style={{ color: '#452D9B' }}>View all offers</span>
                   <span className="block text-[11px] text-gray-500">
                     {availableVouchers.length} offer{availableVouchers.length > 1 ? 's' : ''} available
                   </span>
                 </span>
-                <ChevronRight className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                <ChevronRight className="offer-row-chevron w-4 h-4 flex-shrink-0" style={{ color: '#452D9B' }} />
               </button>
             )}
             {couponError && (

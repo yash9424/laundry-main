@@ -472,3 +472,47 @@ All colors MUST be HSL.
     font-size: 16px !important;
   }
 }
+/* The offers row is the one control on the payment card that can save the
+   customer money, so it gets a tint, a ticket-style dashed edge and a slow
+   sheen -- enough to catch the eye without shouting. Kept outside @layer so
+   the keyframes are never pruned. */
+.offer-row {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ecfeff 100%);
+  border-color: #c7d2fe;
+}
+
+.offer-row::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 45%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+  transform: skewX(-18deg);
+  animation: offer-sheen 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes offer-sheen {
+  0%   { left: -60%; }
+  45%  { left: 125%; }
+  100% { left: 125%; }
+}
+
+.offer-row-chevron {
+  animation: offer-nudge 1.6s ease-in-out infinite;
+}
+
+@keyframes offer-nudge {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(3px); }
+}
+
+/* Respect a reduced-motion preference: the row keeps its colour, loses the loop */
+@media (prefers-reduced-motion: reduce) {
+  .offer-row::after,
+  .offer-row-chevron {
+    animation: none;
+  }
+}
