@@ -2,23 +2,24 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 import { SplashScreen } from "@capacitor/splash-screen";
-import Lottie from "lottie-react";
+import Lottie, { type LottieRefCurrentProps } from "lottie-react";
 import splashAnimation from "@/assets/splash-animation.json";
 
-// The animation runs 88 frames at 15fps, so just under six seconds. It used to be
-// cut off by a fixed 2.5s timer, which is why it never reached its end. We now let
-// it finish and keep a safety timer a little beyond its real length in case the
-// completion callback never fires.
+// The animation runs 88 frames at 15fps, so just under six seconds.
 const ANIMATION_MS = Math.ceil(
   (((splashAnimation as any).op ?? 88) - ((splashAnimation as any).ip ?? 0)) /
     ((splashAnimation as any).fr ?? 15) * 1000
 );
-const SAFETY_MS = ANIMATION_MS + 1500;
+
+// If the animation has not reported itself ready by now, stop waiting for it.
+const LOAD_TIMEOUT_MS = 6000;
 
 const VideoSplash = () => {
   const navigate = useNavigate();
+  const lottie = useRef<LottieRefCurrentProps>(null);
   const movedOn = useRef(false);
-  const [animationReady, setAnimationReady] = useState(false);
+  const started = useRef(false);
+  const [ready, setReady] = useState(false);
 
   const goNext = () => {
     if (movedOn.current) return;
@@ -28,16 +29,36 @@ const VideoSplash = () => {
     navigate(customerId && authToken ? "/home" : "/welcome", { replace: true });
   };
 
-  // Only drop the native splash once our own animation has something on screen,
-  // otherwise the old static logo underneath flashes through on slower phones.
-  useEffect(() => {
-    if (!animationReady || !Capacitor.isNativePlatform()) return;
-    SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {});
-  }, [animationReady]);
+  const hideNativeSplash = () =>
+    Capacitor.isNativePlatform()
+      ? SplashScreen.hide({ fadeOutDuration: 400 }).catch(() => {})
+      : Promise.resolve();
 
+  // Take the native splash down first, and only then start the motion graphic.
+  // It used to autoplay as soon as it mounted, so the whole fly-in ran behind
+  // the native splash while the web view was still warming up. By the time that
+  // splash lifted, the animation had already reached its closing frames, which
+  // hold still -- which is exactly why it looked like the logo never animated.
   useEffect(() => {
-    const timer = setTimeout(goNext, SAFETY_MS);
-    return () => clearTimeout(timer);
+    if (!ready || started.current) return;
+    started.current = true;
+    let safety: ReturnType<typeof setTimeout>;
+    hideNativeSplash().then(() => {
+      lottie.current?.goToAndPlay(0, true);
+      // onComplete normally moves us on; this only covers it not firing.
+      safety = setTimeout(goNext, ANIMATION_MS + 1500);
+    });
+    return () => clearTimeout(safety);
+  }, [ready]);
+
+  // Backstop. launchAutoHide is off, so a native splash nobody hides stays on
+  // screen for good -- if the animation never loads we still have to get out.
+  useEffect(() => {
+    const bail = setTimeout(() => {
+      if (started.current) return;
+      hideNativeSplash().then(goNext);
+    }, LOAD_TIMEOUT_MS);
+    return () => clearTimeout(bail);
   }, []);
 
   return (
@@ -54,10 +75,11 @@ const VideoSplash = () => {
       }}
     >
       <Lottie
+        lottieRef={lottie}
         animationData={splashAnimation}
         loop={false}
-        autoplay={true}
-        onDOMLoaded={() => setAnimationReady(true)}
+        autoplay={false}
+        onDOMLoaded={() => setReady(true)}
         onComplete={goNext}
         style={{ width: "100%", height: "100%" }}
       />
