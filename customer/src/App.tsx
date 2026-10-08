@@ -49,65 +49,9 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const TopupModal = ({ onClose }: { onClose: () => void }) => {
-  const navigate = useNavigate();
-  const [plans, setPlans] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetch(`${API_URL}/api/subscription-plans`)
-      .then(r => r.json())
-      .then(d => { if (d.success) setPlans(d.data.filter((p: any) => p.isActive)); })
-      .catch(() => {});
-  }, []);
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div style={{ background: 'white', borderRadius: '24px', width: '100%', maxWidth: '480px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(69,45,155,0.3)' }}>
-        <div style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', padding: '1.5rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>💳</div>
-          <h2 style={{ color: 'white', fontWeight: '800', fontSize: '1.2rem', margin: 0 }}>Top-Up Your Wallet</h2>
-          <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>Get more value on every order!</p>
-        </div>
-
-        {plans.length > 0 ? (
-          <div style={{ display: 'flex', gap: '0.875rem', overflowX: 'auto', padding: '1.25rem', scrollSnapType: 'x mandatory' }}>
-            {plans.map((plan) => (
-              <div key={plan._id} style={{ minWidth: '200px', background: '#f8fafc', borderRadius: '16px', padding: '1rem', scrollSnapAlign: 'start', border: '1px solid rgba(69,45,155,0.1)', flexShrink: 0 }}>
-                <h3 style={{ fontWeight: '700', fontSize: '0.95rem', color: '#1e293b', marginBottom: '0.5rem' }}>{plan.name}</h3>
-                <div style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', borderRadius: '8px', padding: '0.4rem 0.75rem', marginBottom: '0.75rem', textAlign: 'center' }}>
-                  <span style={{ color: 'white', fontWeight: '700', fontSize: '0.85rem' }}>₹{plan.price} → ₹{plan.walletCredit}</span>
-                </div>
-                <ul style={{ paddingLeft: 0, marginBottom: 0 }}>
-                  {plan.benefits.slice(0, 3).map((b: string, i: number) => (
-                    <li key={i} style={{ display: 'flex', gap: '0.3rem', fontSize: '0.78rem', color: '#475569', marginBottom: '0.2rem' }}>
-                      <span style={{ color: '#07C8D0', fontWeight: '800' }}>✓</span>{b}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>Loading plans...</div>
-        )}
-
-        <div style={{ display: 'flex', gap: '0.75rem', padding: '0 1.25rem 1.25rem' }}>
-          <button onClick={onClose} style={{ flex: 1, padding: '0.75rem', background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '12px', fontWeight: '600', cursor: 'pointer', fontSize: '0.9rem' }}>
-            Skip
-          </button>
-          <button onClick={() => { onClose(); navigate('/subscriptions'); }} style={{ flex: 2, padding: '0.75rem', background: 'linear-gradient(to right, #452D9B, #07C8D0)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', fontSize: '0.9rem' }}>
-            View All Plans
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const AppContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [showTopupModal, setShowTopupModal] = useState(false);
 
   // Initialize order status monitoring
   useOrderStatusMonitor();
@@ -130,13 +74,6 @@ const AppContent = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const customerId = localStorage.getItem('customerId');
-    const seen = localStorage.getItem('hasSeenTopupModal');
-    if (customerId && !seen) {
-      setShowTopupModal(true);
-    }
-  }, []);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -201,9 +138,6 @@ const AppContent = () => {
         <Route path="/my-subscription" element={<MySubscription />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      {showTopupModal && (
-        <TopupModal onClose={() => { localStorage.setItem('hasSeenTopupModal', '1'); setShowTopupModal(false); }} />
-      )}
     </>
   );
 };

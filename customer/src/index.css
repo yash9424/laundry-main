@@ -242,6 +242,17 @@ All colors MUST be HSL.
 
 /* Mobile-specific styles for Capacitor */
 @layer utilities {
+  /* Used by every sideways scroller in the app. The class name was already
+     being applied in a few places but nothing ever defined it, so a scrollbar
+     sat under the cards on desktop. */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Header layout - MUCH SMALLER headers */
   .app-header {
     padding: 0.5rem 1rem 0.5rem 1rem;

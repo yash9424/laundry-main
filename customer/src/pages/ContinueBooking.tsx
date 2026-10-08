@@ -439,23 +439,42 @@ const ContinueBooking = () => {
               </Button>
             </div>
             {availableVouchers.length > 0 && !appliedVoucher && (
-              <div className="space-y-2">
-                <p className="text-[11px] text-gray-500">Available offers - tap to apply</p>
-                {availableVouchers.map((v: any) => (
-                  <button
-                    key={v._id}
-                    type="button"
-                    onClick={() => applyCoupon(v.code)}
-                    className="w-full flex items-center justify-between gap-3 rounded-xl border-2 border-dashed px-3 py-2 text-left"
-                    style={{ borderColor: '#c7d2fe' }}
-                  >
-                    <span className="min-w-0">
-                      <span className="block text-sm font-bold" style={{ color: '#452D9B' }}>{v.code}</span>
-                      <span className="block text-[11px] text-gray-600 truncate">{v.slogan}</span>
-                    </span>
-                    <span className="text-xs font-semibold flex-shrink-0" style={{ color: '#07C8D0' }}>Apply</span>
-                  </button>
-                ))}
+              <div>
+                <div className="flex items-baseline justify-between mb-2">
+                  <p className="text-[11px] font-semibold text-gray-500">Available offers</p>
+                  {availableVouchers.length > 1 && (
+                    <p className="text-[10px] text-gray-400">swipe for more &rarr;</p>
+                  )}
+                </div>
+                {/* Offers run sideways. Stacked full-width rows pushed the total
+                    and the pay button off the screen once a few vouchers were live. */}
+                <div
+                  className="flex gap-2.5 overflow-x-auto scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 pb-1"
+                  style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
+                >
+                  {availableVouchers.map((v: any) => (
+                    <button
+                      key={v._id}
+                      type="button"
+                      onClick={() => applyCoupon(v.code)}
+                      className="flex-shrink-0 w-44 rounded-2xl overflow-hidden text-left bg-white border-2 border-dashed shadow-sm active:scale-[0.98] transition-transform"
+                      style={{ borderColor: '#c7d2fe', scrollSnapAlign: 'start' }}
+                    >
+                      <div
+                        className="px-3 py-2 flex items-baseline justify-between"
+                        style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                      >
+                        <span className="text-white font-extrabold text-lg leading-none">{v.discount}%</span>
+                        <span className="text-white/90 text-[10px] font-bold tracking-widest">OFF</span>
+                      </div>
+                      <div className="px-3 py-2">
+                        <span className="block text-sm font-bold tracking-wide" style={{ color: '#452D9B' }}>{v.code}</span>
+                        <span className="block text-[11px] text-gray-600 leading-snug line-clamp-2 min-h-[2rem]">{v.slogan}</span>
+                        <span className="mt-1 inline-block text-[11px] font-bold" style={{ color: '#07C8D0' }}>Tap to apply</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
             {couponError && (

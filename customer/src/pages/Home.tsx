@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, Minus, Plus, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, Zap } from "lucide-react";
+import { Check, Minus, Plus, Home as HomeIcon, ShoppingCart, RotateCcw, User, Zap } from "lucide-react";
 import homeScreenImage from "@/assets/Home screen.png";
 import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
@@ -13,16 +13,11 @@ const Home = () => {
   const [quantity, setQuantity] = useState(1);
   const [userName, setUserName] = useState('Guest');
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [currentVoucher, setCurrentVoucher] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
-  const [isVoucherAutoScrolling, setIsVoucherAutoScrolling] = useState(true);
-  const [vouchers, setVouchers] = useState([]);
   const [customerAddress, setCustomerAddress] = useState(() => {
     const cached = localStorage.getItem('cachedAddress');
     return cached || 'No address added yet';
   });
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const voucherScrollRef = useRef<HTMLDivElement>(null);
   const [expressEnabled, setExpressEnabled] = useState(true);
   const [deliveryText, setDeliveryText] = useState({
     standardTitle: 'Standard Delivery',
@@ -30,9 +25,6 @@ const Home = () => {
     expressTitle: 'Express Delivery',
     expressSubtitle: '12-hour turnaround — for a small fee',
   });
-  const [showVoucherModal, setShowVoucherModal] = useState(false);
-  const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
-  const [isCopied, setIsCopied] = useState(false);
   const [recentOrders, setRecentOrders] = useState([]);
   const [heroItems, setHeroItems] = useState([]);
   const [currentHero, setCurrentHero] = useState(0);
@@ -47,8 +39,6 @@ const Home = () => {
   const [purchaseToast, setPurchaseToast] = useState('');
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
-  const [voucherTouchStart, setVoucherTouchStart] = useState(0);
-  const [voucherTouchEnd, setVoucherTouchEnd] = useState(0);
 
   // Handle hero swipe
   const handleHeroTouchStart = (e: React.TouchEvent) => {
@@ -74,29 +64,6 @@ const Home = () => {
     }
   };
 
-  // Handle voucher swipe
-  const handleVoucherTouchStart = (e: React.TouchEvent) => {
-    setVoucherTouchStart(e.targetTouches[0].clientX);
-    setIsVoucherAutoScrolling(false);
-  };
-
-  const handleVoucherTouchMove = (e: React.TouchEvent) => {
-    setVoucherTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleVoucherTouchEnd = () => {
-    if (!voucherTouchStart || !voucherTouchEnd) return;
-    const distance = voucherTouchStart - voucherTouchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      setCurrentVoucher(prev => (prev + 1) % vouchers.length);
-    }
-    if (isRightSwipe) {
-      setCurrentVoucher(prev => prev === 0 ? vouchers.length - 1 : prev - 1);
-    }
-  };
 
   useEffect(() => {
     const savedName = localStorage.getItem('userName');
@@ -112,7 +79,6 @@ const Home = () => {
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('userNameChanged', handleStorageChange);
 
-    fetchVouchers();
     fetchCustomerData();
     fetchRecentOrders();
     fetchHeroItems();
@@ -138,29 +104,6 @@ const Home = () => {
     };
   }, []);
 
-  const fetchVouchers = async () => {
-    try {
-      const customerId = localStorage.getItem('customerId');
-      if (!customerId) {
-        // If no customer ID, fetch all vouchers
-        const response = await fetch(`${API_URL}/api/vouchers`);
-        const data = await response.json();
-        if (data.success) {
-          setVouchers(data.data);
-        }
-        return;
-      }
-      
-      // Fetch only available vouchers for this customer
-      const response = await fetch(`${API_URL}/api/vouchers/available?customerId=${customerId}`);
-      const data = await response.json();
-      if (data.success) {
-        setVouchers(data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching vouchers:', error);
-    }
-  };
   
   const fetchCustomerData = async () => {
     const controller = new AbortController()
@@ -328,94 +271,9 @@ const Home = () => {
     }
   }, [isAutoScrolling]);
   
-  // Auto-scroll vouchers only if not manually controlled
-  useEffect(() => {
-    if (!isVoucherAutoScrolling || vouchers.length <= 1) return;
-    
-    const interval = setInterval(() => {
-      setCurrentVoucher(prev => (prev + 1) % vouchers.length);
-    }, 3000);
-    
-    return () => clearInterval(interval);
-  }, [vouchers.length, isVoucherAutoScrolling]);
-  
-  // Scroll to current voucher only during auto-scroll
-  useEffect(() => {
-    if (scrollRef.current && isAutoScrolling) {
-      const scrollWidth = scrollRef.current.scrollWidth / vouchers.length;
-      scrollRef.current.scrollTo({
-        left: currentVoucher * scrollWidth,
-        behavior: 'smooth'
-      });
-    }
-  }, [currentVoucher, vouchers.length, isAutoScrolling]);
-  
-  // Handle manual voucher scroll
-  const handleVoucherScroll = () => {
-    if (!voucherScrollRef.current || isVoucherAutoScrolling) return;
-    
-    const scrollLeft = voucherScrollRef.current.scrollLeft;
-    const cardWidth = voucherScrollRef.current.scrollWidth / vouchers.length;
-    const newIndex = Math.round(scrollLeft / cardWidth);
-    
-    if (newIndex !== currentVoucher) {
-      setCurrentVoucher(newIndex);
-    }
-  };
-  
-  // Detect manual voucher interaction
-  const handleVoucherInteraction = () => {
-    setIsVoucherAutoScrolling(false);
-  };
-  
-  // Resume voucher auto-scroll after 5 seconds of no interaction
-  useEffect(() => {
-    if (!isVoucherAutoScrolling) {
-      const timeout = setTimeout(() => {
-        setIsVoucherAutoScrolling(true);
-      }, 5000);
-      
-      return () => clearTimeout(timeout);
-    }
-  }, [isVoucherAutoScrolling]);
 
-  const handleApplyVoucher = (voucherCode: string) => {
-    setSelectedVoucherCode(voucherCode);
-    setShowVoucherModal(true);
-  };
 
-  const copyToClipboard = async () => {
-    navigator.clipboard.writeText(selectedVoucherCode);
-    setIsCopied(true);
-    
-    // Mark this specific voucher as used by this customer
-    try {
-      const customerId = localStorage.getItem('customerId');
-      if (customerId) {
-        await fetch(`${API_URL}/api/vouchers/use`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customerId: customerId,
-            voucherCode: selectedVoucherCode
-          })
-        });
-        
-        // Refresh vouchers to remove the used one
-        setTimeout(() => {
-          fetchVouchers();
-        }, 1000);
-      }
-    } catch (error) {
-      console.error('Error marking voucher as used:', error);
-    }
-  };
 
-  const closeModal = () => {
-    setShowVoucherModal(false);
-    setSelectedVoucherCode('');
-    setIsCopied(false);
-  };
 
   useEffect(() => {
     fetch(`${API_URL}/api/order-charges`)
@@ -723,59 +581,6 @@ const Home = () => {
           </div>
         )}
 
-        {/* Offer Cards - Full Width Single Card */}
-        <div className="mb-4 sm:mb-6">
-          {vouchers.length > 0 && (
-            <div className="relative">
-              <div 
-                className="overflow-hidden rounded-2xl"
-                onTouchStart={handleVoucherTouchStart}
-                onTouchMove={handleVoucherTouchMove}
-                onTouchEnd={handleVoucherTouchEnd}
-              >
-                <div className="flex transition-transform duration-700 ease-in-out" style={{ transform: `translateX(-${currentVoucher * 100}%)` }}>
-                  {vouchers.map((voucher: any, index) => (
-                    <div key={voucher._id} className="w-full flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl p-5 shadow-lg border border-blue-300">
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                            <Tag className="w-4 h-4 text-white" />
-                          </div>
-                          <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded-full">LIMITED</span>
-                        </div>
-                        <h3 className="font-bold text-base mb-1 text-blue-900">{voucher.slogan}</h3>
-                        <p className="text-blue-700 text-sm mb-3">Limited time offer</p>
-                        <Button 
-                          onClick={() => handleApplyVoucher(voucher.code)}
-                          className="w-full h-9 rounded-xl text-sm font-semibold shadow-md bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white"
-                        >
-                          Apply Now
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Dots Indicator */}
-              <div className="flex justify-center gap-2 mt-3">
-                {vouchers.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setCurrentVoucher(index);
-                      setIsVoucherAutoScrolling(false);
-                    }}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      index === currentVoucher ? 'bg-blue-500' : 'bg-gray-300'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Recent Orders */}
         <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-lg border border-gray-100">
           <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
@@ -808,42 +613,6 @@ const Home = () => {
 
       <BottomNavigation />
 
-      {/* Voucher Code Modal */}
-      {showVoucherModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm mx-4 shadow-2xl">
-            <div className="text-center">
-              <h3 className="text-lg font-bold text-black mb-4">Your Voucher Code</h3>
-              
-              <div className="bg-blue-50 border-2 border-dashed border-blue-300 rounded-2xl p-4 mb-4">
-                <p className="text-2xl font-bold text-blue-600 tracking-wider mb-2">{selectedVoucherCode}</p>
-                <button 
-                  onClick={copyToClipboard}
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                    isCopied 
-                      ? 'bg-green-500 text-white' 
-                      : 'bg-blue-500 hover:bg-blue-600 text-white'
-                  }`}
-                >
-                  {isCopied ? 'Copied!' : 'Copy Code'}
-                </button>
-              </div>
-              
-              <div className="text-left space-y-2 mb-6">
-                <p className="text-sm text-gray-700">• It is one time use, so please copy it</p>
-                <p className="text-sm text-gray-700">• Use it while you order</p>
-              </div>
-              
-              <button 
-                onClick={closeModal}
-                className="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-2xl font-semibold"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
