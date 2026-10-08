@@ -71,6 +71,24 @@ const AppContent = () => {
     document.querySelectorAll('[data-scroll-container]').forEach((el) => { el.scrollTop = 0; });
   }, [location.pathname]);
 
+  // Tapping a notification opens the order it is about. Both events were being
+  // dispatched -- notificationTap from the phone's drawer, notificationClick
+  // from the browser one -- but nothing listened for either, so tapping a
+  // notification did nothing at all.
+  useEffect(() => {
+    const openOrder = (e: Event) => {
+      const orderId = (e as CustomEvent).detail?.orderId;
+      if (!orderId) return;
+      navigate('/order-details', { state: { orderId } });
+    };
+    window.addEventListener('notificationTap', openOrder);
+    window.addEventListener('notificationClick', openOrder);
+    return () => {
+      window.removeEventListener('notificationTap', openOrder);
+      window.removeEventListener('notificationClick', openOrder);
+    };
+  }, [navigate]);
+
   // Check if user is logged in on app start
   useEffect(() => {
     const customerId = localStorage.getItem('customerId');

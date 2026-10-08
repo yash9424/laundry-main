@@ -13,7 +13,7 @@ interface Order {
 }
 
 // Send mobile push notification
-const sendPartnerNotification = async (title: string, message: string, orderId: string) => {
+const sendPartnerNotification = async (title: string, message: string, orderId: string, screen = '/pickups') => {
   try {
     if (window.Capacitor?.isNativePlatform()) {
       const { LocalNotifications } = await import('@capacitor/local-notifications');
@@ -32,7 +32,7 @@ const sendPartnerNotification = async (title: string, message: string, orderId: 
             sound: 'default',
             attachments: [],
             actionTypeId: 'PARTNER_ORDER_NOTIFICATION',
-            extra: { orderId },
+            extra: { orderId, screen },
             smallIcon: 'ic_stat_icon_config_sample',
             iconColor: '#452D9B',
             ongoing: false,
@@ -93,7 +93,8 @@ export const usePartnerOrderMonitor = () => {
               sendPartnerNotification(
                 '🆕 New Order Available',
                 `New pickup order #${order.orderId} available in your area${deliveryTag}. Tap to accept.`,
-                order.orderId
+                order.orderId,
+                '/pickups'
               );
               lastCheckedOrders.current.add(order._id);
             }
@@ -103,7 +104,8 @@ export const usePartnerOrderMonitor = () => {
               sendPartnerNotification(
                 '📦 Order Assigned',
                 `Order #${order.orderId} assigned to you for pickup${deliveryTag}.`,
-                order.orderId
+                order.orderId,
+                '/pickups'
               );
             }
 
@@ -114,7 +116,8 @@ export const usePartnerOrderMonitor = () => {
               sendPartnerNotification(
                 '✅ Ready for Delivery',
                 `Order #${order.orderId} is processed and ready for delivery${deliveryTag}.`,
-                order.orderId
+                order.orderId,
+                '/delivery/pick'
               );
             }
             

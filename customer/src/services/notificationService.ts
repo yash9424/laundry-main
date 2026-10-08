@@ -1,4 +1,3 @@
-import { toast } from 'sonner';
 import { API_URL } from '@/config/api';
 
 export interface OrderNotification {
@@ -185,20 +184,9 @@ class NotificationService {
     // Send to mobile drawer immediately
     this.sendMobilePushNotification(notification);
 
-    // Show in-app toast for "Live" feel
-    toast(notification.title, {
-      description: notification.message,
-      duration: 4000,
-      action: notification.orderId ? {
-        label: "View",
-        onClick: () => {
-           const event = new CustomEvent('notificationClick', {
-            detail: { orderId: notification.orderId }
-          });
-          window.dispatchEvent(event);
-        }
-      } : undefined,
-    });
+    // Deliberately no in-app toast. A notification shows in two places only:
+    // the notifications screen and the phone's own notification drawer. It used
+    // to also pop a toast over whatever the customer was doing.
   }
 
   // Create order status notification
