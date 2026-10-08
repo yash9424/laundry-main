@@ -12,7 +12,11 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: true,
+    // Off for release. Left on, anyone who can plug the phone into a computer
+    // can attach Chrome DevTools to the captain's app and read or change
+    // everything in it -- the stored token, the partner id, every API call.
+    // The customer app has always had this off.
+    webContentsDebuggingEnabled: false,
     overrideUserAgent: 'CapacitorApp',
     appendUserAgent: 'CapacitorApp'
   },
