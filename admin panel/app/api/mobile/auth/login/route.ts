@@ -45,15 +45,15 @@ export async function POST(request: NextRequest) {
       console.log('Existing customer found, profile complete:', isExistingUser)
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString()
-    console.log('OTP generated:', otp)
-    
+    // No code is minted or returned here. Phone sign-in runs through
+    // /api/auth/send-otp and /api/auth/verify-otp; this route only resolves the
+    // account. It used to generate a code, log it, and hand it back in the
+    // response, where anyone who could call the route could read it.
     return NextResponse.json({
       success: true,
       data: {
         customerId: customer._id,
-        otp,
-        message: 'OTP sent successfully',
+        message: 'Account ready',
         isExistingUser,
         customer: customer
       }

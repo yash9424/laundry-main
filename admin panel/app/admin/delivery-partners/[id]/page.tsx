@@ -63,6 +63,19 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   delivery_failed: { bg: '#ffe4e6', color: '#be123c' },
 }
 
+/**
+ * Identity and bank numbers are shown with only the last four digits.
+ * The documents are on the same page, so an approver can still check them; what
+ * this stops is the full Aadhaar, licence and account number sitting in plain
+ * text on a screen, a screenshot or a shoulder-surfer's view.
+ */
+const maskTail = (value?: string, keep = 4) => {
+  const text = String(value ?? '').trim()
+  if (!text) return 'Not provided'
+  if (text.length <= keep) return text
+  return `${'•'.repeat(Math.max(4, text.length - keep))}${text.slice(-keep)}`
+}
+
 export default function PartnerProfilePage() {
   const params = useParams()
   const router = useRouter()
@@ -306,8 +319,8 @@ export default function PartnerProfilePage() {
             </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-            <div><strong>Aadhar Number:</strong> {partner.aadharNumber || 'Not provided'}</div>
-            <div><strong>Driving License:</strong> {partner.drivingLicenseNumber || 'Not provided'}</div>
+            <div><strong>Aadhar Number:</strong> {maskTail(partner.aadharNumber)}</div>
+            <div><strong>Driving License:</strong> {maskTail(partner.drivingLicenseNumber)}</div>
           </div>
           {partner.kycRejectionReason && (
             <div style={{ padding: '1rem', backgroundColor: '#fee2e2', borderRadius: '8px', marginBottom: '1rem' }}>
@@ -342,7 +355,7 @@ export default function PartnerProfilePage() {
           <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem', color: '#2563eb' }}>Bank Details</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div><strong>Account Holder Name:</strong> {partner.bankDetails?.accountHolderName || 'Not provided'}</div>
-            <div><strong>Account Number:</strong> {partner.bankDetails?.accountNumber || 'Not provided'}</div>
+            <div><strong>Account Number:</strong> {maskTail(partner.bankDetails?.accountNumber)}</div>
             <div><strong>IFSC Code:</strong> {partner.bankDetails?.ifscCode || 'Not provided'}</div>
             <div><strong>Bank Name:</strong> {partner.bankDetails?.bankName || 'Not provided'}</div>
             <div><strong>Branch:</strong> {partner.bankDetails?.branch || 'Not provided'}</div>

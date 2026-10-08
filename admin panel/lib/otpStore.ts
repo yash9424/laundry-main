@@ -43,6 +43,64 @@ function sweep() {
   }
 }
 
+/**
+ * How often a number may ask for a code.
+ *
+ * Nothing used to limit this: one request per tap, each one a real SMS through
+ * Indori, each one billable. A loop could empty the SMS credit, and could also
+ * be used to pester a phone number that is not the caller's.
+ */
+const SEND_WINDOW_MS = 60 * 60 * 1000;   // the window the count applies to
+const MAX_SENDS_PER_WINDOW = 5;          // real sign-ins need one or two
+const MIN_GAP_MS = 30 * 1000;            // and never twice within half a minute
+
+type SendLog = { times: number[] };
+const sends = new Map<string, SendLog>();
+
+export type SendAllowance =
+  | { ok: true }
+  | { ok: false; reason: 'too_soon' | 'too_many'; retryAfterSeconds: number };
+
+/** Ask whether this number may be sent another code right now. */
+export function canSendOtp(phone: string): SendAllowance {
+  const now = Date.now();
+  const log = sends.get(phone) ?? { times: [] };
+  log.times = log.times.filter((t) => now - t < SEND_WINDOW_MS);
+
+  const last = log.times[log.times.length - 1];
+  if (last !== undefined && now - last < MIN_GAP_MS) {
+    return { ok: false, reason: 'too_soon', retryAfterSeconds: Math.ceil((MIN_GAP_MS - (now - last)) / 1000) };
+  }
+
+  if (log.times.length >= MAX_SENDS_PER_WINDOW) {
+    const oldest = log.times[0];
+    return {
+      ok: false,
+      reason: 'too_many',
+      retryAfterSeconds: Math.ceil((SEND_WINDOW_MS - (now - oldest)) / 1000),
+    };
+  }
+
+  sends.set(phone, log);
+  return { ok: true };
+}
+
+/** Record that a code actually went out. */
+export function noteOtpSent(phone: string) {
+  const now = Date.now();
+  const log = sends.get(phone) ?? { times: [] };
+  log.times = log.times.filter((t) => now - t < SEND_WINDOW_MS);
+  log.times.push(now);
+  sends.set(phone, log);
+
+  // Keep the map from growing for numbers that never come back
+  if (sends.size > 5000) {
+    for (const [key, value] of sends) {
+      if (value.times.every((t) => now - t >= SEND_WINDOW_MS)) sends.delete(key);
+    }
+  }
+}
+
 export function saveOtp(phone: string, code: string) {
   sweep();
   entries.set(phone, { code, expiresAt: Date.now() + TTL_MS, attempts: 0 });
