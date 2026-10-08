@@ -24,7 +24,12 @@ const DEFAULTS = {
   sustainabilityText: "If the paper inside your garments is still clean and usable, you can keep it aside for us. We'll be happy to collect and reuse it with your next pickup.",
 };
 
-const PickupChecklist = () => {
+/**
+ * `variant` only changes the wrapper: "card" is the standalone white panel used
+ * on a page, "plain" drops the panel so the list can sit inside something that
+ * already is one, such as the checkout dialog.
+ */
+const PickupChecklist = ({ variant = 'card' }: { variant?: 'card' | 'plain' }) => {
   const [content, setContent] = useState(DEFAULTS);
 
   useEffect(() => {
@@ -60,8 +65,13 @@ const PickupChecklist = () => {
   if (!content.enabled) return null;
 
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-md border-2" style={{ borderColor: '#ede9fe' }}>
-      <h3 className="text-sm sm:text-base font-bold text-black mb-1">{content.title}</h3>
+    <div
+      className={variant === 'plain' ? '' : 'bg-white rounded-2xl p-4 shadow-md border-2'}
+      style={variant === 'plain' ? undefined : { borderColor: '#ede9fe' }}
+    >
+      {variant === 'card' && (
+        <h3 className="text-sm sm:text-base font-bold text-black mb-1">{content.title}</h3>
+      )}
       {content.intro && <p className="text-xs sm:text-sm text-gray-600 mb-3">{content.intro}</p>}
 
       {content.points.length > 0 && (

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Minus, Plus, Trash2, ShoppingCart, Clock, X, Check, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
+import PickupChecklist from '@/components/PickupChecklist';
 import BottomNavigation from "@/components/BottomNavigation";
 import Header from "@/components/Header";
 import { App } from '@capacitor/app';
@@ -29,9 +30,9 @@ const Cart = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [showSlotModal, setShowSlotModal] = useState(false);
-  // Checkout is two steps: the wallet offer, then the pickup slot.
-  const [checkoutStep, setCheckoutStep] = useState<'topup' | 'slot'>('slot');
-  const [topupPlans, setTopupPlans] = useState<any[]>([]);
+  // Checkout is two steps: what to have ready, then the pickup slot.
+  const [checkoutStep, setCheckoutStep] = useState<'checklist' | 'slot'>('slot');
+  const [checklistEnabled, setChecklistEnabled] = useState(true);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   // The customer picks a real date now, not just Today/Tomorrow. Index 0 is today.
@@ -64,6 +65,7 @@ const Cart = () => {
         } else if (data.success && data.data?.expressDeliveryPrice) {
           setExpressDeliveryFee(data.data.expressDeliveryPrice);
         }
+        if (data.success) setChecklistEnabled(data.data?.pickupChecklistEnabled !== false);
       })
       .catch(err => console.error('Error fetching express delivery fee:', err));
   }, []);
@@ -75,7 +77,6 @@ const Cart = () => {
   useEffect(() => {
     loadCartItems();
     fetchTimeSlots(0);
-    fetchTopupPlans();
     fetchMinOrderPrice();
     fetchDaySettings();
     
@@ -312,16 +313,6 @@ const Cart = () => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
 
-  const fetchTopupPlans = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/subscription-plans`);
-      const data = await response.json();
-      if (data.success) setTopupPlans((data.data || []).filter((p: any) => p.isActive));
-    } catch (error) {
-      console.error('Failed to fetch top-up plans:', error);
-    }
-  };
-
   const handleProceedToCheckout = () => {
     if (selectedItems.size === 0) {
       alert('Please select at least one item to order');
@@ -331,9 +322,9 @@ const Cart = () => {
       alert(`Minimum order value is ₹${minOrderPrice}. Please add more items.`);
       return;
     }
-    // Show the wallet offer first, then the slot. With no plans configured
-    // there is nothing to offer, so go straight to the slot.
-    setCheckoutStep(topupPlans.length > 0 ? 'topup' : 'slot');
+    // What to have ready comes first, then the slot. If an admin has switched
+    // the checklist off there is nothing to show, so go straight to the slot.
+    setCheckoutStep(checklistEnabled ? 'checklist' : 'slot');
     setShowSlotModal(true);
   };
 
@@ -570,52 +561,21 @@ const Cart = () => {
       {showSlotModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-md mx-4 shadow-2xl max-h-[80vh] overflow-y-auto">
-            {/* Step one: the wallet offer, shown where it is actually relevant --
-                the moment before paying. It used to appear once at app launch,
-                on top of whatever screen the person happened to open. */}
-            {checkoutStep === 'topup' && (
+            {/* Step one: what to have ready. It used to sit near the bottom of
+                the booking screen, after the price breakdown, where it was read
+                -- if at all -- long after the clothes had been gathered. Here it
+                lands before the slot is picked and right next to the tick that
+                confirms everything is in the cart. */}
+            {checkoutStep === 'checklist' && (
               <>
-                <div className="flex items-start justify-between mb-1">
-                  <h3 className="text-lg font-bold text-black">Top up your wallet</h3>
-                  <button onClick={() => setShowSlotModal(false)} className="text-gray-500" aria-label="Close">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-lg font-bold text-black">Before your pickup</h3>
+                  <button onClick={() => setShowSlotModal(false)} className="text-gray-500 flex-shrink-0" aria-label="Close">
                     <X className="w-6 h-6" />
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mb-4">Add money now and pay less on this order.</p>
 
-                <div
-                  className="flex gap-3 overflow-x-auto scrollbar-hide -mx-6 px-6 pb-2"
-                  style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
-                >
-                  {topupPlans.map((plan: any) => {
-                    const bonus = plan.walletCredit > plan.price
-                      ? Math.round(((plan.walletCredit - plan.price) / plan.price) * 100)
-                      : 0;
-                    return (
-                      <button
-                        key={plan._id}
-                        type="button"
-                        onClick={() => navigate('/subscriptions')}
-                        className="flex-shrink-0 w-48 rounded-2xl overflow-hidden text-left bg-white border border-gray-200 shadow-sm active:scale-[0.98] transition-transform"
-                        style={{ scrollSnapAlign: 'start' }}
-                      >
-                        <div
-                          className="px-3 py-2 flex items-center justify-between"
-                          style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
-                        >
-                          <span className="text-white font-bold text-sm">&#8377;{plan.price} &rarr; &#8377;{plan.walletCredit}</span>
-                          {bonus > 0 && <span className="text-white/90 text-[10px] font-bold">+{bonus}%</span>}
-                        </div>
-                        <div className="px-3 py-2">
-                          <span className="block text-sm font-bold text-gray-900 mb-1">{plan.name}</span>
-                          {(plan.benefits || []).slice(0, 2).map((b: string, i: number) => (
-                            <span key={i} className="block text-[11px] text-gray-600 leading-snug">&#10003; {b}</span>
-                          ))}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                <PickupChecklist variant="plain" />
 
                 <button
                   onClick={() => setCheckoutStep('slot')}
@@ -624,9 +584,6 @@ const Cart = () => {
                 >
                   Next
                 </button>
-                <p className="text-xs text-gray-500 text-center mt-3">
-                  Tap a plan to add money now, or carry on and pick your pickup slot.
-                </p>
               </>
             )}
 
@@ -634,8 +591,8 @@ const Cart = () => {
               <>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2 min-w-0">
-                {topupPlans.length > 0 && (
-                  <button onClick={() => setCheckoutStep('topup')} className="text-gray-500 flex-shrink-0" aria-label="Back to top-up">
+                {checklistEnabled && (
+                  <button onClick={() => setCheckoutStep('checklist')} className="text-gray-500 flex-shrink-0" aria-label="Back to the pickup checklist">
                     <ArrowLeft className="w-5 h-5" />
                   </button>
                 )}

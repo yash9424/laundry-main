@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
-import PickupChecklist from '@/components/PickupChecklist';
 import Header from "@/components/Header";
 
 declare global {
@@ -528,11 +527,6 @@ const ContinueBooking = () => {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* What to have ready belongs before paying, not on the receipt afterwards */}
-        <div className="mb-4">
-          <PickupChecklist />
         </div>
 
         <div className="bg-white rounded-2xl p-4 mb-4 shadow-md">
