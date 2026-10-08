@@ -437,7 +437,7 @@ const Home = () => {
                 {topupPlans.map((plan, idx) => {
                   const extra = plan.walletCredit > plan.price ? Math.round(((plan.walletCredit - plan.price) / plan.price) * 100) : 0;
                   return (
-                    <div key={plan._id} className="w-full flex-shrink-0 relative select-none" style={{ background: 'linear-gradient(135deg, #0f0228 0%, #2d1875 50%, #06869a 100%)', minHeight: 186 }}>
+                    <div key={plan._id} className="w-full flex-shrink-0 relative select-none" style={{ background: 'linear-gradient(135deg, #0f0228 0%, #2d1875 50%, #06869a 100%)', minHeight: 252 }}>
                       {/* Decorative blobs */}
                       <div style={{ position:'absolute', top:-28, right:-28, width:120, height:120, borderRadius:'50%', background:'rgba(7,200,208,0.15)', animation:'plan-blob1 4.5s ease-in-out infinite' }} />
                       <div style={{ position:'absolute', bottom:-24, left:-18, width:95, height:95, borderRadius:'50%', background:'rgba(69,45,155,0.3)', animation:'plan-blob2 5.5s ease-in-out infinite' }} />
@@ -447,40 +447,72 @@ const Home = () => {
                         <div style={{ position:'absolute', top:0, bottom:0, width:'38%', background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)', animation:'plan-shimmer 3s linear infinite' }} />
                       </div>
 
-                      {/* Content */}
-                      <div className="relative flex items-center gap-3.5 p-5 sm:p-6">
-                        {/* Icon / Image */}
-                        <div style={{ width:70, height:70, borderRadius:22, overflow:'hidden', flexShrink:0, border:'1.5px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.1)' }}>
-                          {plan.image
-                            ? <img src={plan.image.startsWith('http') ? plan.image : `${API_URL}${plan.image}`} alt={plan.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                            : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:28 }}>💎</div>
-                          }
-                        </div>
-
-                        {/* Text */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-white font-extrabold text-lg sm:text-xl leading-tight truncate">{plan.name}</span>
-                            {extra > 0 && <span style={{ fontSize:'0.6rem', background:'linear-gradient(to right,#f59e0b,#ef4444)', color:'white', padding:'0.12rem 0.4rem', borderRadius:6, fontWeight:800, whiteSpace:'nowrap' }}>+{extra}% 🔥</span>}
+                      {/* Content.
+                          Everything used to sit on one row -- picture, name, price,
+                          benefits and the button -- which on a phone left the text
+                          about 200px to live in. The name was cut to "Esse...", the
+                          benefits ran together into a block, and the button crowded
+                          the price. It is stacked now, so each part has its width. */}
+                      <div className="relative p-4 sm:p-5">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div style={{ width:54, height:54, borderRadius:16, overflow:'hidden', flexShrink:0, border:'1.5px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.1)' }}>
+                            {plan.image
+                              ? <img src={plan.image.startsWith('http') ? plan.image : `${API_URL}${plan.image}`} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                              : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24 }}>💎</div>
+                            }
                           </div>
-                          <div className="flex items-baseline gap-1 mb-2">
-                            <span style={{ color:'#fde68a', fontWeight:700, fontSize:'1rem' }}>Pay ₹{plan.price}</span>
-                            <span style={{ color:'rgba(255,255,255,0.4)', fontSize:'0.8rem' }}>→</span>
-                            <span style={{ color:'#6ee7b7', fontWeight:800, fontSize:'1.15rem' }}>Get ₹{plan.walletCredit}</span>
-                          </div>
-                          {plan.benefits?.length > 0 && (
-                            <p style={{ color:'rgba(255,255,255,0.72)', fontSize:'0.8rem', lineHeight:1.5 }}>
-                              ✓ {plan.benefits.slice(0,2).join('  ✓ ')}
-                            </p>
+                          <h3 className="flex-1 min-w-0 text-white font-extrabold text-lg leading-tight">{plan.name}</h3>
+                          {extra > 0 && (
+                            <span style={{ flexShrink:0, fontSize:'0.65rem', background:'linear-gradient(to right,#f59e0b,#ef4444)', color:'white', padding:'0.2rem 0.5rem', borderRadius:999, fontWeight:800, whiteSpace:'nowrap' }}>
+                              +{extra}%
+                            </span>
                           )}
                         </div>
 
-                        {/* Get button */}
+                        {/* The whole offer in one line, with room to be read */}
+                        <div className="flex items-end gap-2.5 mb-1">
+                          <span className="flex flex-col">
+                            <span style={{ color:'rgba(255,255,255,0.55)', fontSize:'0.65rem', fontWeight:600, letterSpacing:'0.04em' }}>YOU PAY</span>
+                            <span style={{ color:'#fde68a', fontWeight:700, fontSize:'1.1rem', lineHeight:1.1 }}>₹{plan.price}</span>
+                          </span>
+                          <span style={{ color:'rgba(255,255,255,0.35)', fontSize:'1.1rem', lineHeight:1.6 }}>→</span>
+                          <span className="flex flex-col">
+                            <span style={{ color:'rgba(255,255,255,0.55)', fontSize:'0.65rem', fontWeight:600, letterSpacing:'0.04em' }}>IN YOUR WALLET</span>
+                            <span style={{ color:'#6ee7b7', fontWeight:800, fontSize:'1.45rem', lineHeight:1.1 }}>₹{plan.walletCredit}</span>
+                          </span>
+                        </div>
+                        {plan.walletCredit > plan.price && (
+                          <p style={{ color:'rgba(255,255,255,0.75)', fontSize:'0.75rem', marginBottom:'0.6rem' }}>
+                            That is ₹{plan.walletCredit - plan.price} extra to spend.
+                          </p>
+                        )}
+
+                        {/* One benefit per line. Anything that just repeats the wallet
+                            figure above is dropped rather than printed twice. */}
+                        {(() => {
+                          const points = (plan.benefits || [])
+                            .map((b: string) => b.trim())
+                            .filter((b: string) => b && !b.includes(String(plan.walletCredit)))
+                            .slice(0, 2);
+                          if (points.length === 0) return null;
+                          return (
+                            <ul className="mb-3.5 space-y-1">
+                              {points.map((b: string, i: number) => (
+                                <li key={i} className="flex items-start gap-1.5">
+                                  <span style={{ color:'#6ee7b7', fontWeight:800, fontSize:'0.75rem', lineHeight:1.5 }}>✓</span>
+                                  <span className="truncate" style={{ color:'rgba(255,255,255,0.78)', fontSize:'0.78rem', lineHeight:1.5 }}>{b}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          );
+                        })()}
+
                         <button
                           onClick={() => { setSelectedPlan(plan); setShowPlanModal(true); }}
-                          style={{ flexShrink:0, background:'linear-gradient(to right,#452D9B,#07C8D0)', color:'white', border:'none', borderRadius:14, padding:'0.6rem 1rem', fontWeight:800, fontSize:'0.85rem', cursor:'pointer', boxShadow:'0 3px 14px rgba(7,200,208,0.4)', whiteSpace:'nowrap' }}
+                          className="w-full"
+                          style={{ background:'linear-gradient(to right,#452D9B,#07C8D0)', color:'white', border:'none', borderRadius:14, padding:'0.7rem', fontWeight:800, fontSize:'0.9rem', cursor:'pointer', boxShadow:'0 3px 14px rgba(7,200,208,0.35)' }}
                         >
-                          Get →
+                          Get this plan →
                         </button>
                       </div>
                     </div>
