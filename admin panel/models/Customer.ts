@@ -1,7 +1,11 @@
 import mongoose from 'mongoose'
 
 const CustomerSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  // Not required: the record is created the moment a phone number is verified,
+  // before the person has told us their name. They fill it in on the next
+  // screen. Requiring it here meant Mongoose rejected the placeholder — an
+  // empty string fails `required` — so no new phone signup could ever complete.
+  name: { type: String, default: '' },
   mobile: { type: String, required: true, unique: true },
   email: { type: String },
   googleId: { type: String, unique: true, sparse: true },

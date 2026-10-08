@@ -71,12 +71,17 @@ const VerifyMobile = () => {
             localStorage.setItem('customerId', checkData.data.customerId);
             localStorage.setItem('userName', checkData.data.customer?.name || '');
             window.dispatchEvent(new Event('userNameChanged'));
-            
+
             if (checkData.data.isExistingUser) {
               navigate("/home");
             } else {
               navigate("/create-profile", { state: { customerId: checkData.data.customerId, mobileNumber } });
             }
+          } else {
+            // The code was right but the account step failed. Saying so beats
+            // leaving the button looking dead, which is what used to happen.
+            console.error('Account step failed after OTP:', checkData);
+            alert(checkData.error || 'We could not open your account. Please try again.');
           }
         } else {
           alert(data.error || 'Invalid OTP');
