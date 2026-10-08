@@ -640,7 +640,19 @@ const Cart = () => {
             </div>
             
             <div className="mb-4">
-              <h4 className="font-semibold mb-3 text-black">{isExpressSelected ? 'Express slots' : 'Pickup slots'} for {dayLabel(dayIndex)}</h4>
+              {/* Standard and Express can be given different windows in the admin,
+                  so the list has to say which service it is showing. */}
+              <div className="flex items-center gap-2 mb-3">
+                <h4 className="font-semibold text-black">Pickup slots for {dayLabel(dayIndex)}</h4>
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+                  style={isExpressSelected
+                    ? { background: '#fef3c7', color: '#b45309' }
+                    : { background: '#ede9fe', color: '#452D9B' }}
+                >
+                  {isExpressSelected ? 'EXPRESS' : 'STANDARD'}
+                </span>
+              </div>
               {((dayIndex === 0 && !daySettings.todaySlotsEnabled) || (dayIndex === 1 && !daySettings.tomorrowSlotsEnabled)) ? (
                 <div className="rounded-2xl bg-orange-50 border border-orange-200 p-4 text-center">
                   <p className="text-orange-600 font-semibold text-sm">

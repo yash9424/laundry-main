@@ -1197,47 +1197,70 @@ export default function AddOnPage() {
             </div>
           </div>
 
-          {/* Today / Tomorrow slot panels */}
+          {/* Slots grouped by the service that offers them.
+              They used to be split by day, with the service shown as a small
+              badge and only when it was not "both", so there was no way to see
+              at a glance which windows Express actually runs. A slot set to
+              "Standard & Express" belongs in both lists and says so. */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            {(['today', 'tomorrow'] as const).map((day) => {
-              const daySlots = timeSlots.filter((s: any) => s.availableFor === day || s.availableFor === 'both')
-              const dayEnabled = day === 'today' ? charges.todaySlotsEnabled : charges.tomorrowSlotsEnabled
+            {([
+              { key: 'standard', label: '🧺 Standard Delivery', tint: '#eef2ff', accent: '#3730a3' },
+              { key: 'express', label: '⚡ Express Delivery', tint: '#fffbeb', accent: '#b45309' },
+            ] as const).map((svc) => {
+              const svcSlots = timeSlots.filter((s: any) => {
+                const t = s.serviceType || 'both'
+                return t === svc.key || t === 'both'
+              })
               return (
-                <div key={day} style={{ border: `1px solid ${dayEnabled ? '#e2e8f0' : '#fecaca'}`, borderRadius: '10px', overflow: 'hidden' }}>
-                  <div style={{ padding: '0.6rem 0.9rem', backgroundColor: dayEnabled ? '#f1f5f9' : '#fee2e2', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: '700', fontSize: '0.9rem', color: '#1f2937' }}>{day === 'today' ? '📅 Today' : '📆 Tomorrow'} <span style={{ fontWeight: '400', color: '#6b7280' }}>({daySlots.length} slots)</span></span>
-                    {!dayEnabled && <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: '600' }}>DISABLED</span>}
+                <div key={svc.key} style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+                  <div style={{ padding: '0.6rem 0.9rem', backgroundColor: svc.tint, borderBottom: '1px solid #e2e8f0' }}>
+                    <span style={{ fontWeight: '700', fontSize: '0.9rem', color: svc.accent }}>
+                      {svc.label} <span style={{ fontWeight: '400', color: '#6b7280' }}>({svcSlots.length} slots)</span>
+                    </span>
                   </div>
-                  <div style={{ padding: '0.5rem', maxHeight: '280px', overflowY: 'auto' }}>
-                    {daySlots.length === 0 ? (
-                      <p style={{ textAlign: 'center', color: '#9ca3af', padding: '1.5rem 0', fontSize: '0.85rem' }}>No slots for {day}</p>
+                  <div style={{ padding: '0.5rem', maxHeight: '340px', overflowY: 'auto' }}>
+                    {svcSlots.length === 0 ? (
+                      <p style={{ textAlign: 'center', color: '#9ca3af', padding: '1.5rem 0', fontSize: '0.85rem' }}>
+                        No slots for {svc.key === 'express' ? 'Express' : 'Standard'} yet
+                      </p>
                     ) : (
-                      daySlots.map((slot: any) => (
-                        <div key={slot._id + '-' + day} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.6rem', backgroundColor: slot.isActive ? 'white' : '#f9fafb', borderRadius: '6px', marginBottom: '0.4rem', border: `1px solid ${slot.isActive ? '#e2e8f0' : '#fecaca'}`, opacity: slot.isActive ? 1 : 0.7 }}>
-                          <div>
-                            <span style={{ fontWeight: '600', fontSize: '0.875rem', color: slot.isActive ? '#1f2937' : '#9ca3af' }}>{slot.time}</span>
-                            <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginLeft: '0.4rem' }}>{slot.availableFor === 'both' ? 'both days' : slot.availableFor}</span>
-                            {slot.serviceType && slot.serviceType !== 'both' && (
-                              <span style={{ fontSize: '0.65rem', marginLeft: '0.4rem', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 600, background: slot.serviceType === 'express' ? '#fef3c7' : '#e0e7ff', color: slot.serviceType === 'express' ? '#b45309' : '#3730a3' }}>
-                                {slot.serviceType === 'express' ? 'EXPRESS' : 'STANDARD'}
+                      svcSlots.map((slot: any) => {
+                        const shared = (slot.serviceType || 'both') === 'both'
+                        return (
+                          <div key={slot._id + '-' + svc.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.6rem', backgroundColor: slot.isActive ? 'white' : '#f9fafb', borderRadius: '6px', marginBottom: '0.4rem', border: `1px solid ${slot.isActive ? '#e2e8f0' : '#fecaca'}`, opacity: slot.isActive ? 1 : 0.7 }}>
+                            <div>
+                              <span style={{ fontWeight: '600', fontSize: '0.875rem', color: slot.isActive ? '#1f2937' : '#9ca3af' }}>{slot.time}</span>
+                              <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginLeft: '0.4rem' }}>
+                                {slot.availableFor === 'both' ? 'both days' : slot.availableFor}
                               </span>
-                            )}
+                              {shared && (
+                                <span style={{ fontSize: '0.65rem', marginLeft: '0.4rem', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 600, background: '#f1f5f9', color: '#475569' }}
+                                      title="Offered on both Standard and Express, so it appears in both lists">
+                                  SHARED
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                              <button onClick={() => toggleSlotActive(slot)} style={{ padding: '0.2rem 0.5rem', backgroundColor: slot.isActive ? '#22c55e' : '#9ca3af', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer' }}>
+                                {slot.isActive ? 'ON' : 'OFF'}
+                              </button>
+                              <button onClick={() => editTimeSlot(slot)} style={{ padding: '0.2rem 0.5rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}>Edit</button>
+                              <button onClick={() => removeTimeSlot(slot._id)} style={{ padding: '0.2rem 0.5rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}>✕</button>
+                            </div>
                           </div>
-                          <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
-                            <button onClick={() => toggleSlotActive(slot)} style={{ padding: '0.2rem 0.5rem', backgroundColor: slot.isActive ? '#22c55e' : '#9ca3af', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer' }}>
-                              {slot.isActive ? 'ON' : 'OFF'}
-                            </button>
-                            <button onClick={() => editTimeSlot(slot)} style={{ padding: '0.2rem 0.5rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}>Edit</button>
-                            <button onClick={() => removeTimeSlot(slot._id)} style={{ padding: '0.2rem 0.5rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}>✕</button>
-                          </div>
-                        </div>
-                      ))
+                        )
+                      })
                     )}
                   </div>
                 </div>
               )
             })}
           </div>
+
+          <p style={{ fontSize: '0.78rem', color: '#6b7280', marginTop: '0.75rem' }}>
+            A slot marked <strong>SHARED</strong> is set to &quot;Standard &amp; Express&quot;, so it appears in both lists and
+            editing it changes both. Use the Service Type box above to move a slot onto one service only.
+          </p>
         </div>
         )}
 
