@@ -35,8 +35,14 @@ export async function POST(request: NextRequest) {
       })
       console.log('New customer created:', customer._id)
     } else {
-      isExistingUser = true
-      console.log('Existing customer found, redirecting to home')
+      // "Existing" has to mean the person actually finished signing up, not
+      // merely that a row exists. The row is created the moment a number is
+      // verified, before they have given a name, so anyone who closed the app
+      // on the name screen would otherwise be sent straight to Home and never
+      // asked for a name again. Sending them back to the profile screen just
+      // fills in the record they already have.
+      isExistingUser = Boolean((customer.name || '').trim())
+      console.log('Existing customer found, profile complete:', isExistingUser)
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
