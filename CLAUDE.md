@@ -35,7 +35,7 @@ place can silently break the other two.
    database or rewrite source files in place. The Python scripts are obsolete one-off
    repairs from Nov 2025 — do not run them.
 8. **Never commit secrets.** Keystores and passwords are already in git history
-   (section 8.5). Don't add more.
+   (section 8.6). Don't add more.
 9. **Verify, don't trust this file blindly.** It was accurate when written. If something
    here contradicts the code, the code wins — and please update this file.
 
@@ -52,6 +52,7 @@ delivers them back.
 | Admin panel **+ the whole backend API** | `admin panel/` (note the space) | Next.js 15, Mongoose, MongoDB | 3000 |
 | Customer mobile app | `customer/` | React 18 + Vite + shadcn/ui + Capacitor 7 | 3001 |
 | Partner ("Captain") mobile app | `partner/` | Next.js 15 static export + Capacitor 7 | 3002 |
+| Customer app, Flutter rewrite **(not shipped yet)** | `customer_flutter/` | Flutter 3.41, Dart 3 | — |
 
 - **Production API / admin:** `https://acsgroup.cloud` (VPS, nginx → PM2 → Next.js on :3000)
 - **Database:** MongoDB, database name `laundry`
@@ -96,6 +97,12 @@ partner/
   src/components/           BottomNav, ClientBottomNav, CapacitorInit, OrderMonitor, Toast
   src/hooks/                usePartnerOrderMonitor (polling)
   src/config/api.ts         API_URL
+customer_flutter/
+  lib/screens/              28 screens, one file each (routes in lib/routes.dart)
+  lib/services/             api, store (localStorage stand-in), cart, payments,
+                            notifications, invoice
+  lib/models/ lib/widgets/  data shapes and shared UI
+  README.md                 identity, build, and every deliberate difference
 *.md (root + app folders)   ~70 historical build/fix notes — mostly OUTDATED (see 10)
 *.py, *.bat (root)          obsolete one-off scripts — do not run
 ```
@@ -362,7 +369,25 @@ cd partner && npm run build && npx cap sync android && npx cap open android
 - Version numbers live in `android/app/build.gradle` (`versionCode`, `versionName`) and must be
   bumped for every Play Store upload.
 
-### 8.4 Production
+### 8.4 Flutter customer app (`customer_flutter/`) — not shipped yet
+A Flutter rewrite of the customer app, built to go out as an **update** to the
+published one rather than a new listing. Read `customer_flutter/README.md` before
+touching it; the short version:
+- Android `applicationId` `com.urbansteam.customerapp`, iOS bundle id
+  `com.acsgroup.urbansteam.customer` (deliberately different from each other),
+  signed with the **same** `customer/android/app/laundry-customer.keystore`.
+  `versionCode` 16 / `versionName` 2.4.0, above the Capacitor build's 15 / 2.3.3.
+- `minSdk` is 24, not 23 — Flutter's floor. Android 6.0 phones stop getting updates.
+- Build: `cd customer_flutter && flutter pub get && flutter analyze && flutter build apk --release`.
+  `--dart-define=API_URL=...` overrides the base URL (default `https://acsgroup.cloud`).
+- **Shipping it signs every customer out**: the session lives in the WebView's
+  localStorage, which a Flutter build cannot read. Roll out in stages.
+- It deviates from `customer/` in seven places on purpose (no stored card
+  numbers or CVVs, per-order fetches instead of `GET /api/orders` unfiltered, no
+  sample-data fallback on invoices, OSM map tiles, and three smaller fixes).
+  Every one is listed in its README.
+
+### 8.5 Production
 - PM2: `admin panel/ecosystem.config.js` — app `admin-panel`, `npm start`, cwd
   `/var/www/laundry-admin/admin panel`, single fork instance, port 3000.
   Deploy = `git pull` → `npm install` → `npm run build` → `pm2 restart admin-panel`.
@@ -373,7 +398,7 @@ cd partner && npm run build && npx cap sync android && npx cap open android
   **not in git** and are not backed up by a redeploy — don't wipe that folder.
 - Single PM2 instance matters: the OTP store is in-process memory. Clustering would break login.
 
-### 8.5 Secrets already in git (do not add more)
+### 8.6 Secrets already in git (do not add more)
 `partner/partner-release-key.keystore`, `partner/partner-release-key-new.keystore`,
 `partner/android/gradle.properties` (keystore passwords), both `google-services.json` files,
 the countrystatecity.in API key in `app/api/locations/*`, and a Google Maps key in
