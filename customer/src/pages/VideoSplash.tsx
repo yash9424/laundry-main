@@ -11,14 +11,20 @@ const ANIMATION_MS = Math.ceil(
     ((splashAnimation as any).fr ?? 15) * 1000
 );
 
-// If the animation has not reported itself ready by now, stop waiting for it.
-const LOAD_TIMEOUT_MS = 6000;
+// If the animation has not even reported itself ready by now, it is not going
+// to be worth waiting for on this device: open the app instead.
+const GIVE_UP_MS = 2500;
+
+// Nothing may hold the splash longer than this, whatever happens.
+const HARD_LIMIT_MS = ANIMATION_MS + 1500;
 
 const VideoSplash = () => {
   const navigate = useNavigate();
   const lottie = useRef<LottieRefCurrentProps>(null);
   const movedOn = useRef(false);
-  const started = useRef(false);
+  // A ref as well as state: the timers below are set up once, so reading the
+  // state value inside them would always see its first-render value.
+  const readyRef = useRef(false);
   const [ready, setReady] = useState(false);
 
   const goNext = () => {
@@ -29,37 +35,40 @@ const VideoSplash = () => {
     navigate(customerId && authToken ? "/home" : "/welcome", { replace: true });
   };
 
-  const hideNativeSplash = () =>
-    Capacitor.isNativePlatform()
-      ? SplashScreen.hide({ fadeOutDuration: 400 }).catch(() => {})
-      : Promise.resolve();
-
-  // Take the native splash down first, and only then start the motion graphic.
-  // It used to autoplay as soon as it mounted, so the whole fly-in ran behind
-  // the native splash while the web view was still warming up. By the time that
-  // splash lifted, the animation had already reached its closing frames, which
-  // hold still -- which is exactly why it looked like the logo never animated.
   useEffect(() => {
-    if (!ready || started.current) return;
-    started.current = true;
-    let safety: ReturnType<typeof setTimeout>;
-    hideNativeSplash().then(() => {
-      lottie.current?.goToAndPlay(0, true);
-      // onComplete normally moves us on; this only covers it not firing.
-      safety = setTimeout(goNext, ANIMATION_MS + 1500);
-    });
-    return () => clearTimeout(safety);
-  }, [ready]);
+    // Take the native splash down immediately, on its own, gated on nothing.
+    // launchAutoHide is off, so a splash nobody hides stays up for good. An
+    // earlier version only hid it once the animation reported itself ready and
+    // only after that promise resolved -- if either never happened the phone
+    // was left on the static logo with no way forward, and the app looked like
+    // it would not open at all.
+    if (Capacitor.isNativePlatform()) {
+      SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {});
+    }
 
-  // Backstop. launchAutoHide is off, so a native splash nobody hides stays on
-  // screen for good -- if the animation never loads we still have to get out.
-  useEffect(() => {
-    const bail = setTimeout(() => {
-      if (started.current) return;
-      hideNativeSplash().then(goNext);
-    }, LOAD_TIMEOUT_MS);
-    return () => clearTimeout(bail);
+    // Two timers, and neither can be cancelled by anything the animation does.
+    // The first gives up on a slow device and opens the app; the second is the
+    // ceiling for the case where the animation plays but never reports that it
+    // finished.
+    const giveUp = setTimeout(() => {
+      if (!readyRef.current) goNext();
+    }, GIVE_UP_MS);
+    const hardLimit = setTimeout(goNext, HARD_LIMIT_MS);
+
+    return () => {
+      clearTimeout(giveUp);
+      clearTimeout(hardLimit);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Play from the first frame once the animation is actually on screen, so the
+  // fly-in is seen rather than running behind the native splash. If it never
+  // becomes ready the timers above have already taken care of moving on.
+  useEffect(() => {
+    if (!ready) return;
+    lottie.current?.goToAndPlay(0, true);
+  }, [ready]);
 
   return (
     <div
@@ -79,7 +88,10 @@ const VideoSplash = () => {
         animationData={splashAnimation}
         loop={false}
         autoplay={false}
-        onDOMLoaded={() => setReady(true)}
+        onDOMLoaded={() => {
+          readyRef.current = true;
+          setReady(true);
+        }}
         onComplete={goNext}
         style={{ width: "100%", height: "100%" }}
       />
