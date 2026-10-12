@@ -36,13 +36,13 @@ class PricingItem {
   final String? image;
 
   factory PricingItem.fromJson(Map<String, dynamic> json) => PricingItem(
-        id: (json['_id'] ?? '').toString(),
-        name: (json['name'] ?? '').toString(),
-        price: _num(json['price']),
-        category: (json['category'] ?? 'Laundry').toString(),
-        description: json['description']?.toString(),
-        image: absoluteUrl(json['image']),
-      );
+    id: (json['_id'] ?? '').toString(),
+    name: (json['name'] ?? '').toString(),
+    price: _num(json['price']),
+    category: (json['category'] ?? 'Laundry').toString(),
+    description: json['description']?.toString(),
+    image: absoluteUrl(json['image']),
+  );
 }
 
 class PricingCategory {
@@ -52,7 +52,8 @@ class PricingCategory {
   final String name;
   final String? image;
 
-  factory PricingCategory.fromJson(Map<String, dynamic> json) => PricingCategory(
+  factory PricingCategory.fromJson(Map<String, dynamic> json) =>
+      PricingCategory(
         id: (json['_id'] ?? json['name'] ?? '').toString(),
         name: (json['name'] ?? '').toString(),
         image: absoluteUrl(json['image']),
@@ -85,19 +86,19 @@ class TopupPlan {
       : 0;
 
   factory TopupPlan.fromJson(Map<String, dynamic> json) => TopupPlan(
-        id: (json['_id'] ?? '').toString(),
-        name: (json['name'] ?? '').toString(),
-        price: _num(json['price']),
-        walletCredit: _num(json['walletCredit']),
-        benefits: (json['benefits'] is List)
-            ? (json['benefits'] as List)
-                .map((b) => b.toString().trim())
-                .where((b) => b.isNotEmpty)
-                .toList()
-            : <String>[],
-        image: absoluteUrl(json['image']),
-        isActive: json['isActive'] != false,
-      );
+    id: (json['_id'] ?? '').toString(),
+    name: (json['name'] ?? '').toString(),
+    price: _num(json['price']),
+    walletCredit: _num(json['walletCredit']),
+    benefits: (json['benefits'] is List)
+        ? (json['benefits'] as List)
+              .map((b) => b.toString().trim())
+              .where((b) => b.isNotEmpty)
+              .toList()
+        : <String>[],
+    image: absoluteUrl(json['image']),
+    isActive: json['isActive'] != false,
+  );
 }
 
 /// A banner on the home screen (HeroSection).
@@ -123,14 +124,14 @@ class HeroItem {
   bool get isVideo => type == 'video';
 
   factory HeroItem.fromJson(Map<String, dynamic> json) => HeroItem(
-        id: (json['_id'] ?? '').toString(),
-        url: absoluteUrl(json['url']) ?? '',
-        type: (json['type'] ?? 'image').toString(),
-        title: json['title']?.toString(),
-        description: json['description']?.toString(),
-        buttonText: json['buttonText']?.toString(),
-        buttonLink: json['buttonLink']?.toString(),
-      );
+    id: (json['_id'] ?? '').toString(),
+    url: absoluteUrl(json['url']) ?? '',
+    type: (json['type'] ?? 'image').toString(),
+    title: json['title']?.toString(),
+    description: json['description']?.toString(),
+    buttonText: json['buttonText']?.toString(),
+    buttonLink: json['buttonLink']?.toString(),
+  );
 }
 
 /// A percentage-off code (Voucher).
@@ -142,8 +143,8 @@ class Voucher {
   final String? slogan;
 
   factory Voucher.fromJson(Map<String, dynamic> json) => Voucher(
-        code: (json['code'] ?? '').toString(),
-        discount: _num(json['discount']),
-        slogan: json['slogan']?.toString(),
-      );
+    code: (json['code'] ?? '').toString(),
+    discount: _num(json['discount']),
+    slogan: json['slogan']?.toString(),
+  );
 }

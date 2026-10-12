@@ -18,10 +18,10 @@ class OrderItem {
   num get lineTotal => price * quantity;
 
   factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
-        name: (json['name'] ?? '').toString(),
-        quantity: int.tryParse(json['quantity']?.toString() ?? '') ?? 0,
-        price: _num(json['price']),
-      );
+    name: (json['name'] ?? '').toString(),
+    quantity: int.tryParse(json['quantity']?.toString() ?? '') ?? 0,
+    price: _num(json['price']),
+  );
 }
 
 /// What the order cost and how it was paid.
@@ -154,8 +154,10 @@ class CustomerOrder {
     final subtotal = saved ? _num(raw['itemsSubtotal']) : itemsSum;
     final discount = saved
         ? _num(raw['discountAmount'])
-        : (subtotal + previousDuePaid + express - totalAmount)
-            .clamp(0, double.infinity);
+        : (subtotal + previousDuePaid + express - totalAmount).clamp(
+            0,
+            double.infinity,
+          );
 
     return OrderBreakdown(
       subtotal: subtotal,
@@ -187,9 +189,9 @@ class CustomerOrder {
       status: (json['status'] ?? '').toString(),
       items: (json['items'] is List)
           ? (json['items'] as List)
-              .whereType<Map>()
-              .map((m) => OrderItem.fromJson(Map<String, dynamic>.from(m)))
-              .toList()
+                .whereType<Map>()
+                .map((m) => OrderItem.fromJson(Map<String, dynamic>.from(m)))
+                .toList()
           : <OrderItem>[],
       totalAmount: _num(json['totalAmount']),
       createdAt: _date(json['createdAt']),
@@ -197,10 +199,12 @@ class CustomerOrder {
       partnerId: partner,
       pickupAddress: json['pickupAddress'] is Map
           ? CustomerAddress.fromJson(
-              Map<String, dynamic>.from(json['pickupAddress'] as Map))
+              Map<String, dynamic>.from(json['pickupAddress'] as Map),
+            )
           : null,
-      pickupSlotLabel:
-          slot is Map ? slot['timeSlot']?.toString() : slot?.toString(),
+      pickupSlotLabel: slot is Map
+          ? slot['timeSlot']?.toString()
+          : slot?.toString(),
       pickupSlotDate: slot is Map ? _date(slot['date']) : null,
       paymentMethod: json['paymentMethod']?.toString(),
       paymentStatus: json['paymentStatus']?.toString(),

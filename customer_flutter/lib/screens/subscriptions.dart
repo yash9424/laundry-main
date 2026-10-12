@@ -49,84 +49,87 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: Brand.purple))
           : _plans.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('\u{1F48E}', style: TextStyle(fontSize: 48)),
-                        const SizedBox(height: 14),
-                        const Text(
-                          'No plans available right now',
-                          style: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Check back soon for wallet top-up offers.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Brand.mutedForeground),
-                        ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: 200,
-                          child: GradientButton(
-                            label: 'Back',
-                            height: 46,
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                        ),
-                      ],
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('\u{1F48E}', style: TextStyle(fontSize: 48)),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'No plans available right now',
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Check back soon for wallet top-up offers.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Brand.mutedForeground),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: 200,
+                      child: GradientButton(
+                        label: 'Back',
+                        height: 46,
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _load,
+              color: Brand.purple,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
+                children: [
+                  const Text(
+                    'Top up your wallet and spend it on any order.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Brand.gray600,
+                      height: 1.5,
                     ),
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  color: Brand.purple,
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
-                    children: [
-                      const Text(
-                        'Top up your wallet and spend it on any order.',
+                  const SizedBox(height: 16),
+                  for (final plan in _plans)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: _planRow(plan),
+                    ),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    height: 48,
+                    child: OutlinedButton(
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed('/my-subscription'),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        side: const BorderSide(color: Brand.purple, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'View My Wallet Plans',
                         style: TextStyle(
-                            fontSize: 14, color: Brand.gray600, height: 1.5),
-                      ),
-                      const SizedBox(height: 16),
-                      for (final plan in _plans)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 14),
-                          child: _planRow(plan),
-                        ),
-                      const SizedBox(height: 6),
-                      SizedBox(
-                        height: 48,
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.of(context)
-                              .pushNamed('/my-subscription'),
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            side: const BorderSide(
-                                color: Brand.purple, width: 1.5),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                          ),
-                          child: const Text(
-                            'View My Wallet Plans',
-                            style: TextStyle(
-                              color: Brand.purple,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                          ),
+                          color: Brand.purple,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -144,9 +147,10 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: const [
               BoxShadow(
-                  color: Color(0x14000000),
-                  blurRadius: 12,
-                  offset: Offset(0, 4)),
+                color: Color(0x14000000),
+                blurRadius: 12,
+                offset: Offset(0, 4),
+              ),
             ],
           ),
           child: Row(
@@ -162,14 +166,19 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 ),
                 child: plan.image == null
                     ? const Center(
-                        child: Text('\u{1F48E}',
-                            style: TextStyle(fontSize: 24)))
+                        child: Text(
+                          '\u{1F48E}',
+                          style: TextStyle(fontSize: 24),
+                        ),
+                      )
                     : RemoteImage(
                         url: plan.image,
                         decodeWidth: 64,
                         fallback: const Center(
-                          child: Text('\u{1F48E}',
-                              style: TextStyle(fontSize: 24)),
+                          child: Text(
+                            '\u{1F48E}',
+                            style: TextStyle(fontSize: 24),
+                          ),
                         ),
                       ),
               ),
@@ -195,12 +204,13 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                         if (plan.bonusPercent > 0)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 7, vertical: 2),
+                              horizontal: 7,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(colors: [
-                                Color(0xFFF59E0B),
-                                Color(0xFFEF4444),
-                              ]),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
+                              ),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
@@ -220,12 +230,16 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                         Text(
                           rupees(plan.price),
                           style: const TextStyle(
-                              fontSize: 14, color: Brand.gray600),
+                            fontSize: 14,
+                            color: Brand.gray600,
+                          ),
                         ),
                         const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 6),
-                          child: Text('→',
-                              style: TextStyle(color: Brand.mutedForeground)),
+                          child: Text(
+                            '→',
+                            style: TextStyle(color: Brand.mutedForeground),
+                          ),
                         ),
                         GradientText(
                           rupees(plan.walletCredit),

@@ -31,9 +31,7 @@ class _AddressMapState extends State<AddressMap> {
 
   String get _embedUrl {
     final a = widget.address;
-    final query = a.hasPin
-        ? '${a.latitude},${a.longitude}'
-        : a.searchQuery;
+    final query = a.hasPin ? '${a.latitude},${a.longitude}' : a.searchQuery;
     return 'https://maps.google.com/maps'
         '?q=${Uri.encodeComponent(query)}&t=&z=13&ie=UTF8&iwloc=&output=embed';
   }
@@ -71,18 +69,19 @@ class _AddressMapState extends State<AddressMap> {
       final controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setBackgroundColor(const Color(0xFFEFF6FF))
-        ..setNavigationDelegate(NavigationDelegate(
-          onWebResourceError: (_) {
-            if (mounted) setState(() => _failed = true);
-          },
-        ))
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onWebResourceError: (_) {
+              if (mounted) setState(() => _failed = true);
+            },
+          ),
+        )
         ..loadHtmlString(_embedPage, baseUrl: _baseUrl);
       setState(() => _controller = controller);
     } catch (_) {
       setState(() => _failed = true);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {

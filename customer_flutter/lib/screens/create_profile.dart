@@ -86,7 +86,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         surfaceTintColor: Colors.transparent,
         insetPadding: const EdgeInsets.all(16), // p-4
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Brand.rLg)),
+          borderRadius: BorderRadius.circular(Brand.rLg),
+        ),
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.8, // max-h-[80vh]
@@ -198,7 +199,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final complete = _name.text.isNotEmpty &&
+    final complete =
+        _name.text.isNotEmpty &&
         _email.text.isNotEmpty &&
         _phone.text.isNotEmpty &&
         _agreed;
@@ -218,15 +220,21 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               const SizedBox(height: 16), // mb-4
               _field(_name, 'Full Name'),
               const SizedBox(height: 12), // space-y-3
-              _field(_email, 'Email Address',
-                  keyboard: TextInputType.emailAddress),
+              _field(
+                _email,
+                'Email Address',
+                keyboard: TextInputType.emailAddress,
+              ),
               const SizedBox(height: 12),
-              _field(_phone, 'Mobile Number',
-                  keyboard: TextInputType.number,
-                  formatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(10),
-                  ]),
+              _field(
+                _phone,
+                'Mobile Number',
+                keyboard: TextInputType.number,
+                formatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
+              ),
               const SizedBox(height: 12),
               // The referral box is the only one with a grey border.
               SizedBox(
@@ -238,16 +246,23 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   decoration: InputDecoration(
                     hintText: 'Referral Code (Optional)',
                     isDense: false,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(Brand.rXl),
-                      borderSide:
-                          const BorderSide(color: Brand.gray300, width: 2),
+                      borderSide: const BorderSide(
+                        color: Brand.gray300,
+                        width: 2,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(Brand.rXl),
-                      borderSide:
-                          const BorderSide(color: Brand.gray300, width: 2),
+                      borderSide: const BorderSide(
+                        color: Brand.gray300,
+                        width: 2,
+                      ),
                     ),
                   ),
                   onChanged: (v) {
@@ -255,8 +270,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     if (upper != v) {
                       _referral.value = TextEditingValue(
                         text: upper,
-                        selection:
-                            TextSelection.collapsed(offset: upper.length),
+                        selection: TextSelection.collapsed(
+                          offset: upper.length,
+                        ),
                       );
                     }
                   },
@@ -291,8 +307,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                             color: _agreed
                                 ? Brand.blue500
                                 : _termsError
-                                    ? Brand.red500
-                                    : Brand.gray300,
+                                ? Brand.red500
+                                : Brand.gray300,
                             width: 2,
                           ),
                         ),
@@ -401,7 +417,12 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           hintText: hint,
           counterText: '',
           isDense: false,
-          contentPadding: const EdgeInsets.only(left: 40, right: 12, top: 10, bottom: 10), // pl-10
+          contentPadding: const EdgeInsets.only(
+            left: 40,
+            right: 12,
+            top: 10,
+            bottom: 10,
+          ), // pl-10
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Brand.rXl),
             borderSide: const BorderSide(color: Brand.blue500, width: 2),

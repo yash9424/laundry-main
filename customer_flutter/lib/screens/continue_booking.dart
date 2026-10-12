@@ -71,6 +71,7 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
   num get _expressFee => _expressDelivery ? _charges.expressPrice : 0;
 
   num get _grandTotal => _itemsTotal + _expressFee + _dueAmount;
+
   /// Worked out from the voucher and the items total every time, rather than
   /// stored when the coupon was applied. The stored figure went stale: the
   /// catalogue re-prices the cart after the screen opens, so a coupon applied
@@ -95,8 +96,9 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
 
   DateTime get _pickupDate =>
       _draft?.pickupDate ??
-      DateTime.now().add(Duration(
-          hours: (_draft?.pickupType == 'now') ? 0 : 24));
+      DateTime.now().add(
+        Duration(hours: (_draft?.pickupType == 'now') ? 0 : 24),
+      );
 
   @override
   void initState() {
@@ -132,8 +134,7 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
 
     setState(() {
       if (results[0].ok) {
-        _vouchers = results[0]
-            .list
+        _vouchers = results[0].list
             .whereType<Map>()
             .where((m) => m['isActive'] != false)
             .map((m) => Voucher.fromJson(Map<String, dynamic>.from(m)))
@@ -151,8 +152,9 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
         // Map each cart line onto the live catalogue entry.
         final catalogue = {
           for (final raw in results[2].list.whereType<Map>())
-            (raw['_id'] ?? '').toString():
-                PricingItem.fromJson(Map<String, dynamic>.from(raw))
+            (raw['_id'] ?? '').toString(): PricingItem.fromJson(
+              Map<String, dynamic>.from(raw),
+            ),
         };
         final draftItems = _draft?.items ?? const <CartLine>[];
         _repriced = [
@@ -226,7 +228,8 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
     Voucher? match;
     for (final raw in live.list.whereType<Map>()) {
       final map = Map<String, dynamic>.from(raw);
-      if ((map['code'] ?? '').toString() == trimmed && map['isActive'] != false) {
+      if ((map['code'] ?? '').toString() == trimmed &&
+          map['isActive'] != false) {
         match = Voucher.fromJson(map);
         break;
       }
@@ -274,7 +277,10 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: Brand.mutedForeground),
+                      icon: const Icon(
+                        Icons.close,
+                        color: Brand.mutedForeground,
+                      ),
                       onPressed: () => Navigator.of(sheetContext).pop(),
                     ),
                   ],
@@ -290,8 +296,10 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
                     final voucher = _vouchers[i];
                     final applied = _appliedVoucher?.code == voucher.code;
                     return Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       child: Row(
                         children: [
                           Expanded(
@@ -312,7 +320,9 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
                                     const SizedBox(width: 8),
                                     Container(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 6, vertical: 2),
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFEDE9FE),
                                         borderRadius: BorderRadius.circular(4),
@@ -409,16 +419,16 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
     final title = which == 'garment-care'
         ? 'Garment Care Policy'
         : which == 'damage-loss'
-            ? 'Damage/Loss Policy'
-            : 'Terms & Conditions';
+        ? 'Damage/Loss Policy'
+        : 'Terms & Conditions';
 
     // Admin-supplied policy text wins; otherwise the matching Terms section is
     // shown, which is the section the web screen scrolled to.
     final adminText = which == 'garment-care'
         ? _charges.garmentCarePolicyText
         : which == 'damage-loss'
-            ? _charges.damageLossPolicyText
-            : '';
+        ? _charges.damageLossPolicyText
+        : '';
 
     List<LegalSection> sections;
     if (which == 'garment-care') {
@@ -539,8 +549,11 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
                       gradient: Brand.gradient,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.schedule,
-                        color: Colors.white, size: 20),
+                    child: const Icon(
+                      Icons.schedule,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -559,7 +572,9 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
                         Text(
                           '+${rupees(_charges.expressPrice)} per order',
                           style: const TextStyle(
-                              fontSize: 12.5, color: Color(0xFF94A3B8)),
+                            fontSize: 12.5,
+                            color: Color(0xFF94A3B8),
+                          ),
                         ),
                       ],
                     ),
@@ -571,9 +586,12 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
                 _charges.expressDescription.isNotEmpty
                     ? _charges.expressDescription
                     : 'Your clothes will be picked up and delivered within a '
-                        '12-hour turnaround.',
+                          '12-hour turnaround.',
                 style: const TextStyle(
-                    fontSize: 14.5, height: 1.6, color: Brand.gray600),
+                  fontSize: 14.5,
+                  height: 1.6,
+                  color: Brand.gray600,
+                ),
               ),
               const SizedBox(height: 20),
               GradientButton(
@@ -636,7 +654,10 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
                 message,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                    fontSize: 13.5, height: 1.6, color: Brand.gray600),
+                  fontSize: 13.5,
+                  height: 1.6,
+                  color: Brand.gray600,
+                ),
               ),
               const SizedBox(height: 22),
               Row(
@@ -652,8 +673,10 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Close',
-                            style: TextStyle(color: Brand.purple)),
+                        child: const Text(
+                          'Close',
+                          style: TextStyle(color: Brand.purple),
+                        ),
                       ),
                     ),
                   ),
@@ -713,8 +736,9 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
       'walletUsed': _walletUsed,
       'discountAmount': _discount,
       'appliedVoucherCode': _appliedVoucher?.code,
-      'specialInstructions':
-          _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+      'specialInstructions': _notes.text.trim().isEmpty
+          ? null
+          : _notes.text.trim(),
       'expressDelivery': _expressDelivery,
       'expressDeliveryFee': _expressFee,
     };
@@ -766,7 +790,8 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
       await _warn(
         emoji: '⚠️',
         title: 'Payment Method Required',
-        message: 'Please add a payment method before placing order. '
+        message:
+            'Please add a payment method before placing order. '
             'Go to Profile → Payment Methods to add one.',
         actionLabel: 'Go to Profile',
         route: '/profile',
@@ -779,7 +804,8 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
       await _warn(
         emoji: '⚠️',
         title: 'Payment Method Required',
-        message: 'Please set a primary payment method before placing order. '
+        message:
+            'Please set a primary payment method before placing order. '
             'Go to Profile → Payment Methods and mark one as primary.',
         actionLabel: 'Go to Profile',
         route: '/profile',
@@ -791,17 +817,19 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
 
     // The wallet covers everything: no payment sheet, straight to the order.
     if (_finalAmount == 0) {
-      final created = await Api.createOrder(_orderPayload(
-        customerId: customerId,
-        paymentMethod: 'Wallet',
-      ));
+      final created = await Api.createOrder(
+        _orderPayload(customerId: customerId, paymentMethod: 'Wallet'),
+      );
       if (!mounted) return;
       setState(() => _placing = false);
       if (created.ok) {
         await _onPlaced(created, paidOnline: 0, paymentMethod: 'Wallet');
       } else {
-        showToast(context, 'Failed to place order. Please try again.',
-            error: true);
+        showToast(
+          context,
+          'Failed to place order. Please try again.',
+          error: true,
+        );
       }
       return;
     }
@@ -825,18 +853,23 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
       return;
     }
 
-    final created = await Api.createOrder(_orderPayload(
-      customerId: customerId,
-      paymentMethod: primary.type,
-      razorpayOrderId: payment.orderId,
-      razorpayPaymentId: payment.paymentId,
-    ));
+    final created = await Api.createOrder(
+      _orderPayload(
+        customerId: customerId,
+        paymentMethod: primary.type,
+        razorpayOrderId: payment.orderId,
+        razorpayPaymentId: payment.paymentId,
+      ),
+    );
     if (!mounted) return;
     setState(() => _placing = false);
 
     if (created.ok) {
-      await _onPlaced(created,
-          paidOnline: _finalAmount, paymentMethod: primary.type);
+      await _onPlaced(
+        created,
+        paidOnline: _finalAmount,
+        paymentMethod: primary.type,
+      );
     } else {
       // The money has left their account, so this cannot be a quiet failure.
       showToast(
@@ -889,7 +922,11 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
 
     return Scaffold(
       backgroundColor: Brand.gray50,
-      appBar: const AppHeader(title: 'Final Step', gradient: true, backTo: '/home'),
+      appBar: const AppHeader(
+        title: 'Final Step',
+        gradient: true,
+        backTo: '/home',
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
@@ -939,30 +976,33 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
   }
 
   Widget _sectionTitle(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontFamily: 'Montserrat',
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Text(
+      text,
+      style: const TextStyle(
+        fontFamily: 'Montserrat',
+        fontSize: 17,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
 
   Widget _card({required Widget child, EdgeInsets? padding}) => Container(
-        width: double.infinity,
-        padding: padding ?? const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-                color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
-          ],
+    width: double.infinity,
+    padding: padding ?? const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x14000000),
+          blurRadius: 12,
+          offset: Offset(0, 4),
         ),
-        child: child,
-      );
+      ],
+    ),
+    child: child,
+  );
 
   Widget _orderCard() {
     return _card(
@@ -989,14 +1029,19 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
                 Text(
                   '${_items.length} item${_items.length == 1 ? '' : 's'} to be picked up',
                   style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 14.5),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14.5,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   _itemsText,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12.5, color: Brand.mutedForeground),
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: Brand.mutedForeground,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 GradientText(
@@ -1020,9 +1065,10 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
               borderRadius: BorderRadius.circular(999),
               boxShadow: const [
                 BoxShadow(
-                    color: Color(0x1A000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2)),
+                  color: Color(0x1A000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
+                ),
               ],
             ),
             child: const Text(
@@ -1076,9 +1122,9 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
     final items = order['items'];
     final itemsText = (items is List)
         ? items
-            .whereType<Map>()
-            .map((i) => '${i['quantity']} ${i['name']}')
-            .join(', ')
+              .whereType<Map>()
+              .map((i) => '${i['quantity']} ${i['name']}')
+              .join(', ')
         : 'No items';
 
     return _card(
@@ -1091,11 +1137,16 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
                 child: Text(
                   'Order #${order['orderId'] ?? ''}',
                   style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 14.5),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14.5,
+                  ),
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   gradient: Brand.gradient,
                   borderRadius: BorderRadius.circular(999),
@@ -1114,7 +1165,10 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
           const SizedBox(height: 6),
           Text(
             itemsText.isEmpty ? 'No items' : itemsText,
-            style: const TextStyle(fontSize: 12.5, color: Brand.mutedForeground),
+            style: const TextStyle(
+              fontSize: 12.5,
+              color: Brand.mutedForeground,
+            ),
           ),
           const SizedBox(height: 6),
           GestureDetector(
@@ -1134,7 +1188,8 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
 
   Widget _infoCard() {
     final address = _customer?.defaultAddress;
-    final method = _customer?.primaryPaymentMethod ??
+    final method =
+        _customer?.primaryPaymentMethod ??
         (_customer?.paymentMethods.isNotEmpty == true
             ? _customer!.paymentMethods.first
             : null);
@@ -1142,25 +1197,30 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _infoLine('Delivery Address: ${address?.oneLine ?? 'No address found'}'),
           _infoLine(
-              'Contact Number: ${(_customer?.mobile.isNotEmpty == true && _customer!.hasRealMobile) ? _customer!.mobile : 'Not provided'}'),
+            'Delivery Address: ${address?.oneLine ?? 'No address found'}',
+          ),
           _infoLine(
-              'Email: ${(_customer?.email.isNotEmpty == true) ? _customer!.email : 'Not provided'}'),
+            'Contact Number: ${(_customer?.mobile.isNotEmpty == true && _customer!.hasRealMobile) ? _customer!.mobile : 'Not provided'}',
+          ),
           _infoLine(
-              'Payment Method: ${method?.type ?? 'Please add payment method on profile'}'),
+            'Email: ${(_customer?.email.isNotEmpty == true) ? _customer!.email : 'Not provided'}',
+          ),
+          _infoLine(
+            'Payment Method: ${method?.type ?? 'Please add payment method on profile'}',
+          ),
         ],
       ),
     );
   }
 
   Widget _infoLine(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 13, color: Brand.gray600, height: 1.5),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Text(
+      text,
+      style: const TextStyle(fontSize: 13, color: Brand.gray600, height: 1.5),
+    ),
+  );
 
   Widget _notesCard() {
     return _card(
@@ -1175,12 +1235,17 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
             decoration: InputDecoration(
               hintText:
                   'Add any special instructions for pickup/delivery (optional)...',
-              hintStyle: const TextStyle(fontSize: 13.5, color: Brand.mutedForeground),
+              hintStyle: const TextStyle(
+                fontSize: 13.5,
+                color: Brand.mutedForeground,
+              ),
               counterText: '',
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide:
-                    const BorderSide(color: Color(0xFFD1D5DB), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFFD1D5DB),
+                  width: 2,
+                ),
               ),
             ),
             style: const TextStyle(fontSize: 14),
@@ -1216,7 +1281,9 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
                   child: Text(
                     _charges.expressLabel,
                     style: const TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 14.5),
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14.5,
+                    ),
                   ),
                 ),
                 if (_charges.expressDescription.isNotEmpty) ...[
@@ -1248,8 +1315,7 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
           ),
           GradientText(
             '+${rupees(_charges.expressPrice)}',
-            style: const TextStyle(
-                fontWeight: FontWeight.w700, fontSize: 14.5),
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5),
           ),
           const SizedBox(width: 8),
           Switch(
@@ -1259,7 +1325,9 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
             onChanged: (on) async {
               setState(() => _expressDelivery = on);
               await Store.setString(
-                  Store.kDeliveryType, on ? 'express' : 'standard');
+                Store.kDeliveryType,
+                on ? 'express' : 'standard',
+              );
             },
           ),
         ],
@@ -1291,14 +1359,16 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
           if (_expressDelivery && _expressFee > 0)
             _totalRow('Express delivery fee', '+${rupees(_expressFee)}'),
           if (_dueAmount > 0)
-            _totalRow('Previous pending due', '+${rupees(_dueAmount)}',
-                color: Brand.destructive),
+            _totalRow(
+              'Previous pending due',
+              '+${rupees(_dueAmount)}',
+              color: Brand.destructive,
+            ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Divider(height: 1),
           ),
-          _totalRow('Grand Total (incl. GST)', rupees(_grandTotal),
-              bold: true),
+          _totalRow('Grand Total (incl. GST)', rupees(_grandTotal), bold: true),
           _totalRow(
             _appliedVoucher == null
                 ? 'Discount / Voucher'
@@ -1312,8 +1382,12 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
             color: const Color(0xFF2563EB),
           ),
           if (_walletBalance > 0)
-            _totalRow('Wallet balance available', rupees(_walletBalance),
-                color: Brand.mutedForeground, small: true),
+            _totalRow(
+              'Wallet balance available',
+              rupees(_walletBalance),
+              color: Brand.mutedForeground,
+              small: true,
+            ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Divider(height: 1),
@@ -1374,8 +1448,11 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.local_offer,
-                    color: Colors.white, size: 17),
+                child: const Icon(
+                  Icons.local_offer,
+                  color: Colors.white,
+                  size: 17,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1392,7 +1469,10 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
                     ),
                     Text(
                       '${_vouchers.length} offer${_vouchers.length > 1 ? 's' : ''} available',
-                      style: const TextStyle(fontSize: 11, color: Brand.mutedForeground),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Brand.mutedForeground,
+                      ),
                     ),
                   ],
                 ),
@@ -1493,8 +1573,10 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
       child: Row(
         children: [
           Expanded(
-            child: Text(label,
-                style: style.copyWith(color: color ?? Brand.gray600)),
+            child: Text(
+              label,
+              style: style.copyWith(color: color ?? Brand.gray600),
+            ),
           ),
           Text(value, style: style.copyWith(color: color ?? Colors.black)),
         ],
@@ -1526,7 +1608,11 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
               'compression during handling and transit. Results may also vary '
               'depending on the fabric, construction and existing condition of '
               'each garment.',
-              style: TextStyle(fontSize: 12.5, height: 1.6, color: Brand.gray600),
+              style: TextStyle(
+                fontSize: 12.5,
+                height: 1.6,
+                color: Brand.gray600,
+              ),
             ),
             const SizedBox(height: 6),
             GestureDetector(

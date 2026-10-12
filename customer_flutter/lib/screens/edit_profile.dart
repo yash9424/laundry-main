@@ -57,8 +57,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final mobile = (customer['mobile'] ?? '').toString();
       _phone.text =
           (mobile.startsWith('google_') || mobile.startsWith('apple_'))
-              ? ''
-              : mobile;
+          ? ''
+          : mobile;
       final image = customer['profileImage']?.toString();
       _photo = (image == null || image.isEmpty)
           ? null
@@ -106,7 +106,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final complete = _name.text.isNotEmpty &&
+    final complete =
+        _name.text.isNotEmpty &&
         _email.text.isNotEmpty &&
         _phone.text.isNotEmpty;
 
@@ -131,15 +132,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     const SizedBox(height: 16),
                     _field(_name, 'Full Name'),
                     const SizedBox(height: 12),
-                    _field(_email, 'Email Address',
-                        keyboard: TextInputType.emailAddress),
+                    _field(
+                      _email,
+                      'Email Address',
+                      keyboard: TextInputType.emailAddress,
+                    ),
                     const SizedBox(height: 12),
-                    _field(_phone, 'Mobile Number',
-                        keyboard: TextInputType.number,
-                        formatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(10),
-                        ]),
+                    _field(
+                      _phone,
+                      'Mobile Number',
+                      keyboard: TextInputType.number,
+                      formatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                    ),
                     const SizedBox(height: 24), // mt-6
                     GradientButton(
                       label: _saving ? 'Updating...' : 'Update Profile',
@@ -175,7 +182,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           hintText: hint,
           counterText: '',
           isDense: false,
-          contentPadding: const EdgeInsets.only(left: 40, right: 12, top: 10, bottom: 10),
+          contentPadding: const EdgeInsets.only(
+            left: 40,
+            right: 12,
+            top: 10,
+            bottom: 10,
+          ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Brand.rXl),
             borderSide: const BorderSide(color: Brand.blue500, width: 2),

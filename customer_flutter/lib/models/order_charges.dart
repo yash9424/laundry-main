@@ -75,12 +75,18 @@ class OrderChargesConfig {
   final String sustainabilityText;
 
   static const defaultHowToSteps = [
-    HowToStep('Choose Your Garments',
-        'Count your garments and tap "+" to add them.'),
-    HowToStep('Review Your Cart',
-        'Items are saved to your cart automatically. Tap the total bar or Cart below to check your order.'),
-    HowToStep('Pick a Slot & Pay',
-        'Choose your pickup slot and complete payment.'),
+    HowToStep(
+      'Choose Your Garments',
+      'Count your garments and tap "+" to add them.',
+    ),
+    HowToStep(
+      'Review Your Cart',
+      'Items are saved to your cart automatically. Tap the total bar or Cart below to check your order.',
+    ),
+    HowToStep(
+      'Pick a Slot & Pay',
+      'Choose your pickup slot and complete payment.',
+    ),
     HowToStep('Relax', "We'll take care of the rest."),
   ];
 
@@ -91,86 +97,100 @@ class OrderChargesConfig {
   ];
 
   static OrderChargesConfig defaults() => OrderChargesConfig(
-        cancellationPercentage: 20,
-        cancellationPolicyText: '',
-        garmentCarePolicyText: '',
-        damageLossPolicyText: '',
-        expressEnabled: true,
-        expressPrice: 0,
-        expressLabel: 'Express Delivery',
-        expressDescription: '',
-        homeStandardTitle: 'Standard Delivery',
-        homeStandardSubtitle: '24-hour turnaround',
-        homeExpressTitle: 'Express Delivery',
-        homeExpressSubtitle: '12-hour turnaround — for a small fee',
-        todaySlotsEnabled: true,
-        tomorrowSlotsEnabled: true,
-        expressCutoffHour: 18,
-        expressLeadTimeMinutes: 90,
-        howToOrderTitle: 'How To Order',
-        howToOrderSteps: defaultHowToSteps,
-        checklistEnabled: true,
-        checklistTitle: 'Before your pickup',
-        checklistIntro: 'For a smooth pickup, please ensure that:',
-        checklistPoints: defaultChecklistPoints,
-        checklistNote:
-            'Our pickup team will collect only the garments included in the confirmed booking.',
-        importantTitle: 'Important',
-        importantText:
-            'Urban Steam does not take responsibility for cash, jewellery, or any personal items left inside garments. Kindly check all pockets before handing over your clothes.',
-        sustainabilityTitle: 'A small step towards sustainable service',
-        sustainabilityText:
-            "If the paper inside your garments is still clean and usable, you can keep it aside for us. We'll be happy to collect and reuse it with your next pickup.",
-      );
+    cancellationPercentage: 20,
+    cancellationPolicyText: '',
+    garmentCarePolicyText: '',
+    damageLossPolicyText: '',
+    expressEnabled: true,
+    expressPrice: 0,
+    expressLabel: 'Express Delivery',
+    expressDescription: '',
+    homeStandardTitle: 'Standard Delivery',
+    homeStandardSubtitle: '24-hour turnaround',
+    homeExpressTitle: 'Express Delivery',
+    homeExpressSubtitle: '12-hour turnaround — for a small fee',
+    todaySlotsEnabled: true,
+    tomorrowSlotsEnabled: true,
+    expressCutoffHour: 18,
+    expressLeadTimeMinutes: 90,
+    howToOrderTitle: 'How To Order',
+    howToOrderSteps: defaultHowToSteps,
+    checklistEnabled: true,
+    checklistTitle: 'Before your pickup',
+    checklistIntro: 'For a smooth pickup, please ensure that:',
+    checklistPoints: defaultChecklistPoints,
+    checklistNote:
+        'Our pickup team will collect only the garments included in the confirmed booking.',
+    importantTitle: 'Important',
+    importantText:
+        'Urban Steam does not take responsibility for cash, jewellery, or any personal items left inside garments. Kindly check all pockets before handing over your clothes.',
+    sustainabilityTitle: 'A small step towards sustainable service',
+    sustainabilityText:
+        "If the paper inside your garments is still clean and usable, you can keep it aside for us. We'll be happy to collect and reuse it with your next pickup.",
+  );
 
   static String _text(Object? value, String fallback) {
     final s = value?.toString().trim();
     return (s == null || s.isEmpty) ? fallback : s;
   }
 
-  static List<String> _lines(Object? value) =>
-      (value?.toString() ?? '')
-          .split(RegExp(r'\r?\n'))
-          .map((l) => l.trim())
-          .where((l) => l.isNotEmpty)
-          .toList();
+  static List<String> _lines(Object? value) => (value?.toString() ?? '')
+      .split(RegExp(r'\r?\n'))
+      .map((l) => l.trim())
+      .where((l) => l.isNotEmpty)
+      .toList();
 
   factory OrderChargesConfig.fromJson(Map<String, dynamic> json) {
     final d = defaults();
 
     // One step per line, written as "Title | Description".
-    final steps = _lines(json['howToOrderSteps']).map((line) {
-      final parts = line.split('|');
-      return HowToStep(
-        parts.first.trim(),
-        parts.length > 1 ? parts.sublist(1).join('|').trim() : '',
-      );
-    }).where((s) => s.title.isNotEmpty).toList();
+    final steps = _lines(json['howToOrderSteps'])
+        .map((line) {
+          final parts = line.split('|');
+          return HowToStep(
+            parts.first.trim(),
+            parts.length > 1 ? parts.sublist(1).join('|').trim() : '',
+          );
+        })
+        .where((s) => s.title.isNotEmpty)
+        .toList();
 
     final points = _lines(json['pickupChecklistPoints']);
 
     return OrderChargesConfig(
       cancellationPercentage:
           num.tryParse(json['cancellationPercentage']?.toString() ?? '') ??
-              d.cancellationPercentage,
-      cancellationPolicyText:
-          _text(json['cancellationPolicyText'], d.cancellationPolicyText),
-      garmentCarePolicyText:
-          _text(json['garmentCarePolicyText'], d.garmentCarePolicyText),
-      damageLossPolicyText:
-          _text(json['damageLossPolicyText'], d.damageLossPolicyText),
+          d.cancellationPercentage,
+      cancellationPolicyText: _text(
+        json['cancellationPolicyText'],
+        d.cancellationPolicyText,
+      ),
+      garmentCarePolicyText: _text(
+        json['garmentCarePolicyText'],
+        d.garmentCarePolicyText,
+      ),
+      damageLossPolicyText: _text(
+        json['damageLossPolicyText'],
+        d.damageLossPolicyText,
+      ),
       expressEnabled: json['expressDeliveryEnabled'] != false,
       expressPrice:
           num.tryParse(json['expressDeliveryPrice']?.toString() ?? '') ?? 0,
       expressLabel: _text(json['expressDeliveryLabel'], d.expressLabel),
-      expressDescription:
-          _text(json['expressDeliveryDescription'], d.expressDescription),
+      expressDescription: _text(
+        json['expressDeliveryDescription'],
+        d.expressDescription,
+      ),
       homeStandardTitle: _text(json['homeStandardTitle'], d.homeStandardTitle),
-      homeStandardSubtitle:
-          _text(json['homeStandardSubtitle'], d.homeStandardSubtitle),
+      homeStandardSubtitle: _text(
+        json['homeStandardSubtitle'],
+        d.homeStandardSubtitle,
+      ),
       homeExpressTitle: _text(json['homeExpressTitle'], d.homeExpressTitle),
-      homeExpressSubtitle:
-          _text(json['homeExpressSubtitle'], d.homeExpressSubtitle),
+      homeExpressSubtitle: _text(
+        json['homeExpressSubtitle'],
+        d.homeExpressSubtitle,
+      ),
       todaySlotsEnabled: json['todaySlotsEnabled'] != false,
       tomorrowSlotsEnabled: json['tomorrowSlotsEnabled'] != false,
       expressCutoffHour:
@@ -186,10 +206,14 @@ class OrderChargesConfig {
       checklistNote: _text(json['pickupChecklistNote'], d.checklistNote),
       importantTitle: _text(json['pickupImportantTitle'], d.importantTitle),
       importantText: _text(json['pickupImportantText'], d.importantText),
-      sustainabilityTitle:
-          _text(json['pickupSustainabilityTitle'], d.sustainabilityTitle),
-      sustainabilityText:
-          _text(json['pickupSustainabilityText'], d.sustainabilityText),
+      sustainabilityTitle: _text(
+        json['pickupSustainabilityTitle'],
+        d.sustainabilityTitle,
+      ),
+      sustainabilityText: _text(
+        json['pickupSustainabilityText'],
+        d.sustainabilityText,
+      ),
     );
   }
 }
@@ -233,11 +257,11 @@ class WalletSettings {
   }
 
   static WalletSettings defaults() => WalletSettings(
-        minOrderPrice: 0,
-        pointsPerRupee: 1,
-        minRedeemPoints: 0,
-        referralPoints: 0,
-        signupBonusPoints: 0,
-        orderCompletionPoints: 0,
-      );
+    minOrderPrice: 0,
+    pointsPerRupee: 1,
+    minRedeemPoints: 0,
+    referralPoints: 0,
+    signupBonusPoints: 0,
+    orderCompletionPoints: 0,
+  );
 }

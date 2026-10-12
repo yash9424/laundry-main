@@ -7,6 +7,7 @@ import '../services/store.dart';
 import '../theme/brand.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
+import '../widgets/lucide.dart';
 
 class BookingHistoryScreen extends StatefulWidget {
   const BookingHistoryScreen({super.key});
@@ -89,18 +90,25 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
             // These used to sit in a scroller with a hidden scrollbar, so on a
             // narrow phone "Cancelled" was off-screen with nothing to suggest
             // it existed. Wrapping keeps every filter visible.
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [for (final tab in _tabs) _chip(tab)],
+            // `pl-1 pr-1` on the row, which is what tips "Cancelled" onto a
+            // second line on a narrow phone.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [for (final tab in _tabs) _chip(tab)],
+              ),
             ),
             const SizedBox(height: 18),
             if (_loading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 36),
                 child: Center(
-                  child: Text('Loading orders...',
-                      style: TextStyle(color: Brand.mutedForeground)),
+                  child: Text(
+                    'Loading orders...',
+                    style: TextStyle(color: Brand.mutedForeground),
+                  ),
                 ),
               )
             else if (_visible.isEmpty)
@@ -139,7 +147,10 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                 : Border.all(color: const Color(0xFFD1D5DB), width: 2),
             boxShadow: const [
               BoxShadow(
-                  color: Color(0x14000000), blurRadius: 8, offset: Offset(0, 2)),
+                color: Color(0x14000000),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
             ],
           ),
           child: Text(
@@ -200,8 +211,8 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
     final gradient = order.status == 'delivered'
         ? const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF059669)])
         : order.status == 'cancelled'
-            ? const LinearGradient(colors: [Color(0xFFEF4444), Color(0xFFDC2626)])
-            : Brand.gradient;
+        ? const LinearGradient(colors: [Color(0xFFEF4444), Color(0xFFDC2626)])
+        : Brand.gradient;
 
     final placed = order.createdAt == null
         ? ''
@@ -214,7 +225,11 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Brand.border, width: 2),
         boxShadow: const [
-          BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -223,15 +238,24 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // `w-8 h-8 rounded-lg` with a 16px lucide Shirt.
               Container(
-                height: 38,
-                width: 38,
+                height: 32,
+                width: 32,
                 decoration: BoxDecoration(
                   gradient: Brand.gradient,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(Brand.rLg),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x1F000000),
+                      blurRadius: 6,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: const Icon(Icons.dry_cleaning,
-                    color: Colors.white, size: 19),
+                child: Center(
+                  child: Lucide.shirt(size: 16, color: Colors.white),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -241,21 +265,29 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                     Text(
                       'Order #${order.orderId}',
                       style: const TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 14.5),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14.5,
+                      ),
                     ),
                     const SizedBox(height: 1),
                     Text(
                       order.itemsText,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12.5, color: Brand.mutedForeground),
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: Brand.mutedForeground,
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   gradient: gradient,
                   borderRadius: BorderRadius.circular(999),
@@ -277,7 +309,10 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
               Expanded(
                 child: Text(
                   placed,
-                  style: const TextStyle(fontSize: 12.5, color: Brand.mutedForeground),
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: Brand.mutedForeground,
+                  ),
                 ),
               ),
               GradientText(

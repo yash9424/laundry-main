@@ -115,7 +115,9 @@ class _PlanCarouselState extends State<PlanCarousel> {
                       width: i == _index ? 20 : 8,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(4),
-                        color: i == _index ? Brand.purple : const Color(0xFFD1D5DB),
+                        color: i == _index
+                            ? Brand.purple
+                            : const Color(0xFFD1D5DB),
                       ),
                     ),
                   ),
@@ -133,8 +135,9 @@ class _PlanCarouselState extends State<PlanCarousel> {
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.white,
                 side: const BorderSide(color: Brand.purple, width: 1.5),
-                shape:
-                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
               child: const Text(
                 'View All Plans',
@@ -213,14 +216,19 @@ class _PlanSlide extends StatelessWidget {
                       ),
                       child: plan.image == null
                           ? const Center(
-                              child: Text('\u{1F48E}',
-                                  style: TextStyle(fontSize: 24)))
+                              child: Text(
+                                '\u{1F48E}',
+                                style: TextStyle(fontSize: 24),
+                              ),
+                            )
                           : RemoteImage(
                               url: plan.image,
                               decodeWidth: 54,
                               fallback: const Center(
-                                child: Text('\u{1F48E}',
-                                    style: TextStyle(fontSize: 24)),
+                                child: Text(
+                                  '\u{1F48E}',
+                                  style: TextStyle(fontSize: 24),
+                                ),
                               ),
                             ),
                     ),
@@ -242,7 +250,9 @@ class _PlanSlide extends StatelessWidget {
                     if (plan.bonusPercent > 0)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
@@ -282,8 +292,10 @@ class _PlanSlide extends StatelessWidget {
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Text('→',
-                          style: TextStyle(color: Colors.white38, fontSize: 18)),
+                      child: Text(
+                        '→',
+                        style: TextStyle(color: Colors.white38, fontSize: 18),
+                      ),
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,7 +319,10 @@ class _PlanSlide extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       'That is ${rupees(plan.walletCredit - plan.price)} extra to spend.',
-                      style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 const SizedBox(height: 10),
@@ -317,12 +332,14 @@ class _PlanSlide extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('✓',
-                            style: TextStyle(
-                              color: Color(0xFF6EE7B7),
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12,
-                            )),
+                        const Text(
+                          '✓',
+                          style: TextStyle(
+                            color: Color(0xFF6EE7B7),
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                          ),
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
@@ -417,8 +434,11 @@ class _PlanSheetState extends State<_PlanSheet> {
     }
     if (!payment.paid) {
       setState(() => _buying = false);
-      showToast(context, payment.message ?? 'Payment failed. Contact support.',
-          error: true);
+      showToast(
+        context,
+        payment.message ?? 'Payment failed. Contact support.',
+        error: true,
+      );
       return;
     }
 
@@ -446,13 +466,15 @@ class _PlanSheetState extends State<_PlanSheet> {
 
     navigator.pop();
     messenger.clearSnackBars();
-    messenger.showSnackBar(SnackBar(
-      content: Text('✅ ${rupees(plan.walletCredit)} added to your wallet!'),
-      backgroundColor: Brand.green600,
-      behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    ));
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('✅ ${rupees(plan.walletCredit)} added to your wallet!'),
+        backgroundColor: Brand.green600,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   @override
@@ -495,7 +517,9 @@ class _PlanSheetState extends State<_PlanSheet> {
                       if (plan.bonusPercent > 0)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
@@ -515,8 +539,10 @@ class _PlanSheetState extends State<_PlanSheet> {
                   ),
                   const SizedBox(height: 14),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                     decoration: BoxDecoration(
                       gradient: Brand.gradient,
                       borderRadius: BorderRadius.circular(14),
@@ -526,12 +552,14 @@ class _PlanSheetState extends State<_PlanSheet> {
                       children: [
                         Column(
                           children: [
-                            const Text('YOU PAY',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                )),
+                            const Text(
+                              'YOU PAY',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                             Text(
                               rupees(plan.price),
                               style: const TextStyle(
@@ -544,18 +572,24 @@ class _PlanSheetState extends State<_PlanSheet> {
                         ),
                         const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 14),
-                          child: Text('→',
-                              style: TextStyle(
-                                  color: Colors.white54, fontSize: 24)),
+                          child: Text(
+                            '→',
+                            style: TextStyle(
+                              color: Colors.white54,
+                              fontSize: 24,
+                            ),
+                          ),
                         ),
                         Column(
                           children: [
-                            const Text('WALLET GETS',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                )),
+                            const Text(
+                              'WALLET GETS',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                             Text(
                               rupees(plan.walletCredit),
                               style: const TextStyle(
@@ -577,11 +611,13 @@ class _PlanSheetState extends State<_PlanSheet> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('✓',
-                                style: TextStyle(
-                                  color: Brand.cyan,
-                                  fontWeight: FontWeight.w900,
-                                )),
+                            const Text(
+                              '✓',
+                              style: TextStyle(
+                                color: Brand.cyan,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -608,9 +644,13 @@ class _PlanSheetState extends State<_PlanSheet> {
                   ),
                   const SizedBox(height: 6),
                   TextButton(
-                    onPressed: _buying ? null : () => Navigator.of(context).pop(),
-                    child: const Text('Cancel',
-                        style: TextStyle(color: Color(0xFF94A3B8), fontSize: 14)),
+                    onPressed: _buying
+                        ? null
+                        : () => Navigator.of(context).pop(),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                    ),
                   ),
                 ],
               ),

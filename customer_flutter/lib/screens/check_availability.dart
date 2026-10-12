@@ -34,7 +34,9 @@ class _CheckAvailabilityScreenState extends State<CheckAvailabilityScreen> {
     final serviceable = await Api.isServiceable(_pincode.text);
     if (!mounted) return;
     setState(() => _checking = false);
-    Navigator.of(context).pushNamed(serviceable ? '/congrats' : '/not-available');
+    Navigator.of(
+      context,
+    ).pushNamed(serviceable ? '/congrats' : '/not-available');
   }
 
   @override
@@ -97,7 +99,10 @@ class _CheckAvailabilityScreenState extends State<CheckAvailabilityScreen> {
                             hintText: 'Pincode',
                             counterText: '',
                             isDense: false,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 9,
+                            ),
                             // rounded-xl border-input
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(Brand.rXl),
@@ -105,8 +110,10 @@ class _CheckAvailabilityScreenState extends State<CheckAvailabilityScreen> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(Brand.rXl),
-                              borderSide:
-                                  const BorderSide(color: Brand.primary, width: 2),
+                              borderSide: const BorderSide(
+                                color: Brand.primary,
+                                width: 2,
+                              ),
                             ),
                           ),
                           onChanged: (_) => setState(() {}),

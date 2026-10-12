@@ -91,8 +91,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
-                    Icon(Icons.notifications_none,
-                        size: 64, color: Color(0xFFD1D5DB)),
+                    Icon(
+                      Icons.notifications_none,
+                      size: 64,
+                      color: Color(0xFFD1D5DB),
+                    ),
                     SizedBox(height: 16),
                     Text(
                       'No notifications yet',
@@ -106,7 +109,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     Text(
                       'Updates about your orders will show up here.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Brand.mutedForeground, fontSize: 14),
+                      style: TextStyle(
+                        color: Brand.mutedForeground,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
@@ -131,7 +137,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       color: Brand.destructive,
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(Icons.delete_outline, color: Colors.white),
+                    child: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.white,
+                    ),
                   ),
                   onDismissed: (_) =>
                       Notifications.instance.delete(notification.id),
@@ -181,8 +190,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   gradient: Brand.gradient,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(_icon(notification),
-                    size: 19, color: Colors.white),
+                child: Icon(_icon(notification), size: 19, color: Colors.white),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -207,7 +215,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         Text(
                           _ago(notification.timestamp),
                           style: const TextStyle(
-                              fontSize: 11.5, color: Brand.mutedForeground),
+                            fontSize: 11.5,
+                            color: Brand.mutedForeground,
+                          ),
                         ),
                       ],
                     ),
@@ -215,16 +225,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     Text(
                       notification.message,
                       style: const TextStyle(
-                          fontSize: 13, color: Brand.gray600, height: 1.5),
+                        fontSize: 13,
+                        color: Brand.gray600,
+                        height: 1.5,
+                      ),
                     ),
                   ],
                 ),
               ),
               IconButton(
                 visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.close, size: 16, color: Brand.mutedForeground),
-                onPressed: () =>
-                    Notifications.instance.delete(notification.id),
+                icon: const Icon(
+                  Icons.close,
+                  size: 16,
+                  color: Brand.mutedForeground,
+                ),
+                onPressed: () => Notifications.instance.delete(notification.id),
               ),
             ],
           ),
@@ -259,7 +275,10 @@ class NotificationBell extends StatelessWidget {
                 right: 6,
                 top: 6,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 1,
+                  ),
                   decoration: BoxDecoration(
                     color: Brand.destructive,
                     borderRadius: BorderRadius.circular(999),

@@ -10,6 +10,9 @@ enum DisabledLook {
 
   /// A flat `#9ca3af`, which the profile and cart screens set inline.
   flatGrey,
+
+  /// shadcn's `disabled:bg-gray-300`, which Rate Your Order asks for.
+  flatGrey300,
 }
 
 /// The gradient button used on nearly every screen.
@@ -53,7 +56,11 @@ class GradientButton extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: (enabled || faded) ? Brand.gradient : null,
-          color: (enabled || faded) ? null : Brand.disabled,
+          color: (enabled || faded)
+              ? null
+              : (disabledLook == DisabledLook.flatGrey300
+                    ? const Color(0xFFD1D5DB) // gray-300
+                    : Brand.disabled),
           borderRadius: BorderRadius.circular(radius),
           boxShadow: shadow
               ? [
@@ -112,16 +119,26 @@ class GradientButton extends StatelessWidget {
 
 /// Text painted with the brand gradient, as several headings are.
 class GradientText extends StatelessWidget {
-  const GradientText(this.text, {super.key, required this.style, this.align});
+  const GradientText(
+    this.text, {
+    super.key,
+    required this.style,
+    this.align,
+    this.gradient,
+  });
 
   final String text;
   final TextStyle style;
   final TextAlign? align;
 
+  /// The brand gradient unless a screen paints its headings in its own, which
+  /// Refer & Earn does -- it is written in Tailwind blues throughout.
+  final Gradient? gradient;
+
   @override
   Widget build(BuildContext context) {
     return ShaderMask(
-      shaderCallback: (bounds) => Brand.gradient.createShader(
+      shaderCallback: (bounds) => (gradient ?? Brand.gradient).createShader(
         Rect.fromLTWH(0, 0, bounds.width, bounds.height),
       ),
       child: Text(
@@ -181,7 +198,9 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       decoration: BoxDecoration(
         gradient: gradient ? Brand.gradient : null,
         color: gradient ? null : Colors.white,
-        border: gradient ? null : const Border(bottom: BorderSide(color: Brand.border)),
+        border: gradient
+            ? null
+            : const Border(bottom: BorderSide(color: Brand.border)),
         boxShadow: gradient
             ? [
                 BoxShadow(
@@ -191,7 +210,11 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ]
             : const [
-                BoxShadow(color: Color(0x0D000000), blurRadius: 4, offset: Offset(0, 1)),
+                BoxShadow(
+                  color: Color(0x0D000000),
+                  blurRadius: 4,
+                  offset: Offset(0, 1),
+                ),
               ],
       ),
       child: SizedBox(
@@ -229,7 +252,10 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  static Widget _tapTarget({required VoidCallback onTap, required Widget child}) {
+  static Widget _tapTarget({
+    required VoidCallback onTap,
+    required Widget child,
+  }) {
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(8),
@@ -278,8 +304,9 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final heading = Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment:
-          centred ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      crossAxisAlignment: centred
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
       children: [
         Text(
           title,
@@ -332,7 +359,8 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
                   children: [
                     if (showBack)
                       GestureDetector(
-                        onTap: onBack ??
+                        onTap:
+                            onBack ??
                             () {
                               final navigator = Navigator.of(context);
                               if (navigator.canPop()) {

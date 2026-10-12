@@ -82,10 +82,8 @@ class _HeroCarouselState extends State<HeroCarousel> {
                 controller: _controller,
                 itemCount: widget.items.length,
                 onPageChanged: (i) => setState(() => _index = i),
-                itemBuilder: (_, i) => _Slide(
-                  item: widget.items[i],
-                  onAction: widget.onAction,
-                ),
+                itemBuilder: (_, i) =>
+                    _Slide(item: widget.items[i], onAction: widget.onAction),
               ),
             ),
           ),
@@ -134,7 +132,8 @@ class _Slide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasCaption = (item.title ?? '').isNotEmpty ||
+    final hasCaption =
+        (item.title ?? '').isNotEmpty ||
         (item.description ?? '').isNotEmpty ||
         (item.buttonText ?? '').isNotEmpty;
 
@@ -153,8 +152,10 @@ class _Slide extends StatelessWidget {
             fallback: const ColoredBox(
               color: Color(0xFFE5E7EB),
               child: Center(
-                child: Icon(Icons.image_not_supported_outlined,
-                    color: Brand.mutedForeground),
+                child: Icon(
+                  Icons.image_not_supported_outlined,
+                  color: Brand.mutedForeground,
+                ),
               ),
             ),
           ),
@@ -191,7 +192,10 @@ class _Slide extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
                         item.description!,
-                        style: const TextStyle(color: Colors.white70, fontSize: 14),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   if ((item.buttonText ?? '').isNotEmpty &&
@@ -202,7 +206,9 @@ class _Slide extends StatelessWidget {
                         onTap: () => onAction?.call(item.buttonLink!),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 9),
+                            horizontal: 16,
+                            vertical: 9,
+                          ),
                           decoration: BoxDecoration(
                             gradient: Brand.gradient,
                             borderRadius: BorderRadius.circular(12),
@@ -277,7 +283,12 @@ class _HeroVideoState extends State<_HeroVideo> {
     if (_failed) {
       return const ColoredBox(
         color: Color(0xFFE5E7EB),
-        child: Center(child: Icon(Icons.videocam_off_outlined, color: Brand.mutedForeground)),
+        child: Center(
+          child: Icon(
+            Icons.videocam_off_outlined,
+            color: Brand.mutedForeground,
+          ),
+        ),
       );
     }
     if (player == null) {

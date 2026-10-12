@@ -65,11 +65,15 @@ class AppRoutes {
         case '/cart':
           return const CartScreen();
         case '/pickup-checklist':
-          return PickupChecklistScreen(draft: CheckoutDraft.fromArguments(args));
+          return PickupChecklistScreen(
+            draft: CheckoutDraft.fromArguments(args),
+          );
         case '/pickup-slot':
           return PickupSlotScreen(draft: CheckoutDraft.fromArguments(args));
         case '/continue-booking':
-          return ContinueBookingScreen(draft: CheckoutDraft.fromArguments(args));
+          return ContinueBookingScreen(
+            draft: CheckoutDraft.fromArguments(args),
+          );
         case '/booking-confirmation':
           return BookingConfirmationScreen(
             args: args is Map
@@ -85,7 +89,9 @@ class AppRoutes {
         case '/create-profile':
           return CreateProfileScreen(
             customerId: (args is Map) ? args['customerId'] as String? : null,
-            mobileNumber: (args is Map) ? args['mobileNumber'] as String? : null,
+            mobileNumber: (args is Map)
+                ? args['mobileNumber'] as String?
+                : null,
           );
         case '/profile':
           return const ProfileScreen();
@@ -132,13 +138,17 @@ class _NotFound extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('404', style: TextStyle(fontSize: 44, fontWeight: FontWeight.bold)),
+            const Text(
+              '404',
+              style: TextStyle(fontSize: 44, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             const Text('This screen does not exist.'),
             const SizedBox(height: 16),
             TextButton(
-              onPressed: () =>
-                  Navigator.of(context).pushNamedAndRemoveUntil('/home', (r) => false),
+              onPressed: () => Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('/home', (r) => false),
               child: const Text('Go home'),
             ),
           ],

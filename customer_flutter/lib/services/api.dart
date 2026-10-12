@@ -43,8 +43,10 @@ class Api {
   static Uri _uri(String path, [Map<String, dynamic>? query]) {
     final q = query?.entries
         .where((e) => e.value != null)
-        .map((e) =>
-            '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value.toString())}')
+        .map(
+          (e) =>
+              '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value.toString())}',
+        )
         .join('&');
     return Uri.parse('$apiUrl$path${(q == null || q.isEmpty) ? '' : '?$q'}');
   }
@@ -159,53 +161,62 @@ class Api {
       _send('POST', '/api/auth/send-otp', body: {'phone': phone});
 
   static Future<ApiResult> verifyOtp(String phone, String code) => _send(
-        'POST',
-        '/api/auth/verify-otp',
-        body: {'phone': phone, 'code': code, 'role': 'customer'},
-      );
+    'POST',
+    '/api/auth/verify-otp',
+    body: {'phone': phone, 'code': code, 'role': 'customer'},
+  );
 
   /// Finds or creates the customer for a mobile number.
   static Future<ApiResult> mobileLogin(String mobile) =>
       _send('POST', '/api/mobile/auth/login', body: {'mobile': mobile});
 
   static Future<ApiResult> googleLogin(String idToken) => _send(
-        'POST',
-        '/api/auth/google-login',
-        body: {'idToken': idToken, 'role': 'customer'},
-      );
+    'POST',
+    '/api/auth/google-login',
+    body: {'idToken': idToken, 'role': 'customer'},
+  );
 
   static Future<ApiResult> appleLogin(String identityToken) => _send(
-        'POST',
-        '/api/auth/apple-login',
-        body: {'identityToken': identityToken, 'role': 'customer'},
-      );
+    'POST',
+    '/api/auth/apple-login',
+    body: {'identityToken': identityToken, 'role': 'customer'},
+  );
 
   // ---- profile -----------------------------------------------------------
 
   static Future<ApiResult> profile(String customerId, {Duration? timeout}) =>
-      _send('GET', '/api/mobile/profile',
-          query: {'customerId': customerId}, timeout: timeout);
+      _send(
+        'GET',
+        '/api/mobile/profile',
+        query: {'customerId': customerId},
+        timeout: timeout,
+      );
 
   static Future<ApiResult> saveProfile(
     String customerId,
     Map<String, dynamic> fields,
-  ) =>
-      _send('PUT', '/api/mobile/profile',
-          query: {'customerId': customerId}, body: fields);
+  ) => _send(
+    'PUT',
+    '/api/mobile/profile',
+    query: {'customerId': customerId},
+    body: fields,
+  );
 
   /// Addresses and payment methods POST rather than PUT.
   static Future<ApiResult> postProfile(
     String customerId,
     Map<String, dynamic> fields,
-  ) =>
-      _send('POST', '/api/mobile/profile',
-          query: {'customerId': customerId}, body: fields);
+  ) => _send(
+    'POST',
+    '/api/mobile/profile',
+    query: {'customerId': customerId},
+    body: fields,
+  );
 
   static Future<ApiResult> patchCustomer(
     String customerId,
     Map<String, dynamic> fields,
-  ) =>
-      _send('PATCH', '/api/customers/$customerId', body: fields);
+  ) => _send('PATCH', '/api/customers/$customerId', body: fields);
 
   // ---- catalogue and settings -------------------------------------------
 
@@ -227,12 +238,15 @@ class Api {
     int? dayOffset,
     String? serviceType,
     String? day,
-  }) =>
-      _send('GET', '/api/time-slots', query: {
-        if (dayOffset != null) 'dayOffset': dayOffset,
-        if (serviceType != null) 'serviceType': serviceType,
-        if (day != null) 'day': day,
-      });
+  }) => _send(
+    'GET',
+    '/api/time-slots',
+    query: {
+      if (dayOffset != null) 'dayOffset': dayOffset,
+      if (serviceType != null) 'serviceType': serviceType,
+      if (day != null) 'day': day,
+    },
+  );
 
   // ---- orders ------------------------------------------------------------
 
@@ -242,11 +256,11 @@ class Api {
   static Future<ApiResult> order(String id) => _send('GET', '/api/orders/$id');
 
   static Future<ApiResult> createOrder(Map<String, dynamic> order) => _send(
-        'POST',
-        '/api/orders',
-        body: order,
-        timeout: const Duration(seconds: 45),
-      );
+    'POST',
+    '/api/orders',
+    body: order,
+    timeout: const Duration(seconds: 45),
+  );
 
   static Future<ApiResult> patchOrder(String id, Map<String, dynamic> fields) =>
       _send('PATCH', '/api/orders/$id', body: fields);
@@ -256,12 +270,11 @@ class Api {
     required int rating,
     required String comment,
     required String customerId,
-  }) =>
-      _send('POST', '/api/orders/$id/review', body: {
-        'rating': rating,
-        'comment': comment,
-        'customerId': customerId,
-      });
+  }) => _send(
+    'POST',
+    '/api/orders/$id/review',
+    body: {'rating': rating, 'comment': comment, 'customerId': customerId},
+  );
 
   /// The assigned captain, so the customer can ring them.
   static Future<ApiResult> partner(String partnerId) =>
@@ -269,9 +282,11 @@ class Api {
 
   // ---- wallet, plans, notifications -------------------------------------
 
-  static Future<ApiResult> walletTransactions(String customerId) =>
-      _send('GET', '/api/wallet-transactions',
-          query: {'customerId': customerId});
+  static Future<ApiResult> walletTransactions(String customerId) => _send(
+    'GET',
+    '/api/wallet-transactions',
+    query: {'customerId': customerId},
+  );
 
   static Future<ApiResult> subscriptionPlans() =>
       _send('GET', '/api/subscription-plans');
@@ -282,9 +297,11 @@ class Api {
   static Future<ApiResult> createSubscription(Map<String, dynamic> body) =>
       _send('POST', '/api/subscriptions', body: body);
 
-  static Future<ApiResult> notifications(String customerId) =>
-      _send('GET', '/api/mobile/notifications',
-          query: {'audience': 'customers', 'customerId': customerId});
+  static Future<ApiResult> notifications(String customerId) => _send(
+    'GET',
+    '/api/mobile/notifications',
+    query: {'audience': 'customers', 'customerId': customerId},
+  );
 
   // ---- payments ----------------------------------------------------------
 
@@ -292,21 +309,27 @@ class Api {
     required num amount,
     String currency = 'INR',
     String? receipt,
-  }) =>
-      _send('POST', '/api/razorpay/create-order', body: {
-        'amount': amount,
-        'currency': currency,
-        'receipt': receipt ?? 'rcpt_${DateTime.now().millisecondsSinceEpoch}',
-      });
+  }) => _send(
+    'POST',
+    '/api/razorpay/create-order',
+    body: {
+      'amount': amount,
+      'currency': currency,
+      'receipt': receipt ?? 'rcpt_${DateTime.now().millisecondsSinceEpoch}',
+    },
+  );
 
   static Future<ApiResult> razorpayVerify({
     required String orderId,
     required String paymentId,
     required String signature,
-  }) =>
-      _send('POST', '/api/razorpay/verify-payment', body: {
-        'razorpay_order_id': orderId,
-        'razorpay_payment_id': paymentId,
-        'razorpay_signature': signature,
-      });
+  }) => _send(
+    'POST',
+    '/api/razorpay/verify-payment',
+    body: {
+      'razorpay_order_id': orderId,
+      'razorpay_payment_id': paymentId,
+      'razorpay_signature': signature,
+    },
+  );
 }

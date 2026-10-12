@@ -143,7 +143,10 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: const Text(
           'Cancel Order',
-          style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w700),
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            fontWeight: FontWeight.w700,
+          ),
         ),
         content: const Text(
           'Are you sure you want to cancel this order? '
@@ -152,13 +155,17 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('No, Keep Order',
-                style: TextStyle(color: Brand.mutedForeground)),
+            child: const Text(
+              'No, Keep Order',
+              style: TextStyle(color: Brand.mutedForeground),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Yes, Cancel',
-                style: TextStyle(color: Brand.destructive)),
+            child: const Text(
+              'Yes, Cancel',
+              style: TextStyle(color: Brand.destructive),
+            ),
           ),
         ],
       ),
@@ -189,20 +196,24 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
     setState(() => _cancelling = false);
 
     if (!patched.ok) {
-      showToast(context, 'Failed to cancel order. Please try again.',
-          error: true);
+      showToast(
+        context,
+        'Failed to cancel order. Please try again.',
+        error: true,
+      );
       return;
     }
 
     // The fee is decided by the server, so its figure is the one to report.
-    final fee = num.tryParse(patched.raw?['cancellationFee']?.toString() ?? '') ?? 0;
+    final fee =
+        num.tryParse(patched.raw?['cancellationFee']?.toString() ?? '') ?? 0;
     final total = num.tryParse(order['totalAmount']?.toString() ?? '') ?? 0;
     showToast(
       context,
       fee > 0
           ? 'Order cancelled. Cancellation charge of ${rupees(fee)} '
-              '(${_charges.cancellationPercentage}% of ${rupees(total)}) '
-              'has been deducted from your wallet.'
+                '(${_charges.cancellationPercentage}% of ${rupees(total)}) '
+                'has been deducted from your wallet.'
           : 'Order cancelled successfully. No cancellation charge applied.',
       error: fee > 0,
     );
@@ -221,8 +232,9 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
       backgroundColor: Colors.white,
       appBar: PageHeader(
         'Order Confirmed',
-        onBack: () => Navigator.of(context)
-            .pushNamedAndRemoveUntil('/home', (r) => false),
+        onBack: () => Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil('/home', (r) => false),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 32, 20, 32),
@@ -242,8 +254,11 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                   ),
                 ],
               ),
-              child: const Icon(Icons.check_circle_outline,
-                  size: 54, color: Colors.white),
+              child: const Icon(
+                Icons.check_circle_outline,
+                size: 54,
+                color: Colors.white,
+              ),
             ),
           ),
           const SizedBox(height: 22),
@@ -261,7 +276,10 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
           Text(
             'Order #$_orderId has been placed successfully.',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14.5, color: Brand.mutedForeground),
+            style: const TextStyle(
+              fontSize: 14.5,
+              color: Brand.mutedForeground,
+            ),
           ),
           const SizedBox(height: 2),
           Text(
@@ -271,7 +289,10 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
             '${dayLabel.isNotEmpty ? dayLabel : 'your selected day'}'
             '${slot.isEmpty ? '' : ', $slot'}.',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14.5, color: Brand.mutedForeground),
+            style: const TextStyle(
+              fontSize: 14.5,
+              color: Brand.mutedForeground,
+            ),
           ),
           const SizedBox(height: 24),
           Container(
@@ -289,15 +310,24 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                   _row('Items Subtotal:', rupees(_amount('originalTotal'))),
                 if (widget.args['expressDelivery'] == true &&
                     _amount('expressDeliveryFee') > 0)
-                  _row('Express Delivery Fee:',
-                      '+${rupees(_amount('expressDeliveryFee'))}'),
+                  _row(
+                    'Express Delivery Fee:',
+                    '+${rupees(_amount('expressDeliveryFee'))}',
+                  ),
                 if (_amount('previousDue') > 0)
                   _row('Previous Due:', '+${rupees(_amount('previousDue'))}'),
                 if (_amount('discount') > 0)
-                  _row('Discount:', '-${rupees(_amount('discount'))}',
-                      valueColor: Brand.green600),
-                _row('Order Total:', rupees(_amount('total')),
-                    valueColor: Brand.purple, bold: true),
+                  _row(
+                    'Discount:',
+                    '-${rupees(_amount('discount'))}',
+                    valueColor: Brand.green600,
+                  ),
+                _row(
+                  'Order Total:',
+                  rupees(_amount('total')),
+                  valueColor: Brand.purple,
+                  bold: true,
+                ),
                 if (_amount('walletUsed') > 0)
                   _row('Paid from Wallet:', rupees(_amount('walletUsed'))),
                 if (_amount('paidOnline') > 0)
@@ -313,21 +343,22 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
             label: 'Track Order',
             icon: Icons.location_on_outlined,
             height: 52,
-            onPressed: () => Navigator.of(context).pushNamed(
-              '/order-details',
-              arguments: {'orderId': _orderId},
-            ),
+            onPressed: () => Navigator.of(
+              context,
+            ).pushNamed('/order-details', arguments: {'orderId': _orderId}),
           ),
           const SizedBox(height: 12),
           SizedBox(
             height: 52,
             child: OutlinedButton(
-              onPressed: () => Navigator.of(context)
-                  .pushNamedAndRemoveUntil('/home', (r) => false),
+              onPressed: () => Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('/home', (r) => false),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Brand.purple, width: 2),
-                shape:
-                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
               child: const Text(
                 'Back to Home',
@@ -349,12 +380,15 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                   backgroundColor: const Color(0xFFDC2626),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 child: Text(
                   _cancelling ? 'Cancelling...' : 'Cancel Order',
                   style: const TextStyle(
-                      fontSize: 15.5, fontWeight: FontWeight.w600),
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
@@ -391,8 +425,13 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Text(label,
-                style: const TextStyle(fontSize: 14.5, color: Brand.mutedForeground)),
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14.5,
+                color: Brand.mutedForeground,
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

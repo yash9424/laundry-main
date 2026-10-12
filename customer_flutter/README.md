@@ -157,6 +157,36 @@ Worth knowing when reading `QuirkSafeArea`: padding a centred layout moves its
 contents by half the padding, not all of it, because the centre of what is
 left also moves. The web behaves the same way, which is the point.
 
+## The second pass, with the Captain port's findings applied
+
+Porting the Captain app turned up two things that were wrong here as well, and
+a sweep of the screens the first pass had not reached turned up three more.
+
+- **Material's letter spacing.** Every Flutter `Text` inherits a letter-spacing
+  from the Material text theme -- 0.25 on `bodyMedium` -- that CSS does not
+  have. It is about four per cent of a line's width: small enough to look like
+  nothing on its own, large enough to wrap a filter chip or an address a word
+  early. `Brand.theme()` zeroes it across the text theme and gives body text
+  the `line-height: 1.5` that Tailwind's preflight puts on `html`.
+- **Headings with no `text-*` class.** `index.css` has
+  `h1 { @apply text-base font-bold }` down to `button { @apply text-xs }`
+  inside `@layer base`, so a class on a heading still wins -- but a heading
+  *without* one takes the base size. "Order summary", "Slots for today" and
+  the legal text were being sized by eye rather than by that rule.
+- **Refer & Earn had drifted.** The web screen was rewritten when the referral
+  reward moved to wallet credit, and this port still had the older shape: no
+  banner illustration, "Both Earn" instead of "You Earn", and neither the
+  "Your Rewards" nor the "Past Referrals" card. It also said "Share Code",
+  which is behind an `xs:` breakpoint Tailwind does not define, so the button
+  only ever reads "Share".
+- **Rate Your Order was a different screen.** It had a big round badge and
+  "How was order #X?"; the web app shows the order as a card and asks "How was
+  your experience?" underneath, with a grey `Submit Rating` and a `Skip` below
+  it.
+- **The garment icon.** Booking History and Rate Your Order were drawing
+  Material's `dry_cleaning` where the web uses lucide's `Shirt`, which
+  `lib/widgets/lucide.dart` already carries for the other screens.
+
 ## What is deliberately different from the web app
 
 Everything else is a faithful port. These are the exceptions, each for a reason:

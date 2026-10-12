@@ -138,7 +138,11 @@ class _PickupChecklistState extends State<PickupChecklist> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFEDE9FE), width: 2),
         boxShadow: const [
-          BoxShadow(color: Color(0x11000000), blurRadius: 10, offset: Offset(0, 3)),
+          BoxShadow(
+            color: Color(0x11000000),
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
         ],
       ),
       child: body,
@@ -188,7 +192,11 @@ class _PickupChecklistState extends State<PickupChecklist> {
                   ),
                 Text(
                   text,
-                  style: TextStyle(fontSize: 13.5, height: 1.5, color: textColor),
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    height: 1.5,
+                    color: textColor,
+                  ),
                 ),
               ],
             ),

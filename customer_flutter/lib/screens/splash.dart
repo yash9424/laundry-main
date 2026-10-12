@@ -30,8 +30,10 @@ class _SplashScreenState extends State<SplashScreen>
   // Nothing may hold the splash longer than this, whatever happens.
   static const _hardLimit = Duration(milliseconds: 7400);
 
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: _animation);
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: _animation,
+  );
 
   bool _ready = false;
   bool _movedOn = false;
@@ -61,8 +63,9 @@ class _SplashScreenState extends State<SplashScreen>
   void _next() {
     if (_movedOn || !mounted) return;
     _movedOn = true;
-    Navigator.of(context)
-        .pushReplacementNamed(Store.isSignedIn ? '/home' : '/welcome');
+    Navigator.of(
+      context,
+    ).pushReplacementNamed(Store.isSignedIn ? '/home' : '/welcome');
   }
 
   @override

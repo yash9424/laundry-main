@@ -96,10 +96,10 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
 
     final slots = result.list
         .whereType<Map>()
-        .map((m) => _Slot(
-              (m['_id'] ?? '').toString(),
-              (m['time'] ?? '').toString(),
-            ))
+        .map(
+          (m) =>
+              _Slot((m['_id'] ?? '').toString(), (m['time'] ?? '').toString()),
+        )
         .where((s) => s.time.isNotEmpty)
         .toList();
 
@@ -113,7 +113,9 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
       return;
     }
 
-    final available = slots.where((s) => !_isSlotPassed(s.time, offset)).toList();
+    final available = slots
+        .where((s) => !_isSlotPassed(s.time, offset))
+        .toList();
     setState(() {
       _slots = slots;
       _selectedSlot = available.isNotEmpty ? available.first.time : '';
@@ -131,8 +133,8 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
     final top = offset == 0
         ? 'Today'
         : offset == 1
-            ? 'Tomorrow'
-            : DateFormat('EEE').format(date);
+        ? 'Tomorrow'
+        : DateFormat('EEE').format(date);
     return (top: top, bottom: DateFormat('d MMM').format(date));
   }
 
@@ -145,16 +147,23 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
   /// shapes: "9:00 AM", "1-2pm", "10:00 AM - 12:00 PM". Returns minutes since
   /// midnight, or null when nothing recognisable is in the string.
   int? _minutesFromLabel(String label, bool preferLast) {
-    final matches = RegExp(r'(\d{1,2})(?::(\d{2}))?\s*(am|pm)?', caseSensitive: false)
-        .allMatches(label)
-        .where((m) => m.group(3) != null || m.group(2) != null || RegExp(r'\d').hasMatch(m.group(1) ?? ''))
-        .toList();
+    final matches =
+        RegExp(r'(\d{1,2})(?::(\d{2}))?\s*(am|pm)?', caseSensitive: false)
+            .allMatches(label)
+            .where(
+              (m) =>
+                  m.group(3) != null ||
+                  m.group(2) != null ||
+                  RegExp(r'\d').hasMatch(m.group(1) ?? ''),
+            )
+            .toList();
     if (matches.isEmpty) return null;
 
-    final chosen =
-        preferLast && matches.length > 1 ? matches.last : matches.first;
-    final period =
-        (chosen.group(3) ?? matches.last.group(3) ?? '').toLowerCase();
+    final chosen = preferLast && matches.length > 1
+        ? matches.last
+        : matches.first;
+    final period = (chosen.group(3) ?? matches.last.group(3) ?? '')
+        .toLowerCase();
 
     var hour = int.tryParse(chosen.group(1) ?? '');
     if (hour == null) return null;
@@ -266,8 +275,10 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
                 height: 1.2,
               ),
             ),
-            Text('Step 2 of 2',
-                style: TextStyle(fontSize: 11, color: Brand.mutedForeground)),
+            Text(
+              'Step 2 of 2',
+              style: TextStyle(fontSize: 11, color: Brand.mutedForeground),
+            ),
           ],
         ),
         actions: [
@@ -308,8 +319,13 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Pickup date',
-                          style: TextStyle(fontSize: 12, color: Brand.mutedForeground)),
+                      const Text(
+                        'Pickup date',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Brand.mutedForeground,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       SizedBox(
                         height: 56,
@@ -352,7 +368,9 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
                       if (_expressChosen && _expressFee > 0) ...[
                         const SizedBox(height: 6),
                         _summaryRow(
-                            'Express delivery fee', '+${rupees(_expressFee)}'),
+                          'Express delivery fee',
+                          '+${rupees(_expressFee)}',
+                        ),
                       ],
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 8),
@@ -361,14 +379,20 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
                       Row(
                         children: [
                           const Expanded(
-                            child: Text('Total',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w700, fontSize: 15)),
+                            child: Text(
+                              'Total',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                              ),
+                            ),
                           ),
                           Text(
                             rupees(_orderTotal),
                             style: const TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 15),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
                           ),
                         ],
                       ),
@@ -395,8 +419,11 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
                               : Border.all(color: Brand.disabled, width: 2),
                         ),
                         child: _garmentConfirmed
-                            ? const Icon(Icons.check,
-                                size: 15, color: Colors.white)
+                            ? const Icon(
+                                Icons.check,
+                                size: 15,
+                                color: Colors.white,
+                              )
                             : null,
                       ),
                       const SizedBox(width: 12),
@@ -418,7 +445,11 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
                   'Our captain will only pick up the clothes added to your cart '
                   'and confirmed in this order. This helps us maintain '
                   'transparency and ensures your order is processed correctly.',
-                  style: TextStyle(fontSize: 12, color: Brand.mutedForeground, height: 1.6),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Brand.mutedForeground,
+                    height: 1.6,
+                  ),
                 ),
               ],
             ),
@@ -445,7 +476,10 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
                       padding: EdgeInsets.only(top: 8),
                       child: Text(
                         'Please tick the confirmation above to continue.',
-                        style: TextStyle(fontSize: 11, color: Brand.mutedForeground),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Brand.mutedForeground,
+                        ),
                       ),
                     ),
                 ],
@@ -465,7 +499,11 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
-          BoxShadow(color: Color(0x0D000000), blurRadius: 8, offset: Offset(0, 2)),
+          BoxShadow(
+            color: Color(0x0D000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: child,
@@ -491,8 +529,8 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
       color: disabled
           ? const Color(0xFFF3F4F6)
           : selected
-              ? Colors.transparent
-              : Colors.white,
+          ? Colors.transparent
+          : Colors.white,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -518,8 +556,8 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
                   color: disabled
                       ? Brand.disabled
                       : selected
-                          ? Colors.white70
-                          : Brand.purple,
+                      ? Colors.white70
+                      : Brand.purple,
                 ),
               ),
               Text(
@@ -530,8 +568,8 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
                   color: disabled
                       ? Brand.disabled
                       : selected
-                          ? Colors.white
-                          : Brand.purple,
+                      ? Colors.white
+                      : Brand.purple,
                 ),
               ),
             ],
@@ -597,8 +635,10 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Center(
-              child: Text('No slots for this day.',
-                  style: TextStyle(fontSize: 13.5, color: Brand.mutedForeground)),
+              child: Text(
+                'No slots for this day.',
+                style: TextStyle(fontSize: 13.5, color: Brand.mutedForeground),
+              ),
             ),
           )
         else
@@ -643,8 +683,8 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
       color: gone
           ? const Color(0xFFE5E7EB)
           : chosen
-              ? Colors.transparent
-              : Colors.white,
+          ? Colors.transparent
+          : Colors.white,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -670,8 +710,8 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
               color: gone
                   ? Brand.disabled
                   : chosen
-                      ? Colors.white
-                      : Colors.black,
+                  ? Colors.white
+                  : Colors.black,
             ),
           ),
         ),
@@ -683,8 +723,10 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
     return Row(
       children: [
         Expanded(
-          child: Text(label,
-              style: const TextStyle(fontSize: 14, color: Brand.gray600)),
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 14, color: Brand.gray600),
+          ),
         ),
         Text(value, style: const TextStyle(fontSize: 14)),
       ],

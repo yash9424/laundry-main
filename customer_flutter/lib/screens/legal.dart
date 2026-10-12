@@ -40,9 +40,7 @@ class _LegalScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Brand.gray50,
       appBar: PageHeader(title, gradient: true, titleSize: 20, iconSize: 24),
-      body: SingleChildScrollView(
-        child: LegalBody(sections: sections),
-      ),
+      body: SingleChildScrollView(child: LegalBody(sections: sections)),
     );
   }
 }

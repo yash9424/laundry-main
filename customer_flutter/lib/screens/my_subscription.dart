@@ -62,20 +62,26 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
         _subscriptions = result.list.whereType<Map>().map((raw) {
           final sub = Map<String, dynamic>.from(raw);
           final plan = sub['planId'];
-          final planMap =
-              plan is Map ? Map<String, dynamic>.from(plan) : const {};
+          final planMap = plan is Map
+              ? Map<String, dynamic>.from(plan)
+              : const {};
           return _Subscription(
             planName: (sub['planName'] ?? planMap['name'] ?? 'Plan').toString(),
             status: (sub['status'] ?? '').toString(),
-            price: num.tryParse(
-                    (sub['amount'] ?? planMap['price'] ?? '').toString()) ??
+            price:
+                num.tryParse(
+                  (sub['amount'] ?? planMap['price'] ?? '').toString(),
+                ) ??
                 0,
-            walletCredit: num.tryParse(
-                    (sub['walletCredit'] ?? planMap['walletCredit'] ?? '')
-                        .toString()) ??
+            walletCredit:
+                num.tryParse(
+                  (sub['walletCredit'] ?? planMap['walletCredit'] ?? '')
+                      .toString(),
+                ) ??
                 0,
-            purchasedAt:
-                DateTime.tryParse(sub['createdAt']?.toString() ?? '')?.toLocal(),
+            purchasedAt: DateTime.tryParse(
+              sub['createdAt']?.toString() ?? '',
+            )?.toLocal(),
             image: absoluteUrl(planMap['image']),
             paymentId: sub['razorpayPaymentId']?.toString(),
           );
@@ -88,11 +94,20 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
   ({Color background, Color text}) _statusColours(String status) {
     switch (status) {
       case 'active':
-        return (background: const Color(0xFFDCFCE7), text: const Color(0xFF16A34A));
+        return (
+          background: const Color(0xFFDCFCE7),
+          text: const Color(0xFF16A34A),
+        );
       case 'pending':
-        return (background: const Color(0xFFFEF3C7), text: const Color(0xFFD97706));
+        return (
+          background: const Color(0xFFFEF3C7),
+          text: const Color(0xFFD97706),
+        );
       default:
-        return (background: const Color(0xFFFEE2E2), text: const Color(0xFFDC2626));
+        return (
+          background: const Color(0xFFFEE2E2),
+          text: const Color(0xFFDC2626),
+        );
     }
   }
 
@@ -104,56 +119,57 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: Brand.purple))
           : _subscriptions.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('\u{1F48E}', style: TextStyle(fontSize: 48)),
-                        const SizedBox(height: 14),
-                        const Text(
-                          'No wallet plans yet',
-                          style: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Top up your wallet and get more to spend.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Brand.mutedForeground),
-                        ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: 220,
-                          child: GradientButton(
-                            label: 'See the plans',
-                            height: 48,
-                            onPressed: () => Navigator.of(context)
-                                .pushReplacementNamed('/subscriptions'),
-                          ),
-                        ),
-                      ],
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('\u{1F48E}', style: TextStyle(fontSize: 48)),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'No wallet plans yet',
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  color: Brand.purple,
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
-                    children: [
-                      for (final subscription in _subscriptions)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 14),
-                          child: _card(subscription),
-                        ),
-                    ],
-                  ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Top up your wallet and get more to spend.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Brand.mutedForeground),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: 220,
+                      child: GradientButton(
+                        label: 'See the plans',
+                        height: 48,
+                        onPressed: () => Navigator.of(
+                          context,
+                        ).pushReplacementNamed('/subscriptions'),
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _load,
+              color: Brand.purple,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
+                children: [
+                  for (final subscription in _subscriptions)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: _card(subscription),
+                    ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -165,7 +181,11 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
-          BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -178,8 +198,9 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
                 width: 52,
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
-                  gradient:
-                      subscription.image == null ? Brand.deepGradient : null,
+                  gradient: subscription.image == null
+                      ? Brand.deepGradient
+                      : null,
                   color: subscription.image == null
                       ? null
                       : const Color(0xFFF3F4F6),
@@ -187,14 +208,19 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
                 ),
                 child: subscription.image == null
                     ? const Center(
-                        child: Text('\u{1F48E}',
-                            style: TextStyle(fontSize: 22)))
+                        child: Text(
+                          '\u{1F48E}',
+                          style: TextStyle(fontSize: 22),
+                        ),
+                      )
                     : RemoteImage(
                         url: subscription.image,
                         decodeWidth: 56,
                         fallback: const Center(
-                          child: Text('\u{1F48E}',
-                              style: TextStyle(fontSize: 22)),
+                          child: Text(
+                            '\u{1F48E}',
+                            style: TextStyle(fontSize: 22),
+                          ),
                         ),
                       ),
               ),
@@ -215,15 +241,19 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
                     if (subscription.purchasedAt != null)
                       Text(
                         _stamp.format(subscription.purchasedAt!),
-                        style:
-                            const TextStyle(fontSize: 12, color: Brand.mutedForeground),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Brand.mutedForeground,
+                        ),
                       ),
                   ],
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 3,
+                ),
                 decoration: BoxDecoration(
                   color: colours.background,
                   borderRadius: BorderRadius.circular(999),
@@ -232,7 +262,7 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
                   subscription.status.isEmpty
                       ? 'Unknown'
                       : subscription.status[0].toUpperCase() +
-                          subscription.status.substring(1),
+                            subscription.status.substring(1),
                   style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,
@@ -256,19 +286,20 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
   }
 
   Widget _row(String label, String value) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(label,
-                  style: const TextStyle(fontSize: 13.5, color: Brand.gray600)),
-            ),
-            Text(
-              value,
-              style: const TextStyle(
-                  fontSize: 13.5, fontWeight: FontWeight.w600),
-            ),
-          ],
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 13.5, color: Brand.gray600),
+          ),
         ),
-      );
+        Text(
+          value,
+          style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+        ),
+      ],
+    ),
+  );
 }

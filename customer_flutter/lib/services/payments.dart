@@ -45,7 +45,10 @@ class Payments {
     String? email,
   }) async {
     // Step 1: the server creates the Razorpay order and hands back its key id.
-    final created = await Api.razorpayCreateOrder(amount: amount, receipt: receipt);
+    final created = await Api.razorpayCreateOrder(
+      amount: amount,
+      receipt: receipt,
+    );
     if (!created.ok) {
       return PaymentResult(
         PaymentOutcome.failed,
@@ -59,7 +62,10 @@ class Payments {
     final rzpAmount = body['amount'];
     final currency = body['currency']?.toString() ?? 'INR';
 
-    if (keyId == null || keyId.isEmpty || rzpOrderId == null || rzpOrderId.isEmpty) {
+    if (keyId == null ||
+        keyId.isEmpty ||
+        rzpOrderId == null ||
+        rzpOrderId.isEmpty) {
       return const PaymentResult(
         PaymentOutcome.failed,
         message: 'Could not start payment. Try again.',
@@ -75,22 +81,26 @@ class Payments {
     }
 
     razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, (PaymentSuccessResponse r) {
-      finish(PaymentResult(
-        PaymentOutcome.paid,
-        orderId: r.orderId ?? rzpOrderId,
-        paymentId: r.paymentId,
-        signature: r.signature,
-      ));
+      finish(
+        PaymentResult(
+          PaymentOutcome.paid,
+          orderId: r.orderId ?? rzpOrderId,
+          paymentId: r.paymentId,
+          signature: r.signature,
+        ),
+      );
     });
 
     razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, (PaymentFailureResponse r) {
       // Razorpay reports a dismissed sheet as an error too; treating that as a
       // failure would show people a scary message for simply backing out.
       final cancelled = r.code == Razorpay.PAYMENT_CANCELLED;
-      finish(PaymentResult(
-        cancelled ? PaymentOutcome.cancelled : PaymentOutcome.failed,
-        message: cancelled ? null : (r.message ?? 'Payment failed.'),
-      ));
+      finish(
+        PaymentResult(
+          cancelled ? PaymentOutcome.cancelled : PaymentOutcome.failed,
+          message: cancelled ? null : (r.message ?? 'Payment failed.'),
+        ),
+      );
     });
 
     razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, (ExternalWalletResponse r) {
@@ -113,10 +123,12 @@ class Payments {
         },
       });
     } catch (_) {
-      finish(const PaymentResult(
-        PaymentOutcome.failed,
-        message: 'Could not start payment. Try again.',
-      ));
+      finish(
+        const PaymentResult(
+          PaymentOutcome.failed,
+          message: 'Could not start payment. Try again.',
+        ),
+      );
     }
 
     final result = await completer.future;

@@ -15,7 +15,9 @@ class NotAvailableScreen extends StatelessWidget {
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(
-                horizontal: 16, vertical: 32), // px-4 py-8
+              horizontal: 16,
+              vertical: 32,
+            ), // px-4 py-8
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 320), // max-w-xs
               child: Column(
@@ -61,12 +63,15 @@ class NotAvailableScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16), // space-y-4
                   GestureDetector(
-                    onTap: () => Navigator.of(context)
-                        .pushNamedAndRemoveUntil('/welcome', (r) => false),
+                    onTap: () => Navigator.of(
+                      context,
+                    ).pushNamedAndRemoveUntil('/welcome', (r) => false),
                     child: const Text(
                       'Back to Home',
                       style: TextStyle(
-                          color: Brand.mutedForeground, fontSize: 14),
+                        color: Brand.mutedForeground,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ],

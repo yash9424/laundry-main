@@ -66,28 +66,27 @@ class _WalletScreenState extends State<WalletScreen> {
 
     setState(() {
       if (results[0].ok) {
-        _balance = num.tryParse(results[0].map['walletBalance']?.toString() ?? '') ?? 0;
+        _balance =
+            num.tryParse(results[0].map['walletBalance']?.toString() ?? '') ??
+            0;
         _due = num.tryParse(results[0].map['dueAmount']?.toString() ?? '') ?? 0;
         Store.setString(Store.kCachedWalletBalance, _balance.toString());
       }
       if (results[1].ok) {
-        _history = results[1]
-            .list
-            .whereType<Map>()
-            .map((raw) {
-              final t = Map<String, dynamic>.from(raw);
-              final credit = t['action'] == 'increase';
-              return _Transaction(
-                id: (t['_id'] ?? '').toString(),
-                title: 'Balance ${credit ? 'Added' : 'Deducted'}',
-                reason: (t['reason'] ?? '').toString(),
-                amount: num.tryParse(t['amount']?.toString() ?? '') ?? 0,
-                credit: credit,
-                when: DateTime.tryParse(t['createdAt']?.toString() ?? '')
-                    ?.toLocal(),
-              );
-            })
-            .toList();
+        _history = results[1].list.whereType<Map>().map((raw) {
+          final t = Map<String, dynamic>.from(raw);
+          final credit = t['action'] == 'increase';
+          return _Transaction(
+            id: (t['_id'] ?? '').toString(),
+            title: 'Balance ${credit ? 'Added' : 'Deducted'}',
+            reason: (t['reason'] ?? '').toString(),
+            amount: num.tryParse(t['amount']?.toString() ?? '') ?? 0,
+            credit: credit,
+            when: DateTime.tryParse(
+              t['createdAt']?.toString() ?? '',
+            )?.toLocal(),
+          );
+        }).toList();
       }
       _loading = false;
       _refreshing = false;
@@ -134,10 +133,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
                 children: [
                   _balanceCard(),
-                  if (_due > 0) ...[
-                    const SizedBox(height: 20),
-                    _dueCard(),
-                  ],
+                  if (_due > 0) ...[const SizedBox(height: 20), _dueCard()],
                   const SizedBox(height: 24),
                   const Text(
                     'Wallet History (Last 5)',
@@ -157,8 +153,10 @@ class _WalletScreenState extends State<WalletScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Center(
-                        child: Text('No wallet activity yet.',
-                            style: TextStyle(color: Brand.mutedForeground)),
+                        child: Text(
+                          'No wallet activity yet.',
+                          style: TextStyle(color: Brand.mutedForeground),
+                        ),
                       ),
                     )
                   else
@@ -185,7 +183,9 @@ class _WalletScreenState extends State<WalletScreen> {
                           ),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                              color: const Color(0xFFBBF7D0), width: 2),
+                            color: const Color(0xFFBBF7D0),
+                            width: 2,
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -206,8 +206,11 @@ class _WalletScreenState extends State<WalletScreen> {
                                 gradient: Brand.gradient,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.share,
-                                  size: 18, color: Colors.white),
+                              child: const Icon(
+                                Icons.share,
+                                size: 18,
+                                color: Colors.white,
+                              ),
                             ),
                           ],
                         ),
@@ -352,7 +355,10 @@ class _WalletScreenState extends State<WalletScreen> {
                         Text(
                           charges.first.reason,
                           style: const TextStyle(
-                              fontSize: 13, color: Brand.gray600, height: 1.4),
+                            fontSize: 13,
+                            color: Brand.gray600,
+                            height: 1.4,
+                          ),
                         ),
                         if (charges.first.when != null)
                           Padding(
@@ -360,7 +366,9 @@ class _WalletScreenState extends State<WalletScreen> {
                             child: Text(
                               _date.format(charges.first.when!),
                               style: const TextStyle(
-                                  fontSize: 11.5, color: Brand.disabled),
+                                fontSize: 11.5,
+                                color: Brand.disabled,
+                              ),
                             ),
                           ),
                       ],
@@ -391,7 +399,11 @@ class _WalletScreenState extends State<WalletScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
-          BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Row(
@@ -404,13 +416,18 @@ class _WalletScreenState extends State<WalletScreen> {
                 Text(
                   transaction.title,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 14.5),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14.5,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   transaction.reason,
                   style: const TextStyle(
-                      fontSize: 13, color: Brand.mutedForeground, height: 1.4),
+                    fontSize: 13,
+                    color: Brand.mutedForeground,
+                    height: 1.4,
+                  ),
                 ),
                 if (transaction.when != null)
                   Padding(
@@ -418,7 +435,9 @@ class _WalletScreenState extends State<WalletScreen> {
                     child: Text(
                       _date.format(transaction.when!),
                       style: const TextStyle(
-                          fontSize: 11.5, color: Brand.disabled),
+                        fontSize: 11.5,
+                        color: Brand.disabled,
+                      ),
                     ),
                   ),
               ],

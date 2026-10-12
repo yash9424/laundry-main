@@ -73,7 +73,8 @@ Future<String?> pickProfilePhoto(BuildContext context) async {
     );
     if (file == null) return null;
     final bytes = await file.readAsBytes();
-    final mime = file.mimeType ??
+    final mime =
+        file.mimeType ??
         (file.path.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg');
     return 'data:$mime;base64,${base64Encode(bytes)}';
   } catch (_) {
@@ -193,9 +194,10 @@ class AvatarPicker extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                          color: Color(0x33000000),
-                          blurRadius: 6,
-                          offset: Offset(0, 2)),
+                        color: Color(0x33000000),
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
                     ],
                   ),
                   child: const Icon(Icons.add, size: 12, color: Colors.white),

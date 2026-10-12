@@ -35,7 +35,10 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _load() async {
-    final results = await Future.wait([Api.orderCharges(), Api.walletSettings()]);
+    final results = await Future.wait([
+      Api.orderCharges(),
+      Api.walletSettings(),
+    ]);
     if (!mounted) return;
     setState(() {
       if (results[0].ok) {
@@ -66,8 +69,9 @@ class _CartScreenState extends State<CartScreen> {
 
   /// The express fee only joins the total once the minimum is met, which is how
   /// the summary on this screen reads.
-  num get _orderTotal =>
-      _belowMinimum ? _tickedTotal : _tickedTotal + (_expressChosen ? _expressFee : 0);
+  num get _orderTotal => _belowMinimum
+      ? _tickedTotal
+      : _tickedTotal + (_expressChosen ? _expressFee : 0);
 
   List<String> get _categories {
     final names = <String>{for (final line in Cart.lines) line.category};
@@ -113,7 +117,10 @@ class _CartScreenState extends State<CartScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: const Text(
           'Delete entire cart?',
-          style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w700),
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            fontWeight: FontWeight.w700,
+          ),
         ),
         content: const Text(
           'Are you sure you want to delete the entire cart? '
@@ -122,11 +129,17 @@ class _CartScreenState extends State<CartScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No, keep it', style: TextStyle(color: Brand.mutedForeground)),
+            child: const Text(
+              'No, keep it',
+              style: TextStyle(color: Brand.mutedForeground),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Yes, delete', style: TextStyle(color: Brand.destructive)),
+            child: const Text(
+              'Yes, delete',
+              style: TextStyle(color: Brand.destructive),
+            ),
           ),
         ],
       ),
@@ -139,7 +152,11 @@ class _CartScreenState extends State<CartScreen> {
 
   void _checkout() {
     if (_selected.isEmpty) {
-      showToast(context, 'Please select at least one item to order', error: true);
+      showToast(
+        context,
+        'Please select at least one item to order',
+        error: true,
+      );
       return;
     }
     if (_belowMinimum) {
@@ -155,10 +172,7 @@ class _CartScreenState extends State<CartScreen> {
     // goes straight to the slot.
     Navigator.of(context).pushNamed(
       _checklistEnabled ? '/pickup-checklist' : '/pickup-slot',
-      arguments: {
-        'cartItems': _ticked,
-        'totalAmount': _tickedTotal,
-      },
+      arguments: {'cartItems': _ticked, 'totalAmount': _tickedTotal},
     );
   }
 
@@ -167,17 +181,20 @@ class _CartScreenState extends State<CartScreen> {
     final lines = Cart.lines;
     return Scaffold(
       backgroundColor: Brand.gray50,
-        appBar: AppHeader(
-          title: 'My Cart (${Cart.itemCount})',
-          action: lines.isEmpty
-              ? null
-              : IconButton(
-                  tooltip: 'Delete entire cart',
-                  icon: const Icon(Icons.delete_outline,
-                      size: 20, color: Brand.red500),
-                  onPressed: _confirmClear,
+      appBar: AppHeader(
+        title: 'My Cart (${Cart.itemCount})',
+        action: lines.isEmpty
+            ? null
+            : IconButton(
+                tooltip: 'Delete entire cart',
+                icon: const Icon(
+                  Icons.delete_outline,
+                  size: 20,
+                  color: Brand.red500,
                 ),
-        ),
+                onPressed: _confirmClear,
+              ),
+      ),
       bottomNavigationBar: const AppBottomNav(current: '/cart'),
       body: lines.isEmpty ? _empty() : _filled(),
     );
@@ -197,8 +214,11 @@ class _CartScreenState extends State<CartScreen> {
                 color: Color(0xFFF3F4F6),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.shopping_cart_outlined,
-                  size: 48, color: Brand.gray400), // w-12 h-12
+              child: const Icon(
+                Icons.shopping_cart_outlined,
+                size: 48,
+                color: Brand.gray400,
+              ), // w-12 h-12
             ),
             const SizedBox(height: 24),
             const Text(
@@ -282,9 +302,7 @@ class _CartScreenState extends State<CartScreen> {
           decoration: BoxDecoration(
             gradient: active ? Brand.gradient : null,
             borderRadius: BorderRadius.circular(16),
-            border: active
-                ? null
-                : Border.all(color: const Color(0xFFD1D5DB)),
+            border: active ? null : Border.all(color: const Color(0xFFD1D5DB)),
           ),
           child: Text(
             category,
@@ -311,7 +329,11 @@ class _CartScreenState extends State<CartScreen> {
           width: 2,
         ),
         boxShadow: const [
-          BoxShadow(color: Color(0x11000000), blurRadius: 10, offset: Offset(0, 3)),
+          BoxShadow(
+            color: Color(0x11000000),
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
         ],
       ),
       child: Row(
@@ -331,7 +353,9 @@ class _CartScreenState extends State<CartScreen> {
                 color: ticked ? const Color(0xFF3B82F6) : Colors.transparent,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: ticked ? const Color(0xFF3B82F6) : const Color(0xFFD1D5DB),
+                  color: ticked
+                      ? const Color(0xFF3B82F6)
+                      : const Color(0xFFD1D5DB),
                   width: 2,
                 ),
               ),
@@ -383,7 +407,9 @@ class _CartScreenState extends State<CartScreen> {
                       '${line.quantity}',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w600, color: Colors.black),
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                   _stepButton(Icons.add, () => _bump(line, true)),
@@ -394,8 +420,11 @@ class _CartScreenState extends State<CartScreen> {
                 visualDensity: VisualDensity.compact,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
-                icon: const Icon(Icons.delete_outline,
-                    size: 16, color: Brand.red500), // w-4 h-4
+                icon: const Icon(
+                  Icons.delete_outline,
+                  size: 16,
+                  color: Brand.red500,
+                ), // w-4 h-4
                 onPressed: () => _remove(line),
               ),
             ],
@@ -433,7 +462,11 @@ class _CartScreenState extends State<CartScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFF3F4F6)),
         boxShadow: const [
-          BoxShadow(color: Color(0x11000000), blurRadius: 10, offset: Offset(0, 3)),
+          BoxShadow(
+            color: Color(0x11000000),
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
         ],
       ),
       child: Column(
@@ -459,14 +492,22 @@ class _CartScreenState extends State<CartScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Expanded(
-                      child: Text('Express Delivery:',
-                          style: TextStyle(fontSize: 13, color: Brand.mutedForeground)),
+                      child: Text(
+                        'Express Delivery:',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Brand.mutedForeground,
+                        ),
+                      ),
                     ),
                     Expanded(
                       child: Text(
                         '${rupees(_expressFee)} — applies after minimum order is reached',
                         textAlign: TextAlign.right,
-                        style: const TextStyle(fontSize: 13, color: Brand.mutedForeground),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Brand.mutedForeground,
+                        ),
                       ),
                     ),
                   ],
@@ -501,8 +542,10 @@ class _CartScreenState extends State<CartScreen> {
           if (_selected.isEmpty)
             const Padding(
               padding: EdgeInsets.only(top: 8),
-              child: Text('Please select items to place order',
-                  style: TextStyle(color: Brand.destructive, fontSize: 13)),
+              child: Text(
+                'Please select items to place order',
+                style: TextStyle(color: Brand.destructive, fontSize: 13),
+              ),
             ),
           if (_belowMinimum && _selected.isNotEmpty)
             Padding(
@@ -525,8 +568,10 @@ class _CartScreenState extends State<CartScreen> {
     return Row(
       children: [
         Expanded(child: Text(label, style: const TextStyle(fontSize: 14.5))),
-        Text(value,
-            style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600)),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600),
+        ),
       ],
     );
   }
@@ -538,8 +583,8 @@ class _CartScreenState extends State<CartScreen> {
     final label = _selected.isEmpty
         ? 'Select Items to Order'
         : _belowMinimum
-            ? 'Minimum Order ${rupees(_minOrderPrice)} Required'
-            : 'Select Pickup Slot - ${rupees(_orderTotal)}';
+        ? 'Minimum Order ${rupees(_minOrderPrice)} Required'
+        : 'Select Pickup Slot - ${rupees(_orderTotal)}';
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),

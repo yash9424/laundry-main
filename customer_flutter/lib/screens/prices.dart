@@ -153,7 +153,10 @@ class _PricesScreenState extends State<PricesScreen> {
                                 color: Color(0xFF1F2937),
                               ),
                             ),
-                            if (_charges.howToOrderSteps[i].description.isNotEmpty)
+                            if (_charges
+                                .howToOrderSteps[i]
+                                .description
+                                .isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 2),
                                 child: Text(
@@ -198,7 +201,9 @@ class _PricesScreenState extends State<PricesScreen> {
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.transparent,
             insetPadding: const EdgeInsets.all(18),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: 380,
@@ -218,23 +223,28 @@ class _PricesScreenState extends State<PricesScreen> {
                             aspectRatio: 1,
                             child: item.image == null
                                 ? DecoratedBox(
-                                    decoration:
-                                        BoxDecoration(gradient: Brand.gradient),
+                                    decoration: BoxDecoration(
+                                      gradient: Brand.gradient,
+                                    ),
                                     child: Center(
                                       child: Lucide.shirt(
-                                          size: 86, color: Colors.white70),
+                                        size: 86,
+                                        color: Colors.white70,
+                                      ),
                                     ),
                                   )
                                 : RemoteImage(
                                     url: item.image,
-                                    decodeWidth:
-                                        MediaQuery.sizeOf(context).width,
+                                    decodeWidth: MediaQuery.sizeOf(
+                                      context,
+                                    ).width,
                                     fallback: ColoredBox(
                                       color: const Color(0xFFF3F4F6),
                                       child: Center(
                                         child: Lucide.shirt(
-                                            size: 64,
-                                            color: const Color(0xFFC4B5FD)),
+                                          size: 64,
+                                          color: const Color(0xFFC4B5FD),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -252,8 +262,11 @@ class _PricesScreenState extends State<PricesScreen> {
                               child: const SizedBox(
                                 height: 36,
                                 width: 36,
-                                child: Icon(Icons.close,
-                                    color: Colors.white, size: 20),
+                                child: Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
                               ),
                             ),
                           ),
@@ -268,7 +281,9 @@ class _PricesScreenState extends State<PricesScreen> {
                           if (item.category.isNotEmpty)
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 3),
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFEDE9FE),
                                 borderRadius: BorderRadius.circular(999),
@@ -354,7 +369,9 @@ class _PricesScreenState extends State<PricesScreen> {
                                         Navigator.of(dialogContext).pop(),
                                     style: OutlinedButton.styleFrom(
                                       side: const BorderSide(
-                                          color: Brand.purple, width: 1.5),
+                                        color: Brand.purple,
+                                        width: 1.5,
+                                      ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
@@ -392,14 +409,19 @@ class _PricesScreenState extends State<PricesScreen> {
         gradient: Brand.gradient,
         borderRadius: BorderRadius.circular(size > 36 ? Brand.rXl : Brand.rLg),
         boxShadow: const [
-          BoxShadow(color: Color(0x22000000), blurRadius: 6, offset: Offset(0, 2)),
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius:
-              BorderRadius.circular(size > 36 ? Brand.rXl : Brand.rLg),
+          borderRadius: BorderRadius.circular(
+            size > 36 ? Brand.rXl : Brand.rLg,
+          ),
           onTap: onTap,
           child: Icon(icon, color: Colors.white, size: size * 0.46),
         ),
@@ -449,8 +471,10 @@ class _PricesScreenState extends State<PricesScreen> {
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 32),
                     child: Center(
-                      child: Text('Loading prices...',
-                          style: TextStyle(color: Brand.mutedForeground)),
+                      child: Text(
+                        'Loading prices...',
+                        style: TextStyle(color: Brand.mutedForeground),
+                      ),
                     ),
                   )
                 else if (_items.isEmpty)
@@ -461,8 +485,10 @@ class _PricesScreenState extends State<PricesScreen> {
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: const Center(
-                      child: Text('No pricing items available yet.',
-                          style: TextStyle(color: Brand.gray600, fontSize: 13)),
+                      child: Text(
+                        'No pricing items available yet.',
+                        style: TextStyle(color: Brand.gray600, fontSize: 13),
+                      ),
                     ),
                   )
                 else if (_selected != null)
@@ -525,7 +551,9 @@ class _PricesScreenState extends State<PricesScreen> {
                       onTap: () => Navigator.of(context).pushNamed('/cart'),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12), // px-4 py-3
+                          horizontal: 16,
+                          vertical: 12,
+                        ), // px-4 py-3
                         decoration: BoxDecoration(
                           gradient: Brand.gradient,
                           borderRadius: BorderRadius.circular(16),
@@ -539,8 +567,11 @@ class _PricesScreenState extends State<PricesScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.shopping_cart,
-                                color: Colors.white, size: 20),
+                            const Icon(
+                              Icons.shopping_cart,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               '$count item${count > 1 ? 's' : ''}',
@@ -586,7 +617,8 @@ class _PricesScreenState extends State<PricesScreen> {
         _categoryTile(
           label: category.name,
           count: _items.where((i) => i.category == category.name).length,
-          icon: category.name.toLowerCase().contains('household') ||
+          icon:
+              category.name.toLowerCase().contains('household') ||
                   category.name.toLowerCase().contains('home')
               ? Icons.bed_outlined
               : Icons.checkroom,
@@ -709,8 +741,10 @@ class _PricesScreenState extends State<PricesScreen> {
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Center(
-              child: Text('Nothing in this category yet.',
-                  style: TextStyle(color: Brand.mutedForeground, fontSize: 13)),
+              child: Text(
+                'Nothing in this category yet.',
+                style: TextStyle(color: Brand.mutedForeground, fontSize: 13),
+              ),
             ),
           )
         else
@@ -720,11 +754,7 @@ class _PricesScreenState extends State<PricesScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Column(
-              children: [
-                for (final item in items) _itemRow(item),
-              ],
-            ),
+            child: Column(children: [for (final item in items) _itemRow(item)]),
           ),
       ],
     );
@@ -761,14 +791,18 @@ class _PricesScreenState extends State<PricesScreen> {
                   child: item.image == null
                       ? Center(
                           child: Lucide.shirt(
-                              size: 32, color: Color(0xFFC4B5FD)),
+                            size: 32,
+                            color: Color(0xFFC4B5FD),
+                          ),
                         )
                       : RemoteImage(
                           url: item.image,
                           decodeWidth: 96,
                           fallback: Center(
                             child: Lucide.shirt(
-                                size: 32, color: const Color(0xFFC4B5FD)),
+                              size: 32,
+                              color: const Color(0xFFC4B5FD),
+                            ),
                           ),
                         ),
                 ),
@@ -783,13 +817,17 @@ class _PricesScreenState extends State<PricesScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                            color: Color(0x22000000),
-                            blurRadius: 4,
-                            offset: Offset(0, 1)),
+                          color: Color(0x22000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 1),
+                        ),
                       ],
                     ),
-                    child: const Icon(Icons.zoom_in,
-                        size: 15, color: Brand.purple),
+                    child: const Icon(
+                      Icons.zoom_in,
+                      size: 15,
+                      color: Brand.purple,
+                    ),
                   ),
                 ),
               ],
@@ -821,7 +859,10 @@ class _PricesScreenState extends State<PricesScreen> {
                       item.description!.trim(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: Brand.mutedForeground),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Brand.mutedForeground,
+                      ),
                     ),
                   ),
                 Padding(

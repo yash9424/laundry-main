@@ -240,8 +240,10 @@ class _VerifyMobileScreenState extends State<VerifyMobileScreen> {
                   ],
                 ),
                 const SizedBox(height: 16), // mb-4
-                const Text("Didn't get OTP?",
-                    style: TextStyle(color: Brand.gray600, fontSize: 12)),
+                const Text(
+                  "Didn't get OTP?",
+                  style: TextStyle(color: Brand.gray600, fontSize: 12),
+                ),
                 if (_resendIn > 0)
                   Text(
                     'Resend in ${_resendIn}s',
@@ -300,8 +302,10 @@ class _VerifyMobileScreenState extends State<VerifyMobileScreen> {
                             child: Center(
                               child: Text(
                                 '✕',
-                                style:
-                                    TextStyle(color: Colors.white, fontSize: 16),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
                               ),
                             ),
                           ),

@@ -58,10 +58,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (result.ok) {
       await Store.setString(Store.kUserMobile, _mobile.text);
       if (!mounted) return;
-      Navigator.of(context).pushNamed(
-        '/verify-mobile',
-        arguments: {'mobileNumber': _mobile.text},
-      );
+      Navigator.of(
+        context,
+      ).pushNamed('/verify-mobile', arguments: {'mobileNumber': _mobile.text});
     } else {
       showToast(context, result.error ?? 'Failed to send OTP', error: true);
     }
@@ -79,7 +78,9 @@ class _LoginScreenState extends State<LoginScreen> {
     await Store.signIn(
       customerId: data['customerId'].toString(),
       token: (result.raw?['token'] ?? '').toString(),
-      name: (data['customer'] is Map) ? data['customer']['name']?.toString() : null,
+      name: (data['customer'] is Map)
+          ? data['customer']['name']?.toString()
+          : null,
     );
     if (!mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil(
@@ -108,8 +109,11 @@ class _LoginScreenState extends State<LoginScreen> {
       final idToken = auth.idToken;
       if (idToken == null || idToken.isEmpty) {
         if (mounted) {
-          showToast(context, 'Google did not return a token. Please try again.',
-              error: true);
+          showToast(
+            context,
+            'Google did not return a token. Please try again.',
+            error: true,
+          );
         }
         return;
       }
@@ -134,8 +138,11 @@ class _LoginScreenState extends State<LoginScreen> {
       final token = credential.identityToken;
       if (token == null || token.isEmpty) {
         if (mounted) {
-          showToast(context, 'Authentication failed. Please try again.',
-              error: true);
+          showToast(
+            context,
+            'Authentication failed. Please try again.',
+            error: true,
+          );
         }
         return;
       }
@@ -217,17 +224,24 @@ class _LoginScreenState extends State<LoginScreen> {
                           hintText: 'Mobile Number',
                           counterText: '',
                           isDense: false,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
                           // rounded-xl border-2 border-blue-500
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(Brand.rXl),
                             borderSide: const BorderSide(
-                                color: Brand.blue500, width: 2),
+                              color: Brand.blue500,
+                              width: 2,
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(Brand.rXl),
                             borderSide: const BorderSide(
-                                color: Brand.blue500, width: 2),
+                              color: Brand.blue500,
+                              width: 2,
+                            ),
                           ),
                         ),
                         onChanged: (_) => setState(() {}),
@@ -249,9 +263,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         Expanded(child: Divider(color: Brand.gray300)),
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: Text('OR',
-                              style: TextStyle(
-                                  color: Brand.gray500, fontSize: 14)),
+                          child: Text(
+                            'OR',
+                            style: TextStyle(
+                              color: Brand.gray500,
+                              fontSize: 14,
+                            ),
+                          ),
                         ),
                         Expanded(child: Divider(color: Brand.gray300)),
                       ],
@@ -259,8 +277,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 16),
                     _socialButton(
                       onPressed: _social ? null : _google,
-                      icon: SvgPicture.string(_googleMark,
-                          width: 20, height: 20),
+                      icon: SvgPicture.string(
+                        _googleMark,
+                        width: 20,
+                        height: 20,
+                      ),
                       label: 'Continue with Google',
                       background: Colors.white,
                       border: Brand.gray300,
@@ -270,8 +291,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 12),
                       _socialButton(
                         onPressed: _social ? null : _apple,
-                        icon: const Icon(Icons.apple,
-                            size: 20, color: Colors.white),
+                        icon: const Icon(
+                          Icons.apple,
+                          size: 20,
+                          color: Colors.white,
+                        ),
                         label: 'Sign in with Apple',
                         background: Colors.black,
                         border: Colors.black,

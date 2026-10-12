@@ -114,8 +114,7 @@ class _UrbanSteamAppState extends State<UrbanSteamApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    Notifications.instance
-        .setForeground(state == AppLifecycleState.resumed);
+    Notifications.instance.setForeground(state == AppLifecycleState.resumed);
   }
 
   @override

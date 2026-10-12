@@ -106,8 +106,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final finalLabel = undelivered
         ? 'Undelivered'
         : (order.redeliveryScheduled && order.status == 'delivered')
-            ? 'Redelivered Successfully'
-            : 'Delivered';
+        ? 'Redelivered Successfully'
+        : 'Delivered';
     final finalTime = undelivered
         ? _at(order.deliveryFailedAt, 'Failed')
         : _at(order.deliveredAt);
@@ -202,7 +202,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Report Issue',
-          style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w700),
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            fontWeight: FontWeight.w700,
+          ),
         ),
         content: TextField(
           controller: controller,
@@ -213,13 +216,21 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel', style: TextStyle(color: Brand.mutedForeground)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Brand.mutedForeground),
+            ),
           ),
           TextButton(
             onPressed: () =>
                 Navigator.of(dialogContext).pop(controller.text.trim()),
-            child: const Text('Submit',
-                style: TextStyle(color: Brand.purple, fontWeight: FontWeight.w600)),
+            child: const Text(
+              'Submit',
+              style: TextStyle(
+                color: Brand.purple,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -244,8 +255,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       showToast(context, 'Issue reported successfully!');
       await _fetch();
     } else {
-      showToast(context, 'Failed to report issue: ${result.error ?? 'Unknown error'}',
-          error: true);
+      showToast(
+        context,
+        'Failed to report issue: ${result.error ?? 'Unknown error'}',
+        error: true,
+      );
     }
   }
 
@@ -268,190 +282,202 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       appBar: const AppHeader(title: 'Track Order', gradient: true),
       body: _loading
           ? const Center(
-              child: Text('Loading order details...',
-                  style: TextStyle(color: Brand.mutedForeground)),
+              child: Text(
+                'Loading order details...',
+                style: TextStyle(color: Brand.mutedForeground),
+              ),
             )
           : order == null
-              ? const Center(
-                  child: Text('Order not found',
-                      style: TextStyle(color: Brand.mutedForeground)),
-                )
-              : ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          ? const Center(
+              child: Text(
+                'Order not found',
+                style: TextStyle(color: Brand.mutedForeground),
+              ),
+            )
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+              children: [
+                _header(order),
+                const SizedBox(height: 20),
+                for (final step in _timeline(order))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: _timelineRow(step),
+                  ),
+                if (order.previousDuePaid > 0) ...[
+                  const SizedBox(height: 6),
+                  _notice(
+                    emoji: '\u{1F4B0}',
+                    title: 'Previous Due Paid',
+                    lines: [
+                      '${rupees(order.previousDuePaid)} included in total',
+                      'Cleared from previous pending amount',
+                    ],
+                    background: const Color(0xFFDBEAFE),
+                    border: const Color(0xFF3B82F6),
+                    titleColor: const Color(0xFF1E40AF),
+                    textColor: const Color(0xFF1D4ED8),
+                  ),
+                ],
+                if (order.deliveryFailureFee > 0) ...[
+                  const SizedBox(height: 12),
+                  _notice(
+                    emoji: '\u{1F4B3}',
+                    title: 'Charges Applied',
+                    lines: [
+                      '${rupees(order.deliveryFailureFee)} deducted from your wallet balance',
+                      'Reason: ${order.deliveryFailureReason ?? 'Delivery failure charge'}',
+                    ],
+                    background: const Color(0xFFFEF3C7),
+                    border: const Color(0xFFF59E0B),
+                    titleColor: const Color(0xFF92400E),
+                    textColor: const Color(0xFFB45309),
+                  ),
+                ],
+                if (order.status == 'delivery_failed') ...[
+                  const SizedBox(height: 12),
+                  _notice(
+                    emoji: '⚠️',
+                    title: order.redeliveryScheduled
+                        ? 'Redelivery Failed'
+                        : 'Delivery Failed',
+                    lines: [
+                      'Reason: ${order.deliveryFailureReason ?? 'Not specified'}',
+                      if (order.redeliveryScheduled)
+                        'This order failed delivery multiple times.',
+                    ],
+                    background: const Color(0xFFFEE2E2),
+                    border: const Color(0xFFEF4444),
+                    titleColor: const Color(0xFFB91C1C),
+                    textColor: const Color(0xFFDC2626),
+                  ),
+                ],
+                if (order.cancellationFee > 0) ...[
+                  const SizedBox(height: 12),
+                  _notice(
+                    emoji: '\u{1F4B3}',
+                    title: 'Charges Applied',
+                    lines: [
+                      '${rupees(order.cancellationFee)} deducted from your wallet balance',
+                      'Reason: ${order.cancellationReason ?? 'Order cancellation charge'}',
+                    ],
+                    background: const Color(0xFFFEF3C7),
+                    border: const Color(0xFFF59E0B),
+                    titleColor: const Color(0xFF92400E),
+                    textColor: const Color(0xFFB45309),
+                  ),
+                ],
+                if (order.status == 'cancelled') ...[
+                  const SizedBox(height: 12),
+                  _notice(
+                    emoji: '❌',
+                    title: 'Order Cancelled',
+                    lines: [
+                      if ((order.cancellationReason ?? '').isNotEmpty)
+                        'Reason: ${order.cancellationReason}',
+                    ],
+                    background: const Color(0xFFFEE2E2),
+                    border: const Color(0xFFEF4444),
+                    titleColor: const Color(0xFFB91C1C),
+                    textColor: const Color(0xFFDC2626),
+                  ),
+                ],
+                if (order.status == 'suspended') ...[
+                  const SizedBox(height: 12),
+                  _notice(
+                    emoji: '\u{1F6AB}',
+                    title: 'Order Suspended',
+                    lines: [
+                      'Reason: ${order.suspensionReason ?? 'Multiple delivery failures'}',
+                      'Please contact admin for further assistance.',
+                    ],
+                    background: const Color(0xFFFEF3C7),
+                    border: const Color(0xFFF59E0B),
+                    titleColor: const Color(0xFFB45309),
+                    textColor: const Color(0xFFB45309),
+                  ),
+                ],
+                const SizedBox(height: 14),
+                _addressCard(order),
+                // Pickup guidance is only useful until the captain has
+                // actually collected the clothes.
+                if (['pending', 'reached_location'].contains(order.status)) ...[
+                  const SizedBox(height: 14),
+                  const PickupChecklist(),
+                ],
+                const SizedBox(height: 14),
+                _paymentSummary(order),
+                const SizedBox(height: 16),
+                Row(
                   children: [
-                    _header(order),
-                    const SizedBox(height: 20),
-                    for (final step in _timeline(order))
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
-                        child: _timelineRow(step),
-                      ),
-                    if (order.previousDuePaid > 0) ...[
-                      const SizedBox(height: 6),
-                      _notice(
-                        emoji: '\u{1F4B0}',
-                        title: 'Previous Due Paid',
-                        lines: [
-                          '${rupees(order.previousDuePaid)} included in total',
-                          'Cleared from previous pending amount',
-                        ],
-                        background: const Color(0xFFDBEAFE),
-                        border: const Color(0xFF3B82F6),
-                        titleColor: const Color(0xFF1E40AF),
-                        textColor: const Color(0xFF1D4ED8),
-                      ),
-                    ],
-                    if (order.deliveryFailureFee > 0) ...[
-                      const SizedBox(height: 12),
-                      _notice(
-                        emoji: '\u{1F4B3}',
-                        title: 'Charges Applied',
-                        lines: [
-                          '${rupees(order.deliveryFailureFee)} deducted from your wallet balance',
-                          'Reason: ${order.deliveryFailureReason ?? 'Delivery failure charge'}',
-                        ],
-                        background: const Color(0xFFFEF3C7),
-                        border: const Color(0xFFF59E0B),
-                        titleColor: const Color(0xFF92400E),
-                        textColor: const Color(0xFFB45309),
-                      ),
-                    ],
-                    if (order.status == 'delivery_failed') ...[
-                      const SizedBox(height: 12),
-                      _notice(
-                        emoji: '⚠️',
-                        title: order.redeliveryScheduled
-                            ? 'Redelivery Failed'
-                            : 'Delivery Failed',
-                        lines: [
-                          'Reason: ${order.deliveryFailureReason ?? 'Not specified'}',
-                          if (order.redeliveryScheduled)
-                            'This order failed delivery multiple times.',
-                        ],
-                        background: const Color(0xFFFEE2E2),
-                        border: const Color(0xFFEF4444),
-                        titleColor: const Color(0xFFB91C1C),
-                        textColor: const Color(0xFFDC2626),
-                      ),
-                    ],
-                    if (order.cancellationFee > 0) ...[
-                      const SizedBox(height: 12),
-                      _notice(
-                        emoji: '\u{1F4B3}',
-                        title: 'Charges Applied',
-                        lines: [
-                          '${rupees(order.cancellationFee)} deducted from your wallet balance',
-                          'Reason: ${order.cancellationReason ?? 'Order cancellation charge'}',
-                        ],
-                        background: const Color(0xFFFEF3C7),
-                        border: const Color(0xFFF59E0B),
-                        titleColor: const Color(0xFF92400E),
-                        textColor: const Color(0xFFB45309),
-                      ),
-                    ],
-                    if (order.status == 'cancelled') ...[
-                      const SizedBox(height: 12),
-                      _notice(
-                        emoji: '❌',
-                        title: 'Order Cancelled',
-                        lines: [
-                          if ((order.cancellationReason ?? '').isNotEmpty)
-                            'Reason: ${order.cancellationReason}',
-                        ],
-                        background: const Color(0xFFFEE2E2),
-                        border: const Color(0xFFEF4444),
-                        titleColor: const Color(0xFFB91C1C),
-                        textColor: const Color(0xFFDC2626),
-                      ),
-                    ],
-                    if (order.status == 'suspended') ...[
-                      const SizedBox(height: 12),
-                      _notice(
-                        emoji: '\u{1F6AB}',
-                        title: 'Order Suspended',
-                        lines: [
-                          'Reason: ${order.suspensionReason ?? 'Multiple delivery failures'}',
-                          'Please contact admin for further assistance.',
-                        ],
-                        background: const Color(0xFFFEF3C7),
-                        border: const Color(0xFFF59E0B),
-                        titleColor: const Color(0xFFB45309),
-                        textColor: const Color(0xFFB45309),
-                      ),
-                    ],
-                    const SizedBox(height: 14),
-                    _addressCard(order),
-                    // Pickup guidance is only useful until the captain has
-                    // actually collected the clothes.
-                    if (['pending', 'reached_location'].contains(order.status)) ...[
-                      const SizedBox(height: 14),
-                      const PickupChecklist(),
-                    ],
-                    const SizedBox(height: 14),
-                    _paymentSummary(order),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            height: 48,
-                            child: OutlinedButton.icon(
-                              onPressed: order.hasPartner
-                                  ? () => _callPartner(order)
-                                  : null,
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                    color: Brand.purple, width: 2),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              icon: const Icon(Icons.phone,
-                                  size: 18, color: Brand.purple),
-                              label: const Text(
-                                'Contact Partner',
-                                style: TextStyle(
-                                  color: Brand.purple,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          onPressed: order.hasPartner
+                              ? () => _callPartner(order)
+                              : null,
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                              color: Brand.purple,
+                              width: 2,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons.phone,
+                            size: 18,
+                            color: Brand.purple,
+                          ),
+                          label: const Text(
+                            'Contact Partner',
+                            style: TextStyle(
+                              color: Brand.purple,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: SizedBox(
-                            height: 48,
-                            child: ElevatedButton(
-                              onPressed:
-                                  _reporting ? null : () => _reportIssue(order),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFDC2626),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: const Text(
-                                '⚠ Report Issue',
-                                style: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    const SizedBox(height: 14),
-                    GradientButton(
-                      label: 'Download Invoice',
-                      icon: Icons.download,
-                      height: 48,
-                      onPressed: () => _downloadInvoice(order),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: _reporting
+                              ? null
+                              : () => _reportIssue(order),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFDC2626),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: const Text(
+                            '⚠ Report Issue',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 14),
+                GradientButton(
+                  label: 'Download Invoice',
+                  icon: Icons.download,
+                  height: 48,
+                  onPressed: () => _downloadInvoice(order),
+                ),
+              ],
+            ),
     );
   }
 
@@ -463,7 +489,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Brand.border, width: 2),
         boxShadow: const [
-          BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Row(
@@ -486,12 +516,16 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 Text(
                   'Order #${order.orderId.isEmpty ? 'N/A' : order.orderId}',
                   style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 14.5),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14.5,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: order.expressDelivery
                         ? const Color(0xFFFEF3C7)
@@ -507,8 +541,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (order.expressDelivery) ...[
-                        const Icon(Icons.schedule,
-                            size: 11, color: Color(0xFFB45309)),
+                        const Icon(
+                          Icons.schedule,
+                          size: 11,
+                          color: Color(0xFFB45309),
+                        ),
                         const SizedBox(width: 3),
                       ],
                       Text(
@@ -531,7 +568,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   order.itemsText,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12.5, color: Brand.mutedForeground),
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: Brand.mutedForeground,
+                  ),
                 ),
                 GradientText(
                   rupees(order.totalAmount),
@@ -574,9 +614,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           decoration: BoxDecoration(
             gradient: step.done
                 ? (step.failed
-                    ? const LinearGradient(
-                        colors: [Color(0xFFEF4444), Color(0xFFDC2626)])
-                    : Brand.gradient)
+                      ? const LinearGradient(
+                          colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                        )
+                      : Brand.gradient)
                 : null,
             color: step.done ? null : const Color(0xFFF3F4F6),
             shape: BoxShape.circle,
@@ -596,7 +637,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   ? GradientText(
                       step.label,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 14.5),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14.5,
+                      ),
                     )
                   : Text(
                       step.label,
@@ -607,11 +650,32 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       ),
                     ),
               if (step.time.isNotEmpty)
-                Text(step.time,
-                    style: const TextStyle(fontSize: 12.5, color: Brand.mutedForeground)),
+                Text(
+                  step.time,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: Brand.mutedForeground,
+                  ),
+                ),
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  /// Splits "Reason: something" so the label can be bold, the way the markup
+  /// wraps it in a <strong>.
+  static TextSpan _labelled(String line) {
+    final colon = line.indexOf(':');
+    if (colon < 0) return TextSpan(text: line);
+    return TextSpan(
+      children: [
+        TextSpan(
+          text: line.substring(0, colon + 1),
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+        TextSpan(text: line.substring(colon + 1)),
       ],
     );
   }
@@ -649,13 +713,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     color: titleColor,
                   ),
                 ),
+                // The label before the first colon is a <strong> in the
+                // markup -- "Reason:", "Note:" -- so it is bold here too.
                 for (final line in lines)
                   Padding(
                     padding: const EdgeInsets.only(top: 3),
-                    child: Text(
-                      line,
+                    child: Text.rich(
+                      _labelled(line),
                       style: TextStyle(
-                          fontSize: 12.5, color: textColor, height: 1.45),
+                        fontSize: 12.5,
+                        color: textColor,
+                        height: 1.45,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
               ],
@@ -686,13 +756,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             'Pickup Address: '
             '${address == null ? 'Not specified' : [address.street, address.city].where((p) => p.isNotEmpty).join(', ')}',
             style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w500, height: 1.5),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              height: 1.5,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             'Pickup Slot: ${order.pickupSlotLabel ?? 'Not scheduled'}',
             style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w500, height: 1.5),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              height: 1.5,
+            ),
           ),
         ],
       ),
@@ -725,15 +801,17 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             _summaryRow('Express Delivery Fee', '+${rupees(b.express)}'),
           if (b.due > 0) _summaryRow('Previous Due', '+${rupees(b.due)}'),
           if (b.discount > 0)
-            _summaryRow('Discount', '-${rupees(b.discount)}',
-                color: Brand.green600),
+            _summaryRow(
+              'Discount',
+              '-${rupees(b.discount)}',
+              color: Brand.green600,
+            ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 6),
             child: Divider(height: 1),
           ),
           _summaryRow('Order Total', rupees(b.total), bold: true),
-          if (b.wallet > 0)
-            _summaryRow('Paid from Wallet', rupees(b.wallet)),
+          if (b.wallet > 0) _summaryRow('Paid from Wallet', rupees(b.wallet)),
           if ((b.paidOnline ?? 0) > 0)
             _summaryRow('Paid Online', rupees(b.paidOnline!)),
         ],
@@ -741,8 +819,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  Widget _summaryRow(String label, String value,
-      {Color? color, bool bold = false}) {
+  Widget _summaryRow(
+    String label,
+    String value, {
+    Color? color,
+    bool bold = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(

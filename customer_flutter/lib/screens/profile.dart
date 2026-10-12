@@ -47,9 +47,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _addresses = _profile!.addresses;
         _payments = (profile['paymentMethods'] is List)
             ? (profile['paymentMethods'] as List)
-                .whereType<Map>()
-                .map((m) => Map<String, dynamic>.from(m))
-                .toList()
+                  .whereType<Map>()
+                  .map((m) => Map<String, dynamic>.from(m))
+                  .toList()
             : [];
         _walletBalance = _profile!.walletBalance;
         _loading = false;
@@ -79,9 +79,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _addresses = profile.addresses;
       _payments = (result.map['paymentMethods'] is List)
           ? (result.map['paymentMethods'] as List)
-              .whereType<Map>()
-              .map((m) => Map<String, dynamic>.from(m))
-              .toList()
+                .whereType<Map>()
+                .map((m) => Map<String, dynamic>.from(m))
+                .toList()
           : [];
       _walletBalance = profile.walletBalance;
       _loading = false;
@@ -89,7 +89,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     await Store.setJson(Store.kCachedProfile, {'profile': result.map});
     await Store.setString(
-        Store.kCachedWalletBalance, profile.walletBalance.toString());
+      Store.kCachedWalletBalance,
+      profile.walletBalance.toString(),
+    );
     if (profile.name.isNotEmpty) await Store.setUserName(profile.name);
   }
 
@@ -109,19 +111,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete address?',
-            style: TextStyle(
-                fontFamily: 'Montserrat', fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Delete address?',
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         content: Text(_addresses[index].oneLine),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Keep', style: TextStyle(color: Brand.mutedForeground)),
+            child: const Text(
+              'Keep',
+              style: TextStyle(color: Brand.mutedForeground),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child:
-                const Text('Delete', style: TextStyle(color: Brand.destructive)),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Brand.destructive),
+            ),
           ),
         ],
       ),
@@ -145,15 +156,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<bool> _savePayments(List<Map<String, dynamic>> payments) async {
     final customerId = Store.customerId;
     if (customerId == null) return false;
-    final result =
-        await Api.saveProfile(customerId, {'paymentMethods': payments});
+    final result = await Api.saveProfile(customerId, {
+      'paymentMethods': payments,
+    });
     return result.ok;
   }
 
   Future<void> _setPrimary(int index) async {
     final next = [
       for (var i = 0; i < _payments.length; i++)
-        {..._payments[i], 'isPrimary': i == index}
+        {..._payments[i], 'isPrimary': i == index},
     ];
     final ok = await _savePayments(next);
     if (!mounted) return;
@@ -221,19 +233,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Log out?',
-            style: TextStyle(
-                fontFamily: 'Montserrat', fontWeight: FontWeight.w700)),
-        content: const Text('You will need to sign in again to place an order.'),
+        title: const Text(
+          'Log out?',
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        content: const Text(
+          'You will need to sign in again to place an order.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Stay', style: TextStyle(color: Brand.mutedForeground)),
+            child: const Text(
+              'Stay',
+              style: TextStyle(color: Brand.mutedForeground),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Log out',
-                style: TextStyle(color: Brand.destructive)),
+            child: const Text(
+              'Log out',
+              style: TextStyle(color: Brand.destructive),
+            ),
           ),
         ],
       ),
@@ -254,9 +277,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (_loading) {
       return const Scaffold(
         backgroundColor: Brand.gray50,
-        body: Center(
-          child: CircularProgressIndicator(color: Brand.purple),
-        ),
+        body: Center(child: CircularProgressIndicator(color: Brand.purple)),
       );
     }
 
@@ -285,8 +306,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _addressCard(i),
               ),
-            _linkButton('+ Add New',
-                () async {
+            _linkButton('+ Add New', () async {
               await Navigator.of(context).pushNamed('/add-address');
               await _load();
             }),
@@ -300,8 +320,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (!_hasEveryPaymentType)
               _linkButton('+ Add Payment', () => _paymentSheet())
             else
-              const Text('All payment methods added',
-                  style: TextStyle(color: Brand.mutedForeground, fontSize: 13.5)),
+              const Text(
+                'All payment methods added',
+                style: TextStyle(color: Brand.mutedForeground, fontSize: 13.5),
+              ),
             const SizedBox(height: 20),
             _sectionTitle('Wallet'),
             _tile(
@@ -335,11 +357,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 try {
                   await launchUrl(uri, mode: LaunchMode.externalApplication);
                 } catch (_) {
-                  messenger.showSnackBar(const SnackBar(
-                    content: Text('No mail app found.'),
-                    backgroundColor: Brand.destructive,
-                    behavior: SnackBarBehavior.floating,
-                  ));
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('No mail app found.'),
+                      backgroundColor: Brand.destructive,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
                 }
               },
             ),
@@ -351,13 +375,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
               decoration: _cardDecoration,
               child: Row(
                 children: [
-                  const Icon(Icons.notifications_none,
-                      size: 16, color: Brand.blue500),
+                  const Icon(
+                    Icons.notifications_none,
+                    size: 16,
+                    color: Brand.blue500,
+                  ),
                   const SizedBox(width: 12),
                   const Expanded(
-                    child: Text('Notification',
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w500)),
+                    child: Text(
+                      'Notification',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                   Switch(
                     value: _notificationsOn,
@@ -366,7 +397,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onChanged: (on) async {
                       setState(() => _notificationsOn = on);
                       await Store.setString(
-                          'notificationsEnabled', on ? 'true' : 'false');
+                        'notificationsEnabled',
+                        on ? 'true' : 'false',
+                      );
                       if (on) {
                         await Notifications.instance.start();
                       } else {
@@ -397,12 +430,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   backgroundColor: const Color(0xFFDC2626),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 icon: const Icon(Icons.logout, size: 16), // w-4 h-4
-                label: const Text('Logout',
-                    style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600)),
+                label: const Text(
+                  'Logout',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
               ),
             ),
           ],
@@ -420,31 +455,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
   );
 
   Widget _sectionTitle(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: GradientText(
-          text,
-          style: const TextStyle(
-            fontFamily: 'Montserrat',
-            fontSize: 16, // text-base
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 12),
+    child: GradientText(
+      text,
+      style: const TextStyle(
+        fontFamily: 'Montserrat',
+        fontSize: 16, // text-base
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
 
   Widget _linkButton(String label, VoidCallback onTap) => Align(
-        alignment: Alignment.centerLeft,
-        child: GestureDetector(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: GradientText(
-              label,
-              style: const TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w600), // text-xs
-            ),
-          ),
+    alignment: Alignment.centerLeft,
+    child: GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: GradientText(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ), // text-xs
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _identityCard() {
     final profile = _profile;
@@ -482,7 +519,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           : '+91 XXXXXXXX',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: Brand.gray500),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Brand.gray500,
+                      ),
                     ),
                     Text(
                       (profile?.email.isNotEmpty == true)
@@ -490,7 +530,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           : 'Not provided',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: Brand.gray500),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Brand.gray500,
+                      ),
                     ),
                     if (address != null)
                       Text(
@@ -498,7 +541,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            fontSize: 12, color: Brand.blue500),
+                          fontSize: 12,
+                          color: Brand.blue500,
+                        ),
                       ),
                   ],
                 ),
@@ -517,30 +562,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _avatar(String name, String? image) {
     Widget fallback() => Container(
-          height: 48, // w-12 h-12
-          width: 48,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(
-            gradient: Brand.gradient,
-            shape: BoxShape.circle,
-          ),
-          child: Text(
-            name.isEmpty ? 'U' : name[0].toUpperCase(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18, // text-lg
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        );
+      height: 48, // w-12 h-12
+      width: 48,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        gradient: Brand.gradient,
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        name.isEmpty ? 'U' : name[0].toUpperCase(),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 18, // text-lg
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
 
     if (image == null || image.isEmpty) return fallback();
 
     Widget picture;
     if (image.startsWith('data:')) {
       try {
-        picture = Image.memory(base64Decode(image.split(',').last),
-            fit: BoxFit.cover);
+        picture = Image.memory(
+          base64Decode(image.split(',').last),
+          fit: BoxFit.cover,
+        );
       } catch (_) {
         return fallback();
       }
@@ -571,8 +618,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           const Padding(
             padding: EdgeInsets.only(top: 2),
-            child: Icon(Icons.location_on_outlined,
-                size: 16, color: Brand.blue500),
+            child: Icon(
+              Icons.location_on_outlined,
+              size: 16,
+              color: Brand.blue500,
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -582,44 +632,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   address.street.isEmpty ? 'Address' : address.street,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 14),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  [address.city, address.state]
-                          .where((p) => p.isNotEmpty)
-                          .join(', ') +
+                  [
+                        address.city,
+                        address.state,
+                      ].where((p) => p.isNotEmpty).join(', ') +
                       (address.pincode.isEmpty ? '' : ' - ${address.pincode}'),
                   style: const TextStyle(fontSize: 12, color: Brand.gray500),
                 ),
                 if (address.isDefault)
                   const Padding(
                     padding: EdgeInsets.only(top: 3),
-                    child: Text('Default',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: Brand.green600,
-                        )),
+                    child: Text(
+                      'Default',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: Brand.green600,
+                      ),
+                    ),
                   ),
               ],
             ),
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.edit_outlined, size: 19, color: Brand.mutedForeground),
+            icon: const Icon(
+              Icons.edit_outlined,
+              size: 19,
+              color: Brand.mutedForeground,
+            ),
             onPressed: () async {
-              await Navigator.of(context).pushNamed(
-                '/add-address',
-                arguments: {'editIndex': index},
-              );
+              await Navigator.of(
+                context,
+              ).pushNamed('/add-address', arguments: {'editIndex': index});
               await _load();
             },
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
-            icon:
-                const Icon(Icons.delete_outline, size: 19, color: Brand.mutedForeground),
+            icon: const Icon(
+              Icons.delete_outline,
+              size: 19,
+              color: Brand.mutedForeground,
+            ),
             onPressed: () => _deleteAddress(index),
           ),
         ],
@@ -673,7 +734,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : null,
         boxShadow: const [
           BoxShadow(
-              color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
+            color: Color(0x14000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Row(
@@ -684,15 +748,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(type,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w500, fontSize: 14)),
+                Row(
+                  children: [
+                    Text(
+                      type,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                    // A second, smaller "Primary" sits next to the type as
+                    // well as in the green chip on the right.
+                    if (primary) ...[
+                      const SizedBox(width: 8), // gap-2
+                      const Text(
+                        'Primary',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
                 if (detail.isNotEmpty)
                   Text(
                     detail,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, color: Brand.mutedForeground),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Brand.mutedForeground,
+                    ),
                   ),
               ],
             ),
@@ -708,12 +796,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Icon(Icons.check_circle, size: 12, color: Brand.green600),
                   SizedBox(width: 4),
-                  Text('Primary',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w500,
-                        color: Brand.green600,
-                      )),
+                  Text(
+                    'Primary',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                      color: Brand.green600,
+                    ),
+                  ),
                 ],
               ),
             )
@@ -726,22 +816,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 minimumSize: const Size(0, 30),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text('Set Primary',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF2563EB),
-                  )),
+              child: const Text(
+                'Set Primary',
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF2563EB),
+                ),
+              ),
             ),
           IconButton(
             visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.edit_outlined, size: 18, color: Brand.mutedForeground),
+            icon: const Icon(
+              Icons.edit_outlined,
+              size: 18,
+              color: Brand.mutedForeground,
+            ),
             onPressed: () => _paymentSheet(editIndex: index),
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
-            icon:
-                const Icon(Icons.delete_outline, size: 18, color: Brand.mutedForeground),
+            icon: const Icon(
+              Icons.delete_outline,
+              size: 18,
+              color: Brand.mutedForeground,
+            ),
             onPressed: () => _deletePayment(index),
           ),
         ],
@@ -773,13 +872,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ? GradientText(
                         label,
                         style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w600),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
                       )
-                    : Text(label,
+                    : Text(
+                        label,
                         style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w500)),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
               ),
-              const Icon(Icons.chevron_right, size: 20, color: Brand.mutedForeground),
+              const Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: Brand.mutedForeground,
+              ),
             ],
           ),
         ),
@@ -932,27 +1041,31 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text('Payment Type',
-                  style: TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w500)),
+              const Text(
+                'Payment Type',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+              ),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 initialValue: _type,
                 decoration: InputDecoration(
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        const BorderSide(color: Color(0xFFD1D5DB), width: 2),
+                    borderSide: const BorderSide(
+                      color: Color(0xFFD1D5DB),
+                      width: 2,
+                    ),
                   ),
                 ),
                 items: const [
                   DropdownMenuItem(value: 'UPI', child: Text('UPI')),
                   DropdownMenuItem(value: 'Card', child: Text('Card')),
                   DropdownMenuItem(
-                      value: 'Bank Transfer', child: Text('Bank Transfer')),
+                    value: 'Bank Transfer',
+                    child: Text('Bank Transfer'),
+                  ),
                 ],
-                onChanged: (value) =>
-                    setState(() => _type = value ?? _type),
+                onChanged: (value) => setState(() => _type = value ?? _type),
               ),
               const SizedBox(height: 14),
               if (_type == 'UPI')
@@ -977,14 +1090,19 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                   child: Text(
                     'Only the last four digits are saved, so you can recognise '
                     'the card. The number and CVV are never stored.',
-                    style: TextStyle(fontSize: 11.5, color: Brand.mutedForeground, height: 1.5),
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: Brand.mutedForeground,
+                      height: 1.5,
+                    ),
                   ),
                 ),
               ] else ...[
                 _field(
                   _accountNumber,
                   'Account Number',
-                  hint: (widget.existing?['accountLast4'] ?? '')
+                  hint:
+                      (widget.existing?['accountLast4'] ?? '')
                           .toString()
                           .isEmpty
                       ? ''
@@ -999,7 +1117,10 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                   child: Text(
                     'Only the last four digits of the account number are saved.',
                     style: TextStyle(
-                        fontSize: 11.5, color: Brand.mutedForeground, height: 1.5),
+                      fontSize: 11.5,
+                      color: Brand.mutedForeground,
+                      height: 1.5,
+                    ),
                   ),
                 ),
               ],
@@ -1014,10 +1135,13 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFD1D5DB)),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        child: const Text('Cancel',
-                            style: TextStyle(color: Brand.gray600)),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Brand.gray600),
+                        ),
                       ),
                     ),
                   ),
@@ -1052,9 +1176,10 @@ class _PaymentSheetState extends State<_PaymentSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style:
-                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+          ),
           const SizedBox(height: 6),
           TextField(
             controller: controller,
@@ -1064,8 +1189,10 @@ class _PaymentSheetState extends State<_PaymentSheet> {
               hintText: hint,
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide:
-                    const BorderSide(color: Color(0xFFD1D5DB), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFFD1D5DB),
+                  width: 2,
+                ),
               ),
             ),
           ),

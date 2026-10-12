@@ -83,9 +83,10 @@ class PickupChecklistScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: const [
                     BoxShadow(
-                        color: Color(0x0D000000),
-                        blurRadius: 8,
-                        offset: Offset(0, 2)),
+                      color: Color(0x0D000000),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
                   ],
                 ),
                 // plain: this screen's header already carries the title, so the
@@ -111,7 +112,9 @@ class PickupChecklistScreen extends StatelessWidget {
                         child: Text(
                           '$pieces garment${pieces == 1 ? '' : 's'}',
                           style: const TextStyle(
-                              fontSize: 14, color: Brand.gray600),
+                            fontSize: 14,
+                            color: Brand.gray600,
+                          ),
                         ),
                       ),
                       Text(
@@ -128,8 +131,9 @@ class PickupChecklistScreen extends StatelessWidget {
                     label: 'Next',
                     height: 50,
                     radius: 16,
-                    onPressed: () => Navigator.of(context)
-                        .pushNamed('/pickup-slot', arguments: checkout),
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushNamed('/pickup-slot', arguments: checkout),
                   ),
                 ],
               ),

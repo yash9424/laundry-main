@@ -31,19 +31,20 @@ class AppNotification {
 
   /// Identifies an order notification by what it is about rather than by id, so
   /// the same status change is never announced twice.
-  String? get statusKey =>
-      (orderId == null || orderStatus == null) ? null : '${orderId}_$orderStatus';
+  String? get statusKey => (orderId == null || orderStatus == null)
+      ? null
+      : '${orderId}_$orderStatus';
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'message': message,
-        'timestamp': timestamp.toIso8601String(),
-        'type': type,
-        'read': read,
-        if (orderId != null) 'orderId': orderId,
-        if (orderStatus != null) 'orderStatus': orderStatus,
-      };
+    'id': id,
+    'title': title,
+    'message': message,
+    'timestamp': timestamp.toIso8601String(),
+    'type': type,
+    'read': read,
+    if (orderId != null) 'orderId': orderId,
+    if (orderStatus != null) 'orderStatus': orderStatus,
+  };
 
   factory AppNotification.fromJson(Map<String, dynamic> json) =>
       AppNotification(
@@ -52,7 +53,7 @@ class AppNotification {
         message: (json['message'] ?? '').toString(),
         timestamp:
             DateTime.tryParse(json['timestamp']?.toString() ?? '')?.toLocal() ??
-                DateTime.now(),
+            DateTime.now(),
         type: (json['type'] ?? 'system').toString(),
         read: json['read'] == true,
         orderId: json['orderId']?.toString(),
@@ -64,50 +65,50 @@ class AppNotification {
 const _statusTemplates = <String, ({String title, String message})>{
   'pending': (
     title: '\u{1F4CB} Order Confirmed',
-    message: 'Your order has been confirmed and is being prepared for pickup.'
+    message: 'Your order has been confirmed and is being prepared for pickup.',
   ),
   'reached_location': (
     title: '\u{1F697} Partner Reached Location',
-    message: 'Our delivery partner has reached your pickup location.'
+    message: 'Our delivery partner has reached your pickup location.',
   ),
   'picked_up': (
     title: '\u{1F4E6} Order Picked Up',
     message:
-        'Your order has been picked up and is on the way to our processing hub.'
+        'Your order has been picked up and is on the way to our processing hub.',
   ),
   'delivered_to_hub': (
     title: '\u{1F3ED} Order at Processing Hub',
     message:
-        'Your order has been delivered to our processing hub and will be processed soon.'
+        'Your order has been delivered to our processing hub and will be processed soon.',
   ),
   'process_completed': (
     title: '✨ Processing Complete',
-    message: 'Your order has been processed and is ready for delivery.'
+    message: 'Your order has been processed and is ready for delivery.',
   ),
   'out_for_delivery': (
     title: '\u{1F69A} Out for Delivery',
     message:
-        'Great news! Your order is out for delivery and will reach you soon.'
+        'Great news! Your order is out for delivery and will reach you soon.',
   ),
   'delivered': (
     title: '\u{1F389} Order Delivered Successfully',
     message:
-        'Your order has been successfully delivered. Thank you for choosing Urban Steam!'
+        'Your order has been successfully delivered. Thank you for choosing Urban Steam!',
   ),
   'cancelled': (
     title: '❌ Order Cancelled',
     message:
-        'Your order has been cancelled. If you have any questions, please contact support.'
+        'Your order has been cancelled. If you have any questions, please contact support.',
   ),
   'delivery_failed': (
     title: '⚠️ Delivery Failed',
     message:
-        'We were unable to deliver your order. Our team will contact you to reschedule delivery.'
+        'We were unable to deliver your order. Our team will contact you to reschedule delivery.',
   ),
   'suspended': (
     title: '\u{1F6AB} Order Suspended',
     message:
-        'Your order has been suspended due to multiple delivery failures. Please contact support.'
+        'Your order has been suspended due to multiple delivery failures. Please contact support.',
   ),
 };
 
@@ -190,19 +191,23 @@ class Notifications {
       },
     );
 
-    final android13 = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final android13 = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     await android13?.requestNotificationsPermission();
-    await android13?.createNotificationChannel(const AndroidNotificationChannel(
-      _channelId,
-      'Order Updates',
-      description: 'Notifications for order status updates',
-      importance: Importance.max,
-      playSound: true,
-      enableLights: true,
-      ledColor: Color(0xFF452D9B),
-      enableVibration: true,
-    ));
+    await android13?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        _channelId,
+        'Order Updates',
+        description: 'Notifications for order status updates',
+        importance: Importance.max,
+        playSound: true,
+        enableLights: true,
+        ledColor: Color(0xFF452D9B),
+        enableVibration: true,
+      ),
+    );
 
     _ready = true;
   }
@@ -277,12 +282,16 @@ class Notifications {
     final deleted = _keyList('deleted_notifications');
     _items = raw is List
         ? raw
-            .whereType<Map>()
-            .map((m) => AppNotification.fromJson(Map<String, dynamic>.from(m)))
-            .where((n) =>
-                !deleted.contains(n.id) &&
-                !(n.statusKey != null && cleared.contains(n.statusKey)))
-            .toList()
+              .whereType<Map>()
+              .map(
+                (m) => AppNotification.fromJson(Map<String, dynamic>.from(m)),
+              )
+              .where(
+                (n) =>
+                    !deleted.contains(n.id) &&
+                    !(n.statusKey != null && cleared.contains(n.statusKey)),
+              )
+              .toList()
         : [];
     revision.value++;
   }
@@ -297,10 +306,12 @@ class Notifications {
 
   Future<void> _add(AppNotification notification) async {
     // Already known, by what it is about rather than by id.
-    final already = _items.any((n) =>
-        n.id == notification.id ||
-        (notification.statusKey != null &&
-            n.statusKey == notification.statusKey));
+    final already = _items.any(
+      (n) =>
+          n.id == notification.id ||
+          (notification.statusKey != null &&
+              n.statusKey == notification.statusKey),
+    );
     if (already) return;
 
     if (notification.statusKey != null &&
@@ -333,16 +344,19 @@ class Notifications {
       final previous = _lastStatus[orderId];
       if (template != null && previous != status) {
         final express = order['expressDelivery'] == true;
-        await _add(AppNotification(
-          id: 'order_${orderId}_${status}_${DateTime.now().millisecondsSinceEpoch}',
-          title: template.title,
-          message: '${template.message} '
-              '(Order #$orderId${express ? ' — Express Delivery' : ''})',
-          timestamp: DateTime.now(),
-          type: 'order_status',
-          orderId: orderId,
-          orderStatus: status,
-        ));
+        await _add(
+          AppNotification(
+            id: 'order_${orderId}_${status}_${DateTime.now().millisecondsSinceEpoch}',
+            title: template.title,
+            message:
+                '${template.message} '
+                '(Order #$orderId${express ? ' — Express Delivery' : ''})',
+            timestamp: DateTime.now(),
+            type: 'order_status',
+            orderId: orderId,
+            orderStatus: status,
+          ),
+        );
       }
       _lastStatus[orderId] = status;
     }
@@ -356,17 +370,21 @@ class Notifications {
       final map = Map<String, dynamic>.from(raw);
       final id = (map['id'] ?? '').toString();
       if (id.isEmpty) continue;
-      await _add(AppNotification(
-        id: id,
-        title: (map['title'] ?? '').toString(),
-        message: (map['message'] ?? '').toString(),
-        timestamp:
-            DateTime.tryParse(map['timestamp']?.toString() ?? '')?.toLocal() ??
-                DateTime.now(),
-        type: (map['type'] ?? 'system').toString(),
-        orderId: map['orderId']?.toString(),
-        orderStatus: map['orderStatus']?.toString(),
-      ));
+      await _add(
+        AppNotification(
+          id: id,
+          title: (map['title'] ?? '').toString(),
+          message: (map['message'] ?? '').toString(),
+          timestamp:
+              DateTime.tryParse(
+                map['timestamp']?.toString() ?? '',
+              )?.toLocal() ??
+              DateTime.now(),
+          type: (map['type'] ?? 'system').toString(),
+          orderId: map['orderId']?.toString(),
+          orderStatus: map['orderStatus']?.toString(),
+        ),
+      );
     }
   }
 
@@ -411,7 +429,9 @@ class Notifications {
       // the app's own list, which is what matters most.
     }
 
-    if (statusKey != null) await _addToKeyList('pushed_notifications', statusKey);
+    if (statusKey != null) {
+      await _addToKeyList('pushed_notifications', statusKey);
+    }
     await _addToKeyList('pushed_notifications', notification.id);
   }
 

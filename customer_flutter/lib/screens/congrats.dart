@@ -65,7 +65,9 @@ class CongratsScreen extends StatelessWidget {
                       const Text(
                         'Not your location?',
                         style: TextStyle(
-                            fontSize: 12, color: Brand.mutedForeground),
+                          fontSize: 12,
+                          color: Brand.mutedForeground,
+                        ),
                       ),
                       const SizedBox(width: 4), // ml-1
                       GestureDetector(

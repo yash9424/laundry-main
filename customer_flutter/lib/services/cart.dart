@@ -22,27 +22,27 @@ class CartLine {
   num get lineTotal => price * quantity;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'price': price,
-        'quantity': quantity,
-        'category': category,
-      };
+    'id': id,
+    'name': name,
+    'price': price,
+    'quantity': quantity,
+    'category': category,
+  };
 
   /// What the order route reads: name, quantity, price. Nothing else is kept.
   Map<String, dynamic> toOrderItem() => {
-        'name': name,
-        'quantity': quantity,
-        'price': price,
-      };
+    'name': name,
+    'quantity': quantity,
+    'price': price,
+  };
 
   factory CartLine.fromJson(Map<String, dynamic> json) => CartLine(
-        id: (json['id'] ?? '').toString(),
-        name: (json['name'] ?? '').toString(),
-        price: num.tryParse(json['price']?.toString() ?? '') ?? 0,
-        quantity: int.tryParse(json['quantity']?.toString() ?? '') ?? 0,
-        category: (json['category'] ?? 'Laundry').toString(),
-      );
+    id: (json['id'] ?? '').toString(),
+    name: (json['name'] ?? '').toString(),
+    price: num.tryParse(json['price']?.toString() ?? '') ?? 0,
+    quantity: int.tryParse(json['quantity']?.toString() ?? '') ?? 0,
+    category: (json['category'] ?? 'Laundry').toString(),
+  );
 }
 
 /// The cart, held in storage so it survives the app being closed -- the same
@@ -68,10 +68,10 @@ class Cart {
     final raw = Store.getJson(Store.kCartItems);
     _lines = (raw is List)
         ? raw
-            .whereType<Map>()
-            .map((m) => CartLine.fromJson(Map<String, dynamic>.from(m)))
-            .where((l) => l.id.isNotEmpty && l.quantity > 0)
-            .toList()
+              .whereType<Map>()
+              .map((m) => CartLine.fromJson(Map<String, dynamic>.from(m)))
+              .where((l) => l.id.isNotEmpty && l.quantity > 0)
+              .toList()
         : [];
     _loaded = true;
   }
@@ -104,7 +104,10 @@ class Cart {
   }
 
   static Future<void> _persist() async {
-    await Store.setJson(Store.kCartItems, _lines.map((l) => l.toJson()).toList());
+    await Store.setJson(
+      Store.kCartItems,
+      _lines.map((l) => l.toJson()).toList(),
+    );
     revision.value++;
   }
 
@@ -124,13 +127,15 @@ class Cart {
     } else if (index >= 0) {
       _lines[index].quantity = next;
     } else {
-      _lines.add(CartLine(
-        id: id,
-        name: name,
-        price: price,
-        quantity: next,
-        category: category,
-      ));
+      _lines.add(
+        CartLine(
+          id: id,
+          name: name,
+          price: price,
+          quantity: next,
+          category: category,
+        ),
+      );
     }
     await _persist();
   }
@@ -141,14 +146,13 @@ class Cart {
     required num price,
     required String category,
     required bool up,
-  }) =>
-      setQuantity(
-        id: id,
-        name: name,
-        price: price,
-        category: category,
-        quantity: quantityOf(id) + (up ? 1 : -1),
-      );
+  }) => setQuantity(
+    id: id,
+    name: name,
+    price: price,
+    category: category,
+    quantity: quantityOf(id) + (up ? 1 : -1),
+  );
 
   static Future<void> clear() async {
     _lines = [];

@@ -111,6 +111,40 @@ class Brand {
   static const heading = 'Montserrat';
   static const body = 'Manrope';
 
+  /// Tailwind's preflight puts `line-height: 1.5` on `html`, so text that does
+  /// not name its own `leading-*` sits in a box one and a half times its font
+  /// size. Flutter follows the font instead, which for Manrope is nearer 1.3.
+  static const lineHeight = 1.5;
+
+  /// Material's own text styles carry a letter-spacing -- 0.25 on `bodyMedium`,
+  /// 0.1 on `labelLarge` -- and Flutter merges it into every `Text` that does
+  /// not override it. CSS has none: `letter-spacing: normal` is zero. It is
+  /// about four per cent of a line's width, which is small enough to look like
+  /// nothing and large enough to wrap a line a word early.
+  static TextTheme _webMetrics(TextTheme t) {
+    TextStyle? body(TextStyle? s) =>
+        s?.copyWith(letterSpacing: 0, height: lineHeight);
+    TextStyle? flat(TextStyle? s) => s?.copyWith(letterSpacing: 0);
+
+    return TextTheme(
+      displayLarge: flat(t.displayLarge),
+      displayMedium: flat(t.displayMedium),
+      displaySmall: flat(t.displaySmall),
+      headlineLarge: flat(t.headlineLarge),
+      headlineMedium: flat(t.headlineMedium),
+      headlineSmall: flat(t.headlineSmall),
+      titleLarge: flat(t.titleLarge),
+      titleMedium: flat(t.titleMedium),
+      titleSmall: flat(t.titleSmall),
+      bodyLarge: body(t.bodyLarge),
+      bodyMedium: body(t.bodyMedium),
+      bodySmall: body(t.bodySmall),
+      labelLarge: flat(t.labelLarge),
+      labelMedium: flat(t.labelMedium),
+      labelSmall: flat(t.labelSmall),
+    );
+  }
+
   static ThemeData theme() {
     final base = ThemeData(
       useMaterial3: true,
@@ -124,9 +158,8 @@ class Brand {
     );
 
     return base.copyWith(
-      textTheme: base.textTheme.apply(
-        bodyColor: foreground,
-        displayColor: foreground,
+      textTheme: _webMetrics(
+        base.textTheme.apply(bodyColor: foreground, displayColor: foreground),
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: background,
@@ -141,8 +174,10 @@ class Brand {
         filled: true,
         fillColor: background,
         hintStyle: const TextStyle(color: mutedForeground),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(rMd),
           borderSide: const BorderSide(color: input),

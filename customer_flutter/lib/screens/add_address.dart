@@ -9,14 +9,42 @@ import '../widgets/common.dart';
 import '../widgets/location_picker.dart';
 
 const _indianStates = [
-  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
-  'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
-  'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
-  'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
-  'Andaman and Nicobar Islands', 'Chandigarh',
-  'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Jammu and Kashmir',
-  'Ladakh', 'Lakshadweep', 'Puducherry',
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chhattisgarh',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
+  'Andaman and Nicobar Islands',
+  'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi',
+  'Jammu and Kashmir',
+  'Ladakh',
+  'Lakshadweep',
+  'Puducherry',
 ];
 
 class AddAddressScreen extends StatefulWidget {
@@ -176,14 +204,13 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                 latitude: next[i].latitude,
                 longitude: next[i].longitude,
                 isDefault: i == (index ?? next.length - 1),
-              )
+              ),
           ]
         : next;
 
-    final result = await Api.saveProfile(
-      customerId,
-      {'address': list.map((a) => a.toJson()).toList()},
-    );
+    final result = await Api.saveProfile(customerId, {
+      'address': list.map((a) => a.toJson()).toList(),
+    });
     if (!mounted) return;
     setState(() => _saving = false);
 
@@ -216,8 +243,11 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              _field(_line1, 'Flat / House no, Building',
-                                  onChanged: (_) => setState(() {})),
+                              _field(
+                                _line1,
+                                'Flat / House no, Building',
+                                onChanged: (_) => setState(() {}),
+                              ),
                               _field(_line2, 'Area, Landmark (optional)'),
                               _field(
                                 _pincode,
@@ -232,14 +262,20 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                                   _onPincodeChanged(value);
                                 },
                               ),
-                              _field(_city, 'City',
-                                  onChanged: (_) => setState(() {})),
+                              _field(
+                                _city,
+                                'City',
+                                onChanged: (_) => setState(() {}),
+                              ),
                               const Padding(
                                 padding: EdgeInsets.only(bottom: 6),
-                                child: Text('State',
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500)),
+                                child: Text(
+                                  'State',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ),
                               DropdownButtonFormField<String>(
                                 initialValue: _state,
@@ -249,13 +285,17 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: const BorderSide(
-                                        color: Color(0xFFD1D5DB), width: 2),
+                                      color: Color(0xFFD1D5DB),
+                                      width: 2,
+                                    ),
                                   ),
                                 ),
                                 items: [
                                   for (final state in _indianStates)
                                     DropdownMenuItem(
-                                        value: state, child: Text(state)),
+                                      value: state,
+                                      child: Text(state),
+                                    ),
                                 ],
                                 onChanged: (value) =>
                                     setState(() => _state = value),
@@ -270,20 +310,24 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                                       height: 21,
                                       width: 21,
                                       decoration: BoxDecoration(
-                                        gradient:
-                                            _isPrimary ? Brand.gradient : null,
-                                        color:
-                                            _isPrimary ? null : Colors.white,
+                                        gradient: _isPrimary
+                                            ? Brand.gradient
+                                            : null,
+                                        color: _isPrimary ? null : Colors.white,
                                         borderRadius: BorderRadius.circular(5),
                                         border: _isPrimary
                                             ? null
                                             : Border.all(
                                                 color: Brand.disabled,
-                                                width: 2),
+                                                width: 2,
+                                              ),
                                       ),
                                       child: _isPrimary
-                                          ? const Icon(Icons.check,
-                                              size: 15, color: Colors.white)
+                                          ? const Icon(
+                                              Icons.check,
+                                              size: 15,
+                                              color: Colors.white,
+                                            )
                                           : null,
                                     ),
                                     const SizedBox(width: 12),
@@ -304,14 +348,18 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFFFF7ED),
                               borderRadius: BorderRadius.circular(16),
-                              border:
-                                  Border.all(color: const Color(0xFFFED7AA)),
+                              border: Border.all(
+                                color: const Color(0xFFFED7AA),
+                              ),
                             ),
                             child: const Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(Icons.info_outline,
-                                    size: 18, color: Color(0xFFEA580C)),
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 18,
+                                  color: Color(0xFFEA580C),
+                                ),
                                 SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
@@ -359,17 +407,20 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   }
 
   Widget _card({required Widget child}) => Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-                color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
-          ],
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x14000000),
+          blurRadius: 12,
+          offset: Offset(0, 4),
         ),
-        child: child,
-      );
+      ],
+    ),
+    child: child,
+  );
 
   Widget _field(
     TextEditingController controller,
@@ -383,9 +434,10 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style:
-                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+          ),
           const SizedBox(height: 6),
           TextField(
             controller: controller,
@@ -396,8 +448,10 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
               counterText: '',
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide:
-                    const BorderSide(color: Color(0xFFD1D5DB), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFFD1D5DB),
+                  width: 2,
+                ),
               ),
             ),
           ),

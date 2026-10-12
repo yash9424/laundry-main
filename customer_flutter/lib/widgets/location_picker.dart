@@ -53,10 +53,12 @@ class _LocationPickerState extends State<LocationPicker> {
 
   void _publish(LatLng point) {
     setState(() => _pin = point);
-    widget.onChanged(PickedLocation(
-      double.parse(point.latitude.toStringAsFixed(6)),
-      double.parse(point.longitude.toStringAsFixed(6)),
-    ));
+    widget.onChanged(
+      PickedLocation(
+        double.parse(point.latitude.toStringAsFixed(6)),
+        double.parse(point.longitude.toStringAsFixed(6)),
+      ),
+    );
   }
 
   Future<void> _useMyLocation() async {
@@ -68,7 +70,8 @@ class _LocationPickerState extends State<LocationPicker> {
       if (!await Geolocator.isLocationServiceEnabled()) {
         setState(() {
           _locating = false;
-          _error = 'Location is switched off on this device. '
+          _error =
+              'Location is switched off on this device. '
               'Turn it on, or tap the map instead.';
         });
         return;
@@ -82,7 +85,8 @@ class _LocationPickerState extends State<LocationPicker> {
           permission == LocationPermission.deniedForever) {
         setState(() {
           _locating = false;
-          _error = 'Location permission was denied. '
+          _error =
+              'Location permission was denied. '
               'Turn it on, or tap the map to set the pin instead.';
         });
         return;
@@ -117,7 +121,11 @@ class _LocationPickerState extends State<LocationPicker> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
-          BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -197,15 +205,17 @@ class _LocationPickerState extends State<LocationPicker> {
               _error,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  fontSize: 11.5, color: Brand.destructive, height: 1.4),
+                fontSize: 11.5,
+                color: Brand.destructive,
+                height: 1.4,
+              ),
             )
           else if (pin != null)
             Text(
               'Pinned at ${pin.latitude.toStringAsFixed(5)}, '
               '${pin.longitude.toStringAsFixed(5)}',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontSize: 11.5, color: Color(0xFF15803D)),
+              style: const TextStyle(fontSize: 11.5, color: Color(0xFF15803D)),
             )
           else
             const Text(

@@ -24,26 +24,32 @@ class CustomerAddress {
 
   /// How every screen prints an address: "street, city, state - pincode".
   String get oneLine {
-    final head =
-        [street, city, state].where((p) => p.trim().isNotEmpty).join(', ');
+    final head = [
+      street,
+      city,
+      state,
+    ].where((p) => p.trim().isNotEmpty).join(', ');
     return pincode.trim().isEmpty ? head : '$head - $pincode';
   }
 
   /// What a map search needs.
-  String get searchQuery =>
-      [street, city, state, pincode, 'India']
-          .where((p) => p.trim().isNotEmpty)
-          .join(', ');
+  String get searchQuery => [
+    street,
+    city,
+    state,
+    pincode,
+    'India',
+  ].where((p) => p.trim().isNotEmpty).join(', ');
 
   Map<String, dynamic> toJson() => {
-        'street': street,
-        'city': city,
-        'state': state,
-        'pincode': pincode,
-        if (latitude != null) 'latitude': latitude,
-        if (longitude != null) 'longitude': longitude,
-        'isDefault': isDefault,
-      };
+    'street': street,
+    'city': city,
+    'state': state,
+    'pincode': pincode,
+    if (latitude != null) 'latitude': latitude,
+    if (longitude != null) 'longitude': longitude,
+    'isDefault': isDefault,
+  };
 
   factory CustomerAddress.fromJson(Map<String, dynamic> json) =>
       CustomerAddress(
@@ -73,11 +79,11 @@ class PaymentMethod {
   final bool isPrimary;
 
   factory PaymentMethod.fromJson(Map<String, dynamic> json) => PaymentMethod(
-        type: (json['type'] ?? '').toString(),
-        upiId: json['upiId']?.toString(),
-        details: json['details']?.toString(),
-        isPrimary: json['isPrimary'] == true,
-      );
+    type: (json['type'] ?? '').toString(),
+    upiId: json['upiId']?.toString(),
+    details: json['details']?.toString(),
+    isPrimary: json['isPrimary'] == true,
+  );
 }
 
 /// The customer record as /api/mobile/profile returns it.
@@ -142,11 +148,11 @@ class CustomerProfile {
   factory CustomerProfile.fromJson(Map<String, dynamic> json) {
     List<T> listOf<T>(Object? raw, T Function(Map<String, dynamic>) make) =>
         raw is List
-            ? raw
-                .whereType<Map>()
-                .map((m) => make(Map<String, dynamic>.from(m)))
-                .toList()
-            : <T>[];
+        ? raw
+              .whereType<Map>()
+              .map((m) => make(Map<String, dynamic>.from(m)))
+              .toList()
+        : <T>[];
 
     return CustomerProfile(
       id: (json['_id'] ?? json['customerId'] ?? '').toString(),
@@ -162,9 +168,9 @@ class CustomerProfile {
       totalSpend: _num(json['totalSpend']),
       referralCodes: (json['referralCodes'] is List)
           ? (json['referralCodes'] as List)
-              .whereType<Map>()
-              .map((m) => Map<String, dynamic>.from(m))
-              .toList()
+                .whereType<Map>()
+                .map((m) => Map<String, dynamic>.from(m))
+                .toList()
           : <Map<String, dynamic>>[],
       profileImage: json['profileImage']?.toString(),
       referredBy: json['referredBy']?.toString(),

@@ -62,16 +62,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       if (results[0].ok) {
-        _hero = results[0]
-            .list
+        _hero = results[0].list
             .whereType<Map>()
             .map((m) => HeroItem.fromJson(Map<String, dynamic>.from(m)))
             .where((h) => h.url.isNotEmpty)
             .toList();
       }
       if (results[1].ok) {
-        _plans = results[1]
-            .list
+        _plans = results[1].list
             .whereType<Map>()
             .map((m) => TopupPlan.fromJson(Map<String, dynamic>.from(m)))
             .where((p) => p.isActive)
@@ -86,7 +84,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (results.length > 3 && results[3].ok) {
         final profile = results[3].map;
         final addresses = profile['address'];
-        if (addresses is List && addresses.isNotEmpty && addresses.first is Map) {
+        if (addresses is List &&
+            addresses.isNotEmpty &&
+            addresses.first is Map) {
           final a = Map<String, dynamic>.from(addresses.first as Map);
           final text = [
             a['street'],
@@ -105,8 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (name != null && name.isNotEmpty) _name = name;
       }
       if (results.length > 4 && results[4].ok) {
-        _recentOrders = results[4]
-            .list
+        _recentOrders = results[4].list
             .whereType<Map>()
             .map((m) => Map<String, dynamic>.from(m))
             .take(3)
@@ -116,7 +115,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _chooseDelivery(String type) async {
-    final chosen = (type == 'express' && !_charges.expressEnabled) ? 'standard' : type;
+    final chosen = (type == 'express' && !_charges.expressEnabled)
+        ? 'standard'
+        : type;
     await Store.setString(Store.kDeliveryType, chosen);
     if (!mounted) return;
     // The cart is deliberately left alone: standard and express hold the same
@@ -189,7 +190,11 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: const BoxDecoration(
         gradient: Brand.gradient,
         boxShadow: [
-          BoxShadow(color: Color(0x33452D9B), blurRadius: 18, offset: Offset(0, 4)),
+          BoxShadow(
+            color: Color(0x33452D9B),
+            blurRadius: 18,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Row(
@@ -213,7 +218,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 4), // mb-1
                 const Text(
                   "Let's schedule your order",
-                  style: TextStyle(color: Colors.white, fontSize: 14), // text-sm
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ), // text-sm
                 ),
               ],
             ),
@@ -285,27 +293,31 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(child: standard),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _deliveryCard(
-            title: _charges.homeExpressTitle,
-            subtitle: _charges.homeExpressSubtitle,
-            icon: Icons.bolt,
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF1B0F4D), Color(0xFF452D9B), Color(0xFF06869A)],
-              stops: [0, 0.55, 1],
-            ),
-            iconGradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
-            ),
-            badge: _charges.expressPrice > 0
-                ? '+${rupees(_charges.expressPrice)}'
-                : null,
-            onTap: () => _chooseDelivery('express'),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _deliveryCard(
+              title: _charges.homeExpressTitle,
+              subtitle: _charges.homeExpressSubtitle,
+              icon: Icons.bolt,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF1B0F4D),
+                  Color(0xFF452D9B),
+                  Color(0xFF06869A),
+                ],
+                stops: [0, 0.55, 1],
+              ),
+              iconGradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
+              ),
+              badge: _charges.expressPrice > 0
+                  ? '+${rupees(_charges.expressPrice)}'
+                  : null,
+              onTap: () => _chooseDelivery('express'),
             ),
           ),
         ],
@@ -337,7 +349,10 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: const [
               BoxShadow(
-                  color: Color(0x33000000), blurRadius: 12, offset: Offset(0, 4)),
+                color: Color(0x33000000),
+                blurRadius: 12,
+                offset: Offset(0, 4),
+              ),
             ],
           ),
           child: Stack(
@@ -381,8 +396,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   top: 0,
                   right: 0,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
@@ -414,7 +431,11 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(Brand.r2xl),
         border: Border.all(color: Brand.gray100),
         boxShadow: const [
-          BoxShadow(color: Color(0x14000000), blurRadius: 14, offset: Offset(0, 4)),
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -446,11 +467,16 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: const Column(
                 children: [
-                  Icon(Icons.shopping_cart_outlined,
-                      size: 48, color: Brand.gray300), // w-12 h-12
+                  Icon(
+                    Icons.shopping_cart_outlined,
+                    size: 48,
+                    color: Brand.gray300,
+                  ), // w-12 h-12
                   SizedBox(height: 8), // mb-2
-                  Text('No recent orders found',
-                      style: TextStyle(color: Brand.gray400, fontSize: 14)),
+                  Text(
+                    'No recent orders found',
+                    style: TextStyle(color: Brand.gray400, fontSize: 14),
+                  ),
                 ],
               ),
             )
@@ -484,7 +510,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(12),
                           onTap: () => Navigator.of(context).pushNamed(
                             '/order-details',
-                            arguments: {'orderId': order['orderId']?.toString()},
+                            arguments: {
+                              'orderId': order['orderId']?.toString(),
+                            },
                           ),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -495,8 +523,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.history,
-                                    size: 12, color: Colors.white), // w-3 h-3
+                                Icon(
+                                  Icons.history,
+                                  size: 12,
+                                  color: Colors.white,
+                                ), // w-3 h-3
                                 SizedBox(width: 4), // mr-1
                                 Text(
                                   'View Order',

@@ -22,7 +22,11 @@ class AppBottomNav extends StatelessWidget {
 
   Widget _icon(BuildContext context, IconData icon, String route) {
     final active = route == current;
-    final child = Icon(icon, size: 26, color: active ? Colors.white : const Color(0xFF9CA3AF));
+    final child = Icon(
+      icon,
+      size: 26,
+      color: active ? Colors.white : const Color(0xFF9CA3AF),
+    );
     return Expanded(
       child: InkWell(
         onTap: () => _go(context, route),
@@ -31,8 +35,9 @@ class AppBottomNav extends StatelessWidget {
           child: Center(
             child: active
                 ? ShaderMask(
-                    shaderCallback: (b) => Brand.gradient
-                        .createShader(Rect.fromLTWH(0, 0, b.width, b.height)),
+                    shaderCallback: (b) => Brand.gradient.createShader(
+                      Rect.fromLTWH(0, 0, b.width, b.height),
+                    ),
                     child: child,
                   )
                 : child,
@@ -51,7 +56,11 @@ class AppBottomNav extends StatelessWidget {
         color: Colors.white,
         border: Border(top: BorderSide(color: Brand.border)),
         boxShadow: [
-          BoxShadow(color: Color(0x1A000000), blurRadius: 16, offset: Offset(0, -2)),
+          BoxShadow(
+            color: Color(0x1A000000),
+            blurRadius: 16,
+            offset: Offset(0, -2),
+          ),
         ],
       ),
       child: SizedBox(
@@ -82,8 +91,11 @@ class AppBottomNav extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.shopping_cart,
-                          color: Colors.white, size: 24),
+                      child: const Icon(
+                        Icons.shopping_cart,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     const Text(

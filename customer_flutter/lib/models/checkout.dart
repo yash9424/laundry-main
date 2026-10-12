@@ -31,15 +31,14 @@ class CheckoutDraft {
     required DateTime pickupDate,
     required String pickupDayLabel,
     required String selectedSlot,
-  }) =>
-      CheckoutDraft(
-        items: items,
-        itemsTotal: itemsTotal,
-        pickupType: pickupType,
-        pickupDate: pickupDate,
-        pickupDayLabel: pickupDayLabel,
-        selectedSlot: selectedSlot,
-      );
+  }) => CheckoutDraft(
+    items: items,
+    itemsTotal: itemsTotal,
+    pickupType: pickupType,
+    pickupDate: pickupDate,
+    pickupDayLabel: pickupDayLabel,
+    selectedSlot: selectedSlot,
+  );
 
   /// Reads the draft back out of a route's arguments, or null when the screen
   /// was reached directly with nothing to work on.
