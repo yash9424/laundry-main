@@ -395,10 +395,11 @@ touching it; the short version:
   `--dart-define=API_URL=...` overrides the base URL (default `https://acsgroup.cloud`).
 - **Shipping it signs every customer out**: the session lives in the WebView's
   localStorage, which a Flutter build cannot read. Roll out in stages.
-- It deviates from `customer/` in seven places on purpose (no stored card
+- It deviates from `customer/` in eight places on purpose (no stored card
   numbers or CVVs, per-order fetches instead of `GET /api/orders` unfiltered, no
-  sample-data fallback on invoices, OSM map tiles, and three smaller fixes).
-  Every one is listed in its README.
+  sample-data fallback on invoices, OSM map tiles, and four smaller fixes).
+  Every one is listed in its README; everything else, including the legacy
+  `/booking` screen and the two bottom bars that open it, is a faithful port.
 
 ### 8.5 Flutter Captain app (`partner_flutter/`) — not shipped yet
 A Flutter rewrite of `partner/`, built to go out as an **update** to the published
