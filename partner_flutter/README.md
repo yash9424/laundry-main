@@ -216,6 +216,39 @@ third too big until that column went back to `center`.
 
 ---
 
+## What the call-by-call audit against the shipped app caught
+
+Every backend call the shipped app makes was put beside this one's -- method,
+path, query, body field names -- and the order lifecycle came out identical:
+every status string, every timestamp key, every flag. Seven things did not.
+
+- **A failed hub lookup erased the order's hub.** Both apps send
+  `hub: <the hub or nothing>` when a bag is dropped, but `JSON.stringify` omits
+  an undefined value while `jsonEncode` writes `"hub": null` -- and the route
+  `$set`s whatever it is given. One flaky `GET /api/hubs` and the order lost
+  the hub it was assigned when it was placed, which is what the hub's own order
+  list filters on. The key is now sent only when there is a hub.
+- **"Delivered to Hub" emptied itself.** It filtered on the status being
+  `delivered_to_hub`; the web screen tests for `deliveredToHubAt` being set.
+  The status moves on as the hub works through the bag, so the captain's record
+  of a handover disappeared within the hour.
+- **Every admin broadcast was dated "now".** The route renames `sentAt` to
+  `timestamp` on the way out; this read the stored name, found nothing, and
+  fell back to the current time -- which also sorted old messages above today's.
+- **Reading or deleting a broadcast did not stick.** Those come back from the
+  server on every load with no per-captain state, so the web app keeps the ids
+  in `partner_read_notifications` / `partner_deleted_notifications`. Both keys
+  are kept here now, and cleared on sign-out.
+- **Saving Personal Details dropped `address.pincode`.** The web screen
+  re-derives it from the first service pincode on every save, and two screens
+  read it: the hub a drop-off is matched to, and the pincodes a delivery is
+  offered for.
+- **The bottom bar showed while KYC was still pending.** `ClientBottomNav`
+  hides it until `kycStatus` is `approved`, and this screen is only ever shown
+  before that.
+- **A notification tap always opened the pickup list**, although the payload
+  names the screen -- the delivery list for an order ready to go out.
+
 ## What is deliberately different from the web app
 
 Everything else is a faithful port. These are the exceptions:
@@ -234,6 +267,15 @@ Everything else is a faithful port. These are the exceptions:
 - **Aadhaar is masked** to its last four digits on the KYC screen, as on the
   web. (The admin panel still shows it in full — that is a backend screen and
   out of scope here.)
+- **A rejected captain tapping the Delivery tab goes straight to the KYC
+  status screen.** The web screen sends them to `/profile/kyc` instead, which
+  immediately bounces them here anyway (see the bounce below), so this skips a
+  screen that only flashes.
+- **Admin-chosen brand typography is not applied.** `BrandFonts.tsx` reads
+  `brandHeadingFont` / `brandBodyFont` off `/api/order-charges` and loads them
+  from Google Fonts; this app ships Montserrat and Manrope, which are the
+  defaults those fields hold. Following them would mean downloading a font at
+  startup, so it is left out until someone actually changes them.
 
 ## Carried over on purpose, bugs included
 

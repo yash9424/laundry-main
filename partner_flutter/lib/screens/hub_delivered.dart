@@ -46,8 +46,15 @@ class _HubDeliveredScreenState extends State<HubDeliveredScreen> {
         _all = result.list
             .whereType<Map>()
             .map((o) => PartnerOrder(Map<String, dynamic>.from(o)))
-            .where((o) =>
-                o.partnerId == partnerId && o.status == 'delivered_to_hub')
+            // Anything this captain has ever dropped at a hub, which is what
+            // the web screen lists: it tests for the timestamp, not for the
+            // status. The status moves on as the hub works through the bag
+            // (processing -> ironing -> out_for_delivery -> delivered) while
+            // the timestamp stays, so filtering on the status would empty this
+            // screen an hour after the drop and leave the captain with no
+            // record of the handover.
+            .where(
+                (o) => o.partnerId == partnerId && o.deliveredToHubAt != null)
             .toList();
       }
       _loading = false;

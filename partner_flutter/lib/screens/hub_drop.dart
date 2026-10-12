@@ -162,6 +162,7 @@ class _HubDropScreenState extends State<HubDropScreen> {
         ? _orders.where((o) => _selected.contains(o.id)).toList()
         : _orders;
 
+    final hubId = _hub?['_id'];
     var hadFailed = false;
     var hadRedeliveryFailed = false;
 
@@ -189,7 +190,13 @@ class _HubDropScreenState extends State<HubDropScreen> {
           'returnToHubRequested': true,
           'returnToHubRequestedAt': DateTime.now().toIso8601String(),
           'deliveryFailureFee': fee,
-          'hub': _hub?['_id'],
+          // Only when a hub was found. `JSON.stringify` drops an undefined
+          // value, so the web screen sends no `hub` key when its lookup came
+          // back empty; `jsonEncode` would send `"hub": null` instead, and the
+          // route $sets whatever it is given -- which would unassign the hub
+          // the order was given when it was placed, and hide it from the hub's
+          // own order list.
+          if (hubId != null) 'hub': hubId,
           if (isRedelivery) ...{
             'redeliveryReturnRequested': true,
             'redeliveryReturnRequestedAt': DateTime.now().toIso8601String(),
@@ -199,7 +206,7 @@ class _HubDropScreenState extends State<HubDropScreen> {
         await Api.patchOrder(order.id, {
           'status': 'delivered_to_hub',
           'deliveredToHubAt': DateTime.now().toIso8601String(),
-          'hub': _hub?['_id'],
+          if (hubId != null) 'hub': hubId,
         });
       }
     }

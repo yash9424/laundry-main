@@ -10,7 +10,6 @@ import '../theme/brand.dart';
 import '../widgets/common.dart';
 import '../widgets/photo_picker.dart';
 import '../utils/dates.dart';
-import '../widgets/bottom_nav.dart';
 
 /// `app/profile/kyc-details/page.tsx`.
 ///
@@ -176,7 +175,10 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
         (partner['drivingLicenseNumber'] ?? '').toString().isEmpty;
 
     return Scaffold(
-      bottomNavigationBar: const PartnerBottomNav(current: NavTab.profile),
+      // No bottom bar here. `ClientBottomNav` hides it until the captain's
+      // kycStatus is "approved", and this screen is only ever shown while it
+      // is pending or rejected -- so in the shipped app the tabs are not there
+      // to tap, and tapping them only bounces back here anyway.
       backgroundColor: Brand.gray50,
       body: SafeArea(
         child: SingleChildScrollView(

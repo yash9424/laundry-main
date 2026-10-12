@@ -78,9 +78,10 @@ class _LoginScreenState extends State<LoginScreen> {
     await Store.signIn(
       customerId: data['customerId'].toString(),
       token: (result.raw?['token'] ?? '').toString(),
-      name: (data['customer'] is Map)
-          ? data['customer']['name']?.toString()
-          : null,
+      // `data.name`, which is what both social routes return. Reading
+      // `data.customer.name` found nothing, so these customers had no name
+      // stored and the home screen greeted them with nothing.
+      name: data['name']?.toString(),
     );
     if (!mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil(

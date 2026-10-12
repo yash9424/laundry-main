@@ -77,7 +77,9 @@ class Store {
   static const kCachedSavedAddresses = 'cachedSavedAddresses';
   static const kCachedWalletBalance = 'cachedWalletBalance';
   static const kNotifications = 'customer_notifications';
-  static const kReadNotifications = 'read_notifications';
+  /// The list of status changes already shown, which the service calls
+  /// "cleared". The web app's key name, kept.
+  static const kReadNotifications = 'cleared_notifications';
   static const kDeletedNotifications = 'deleted_notifications';
   static const kPushedNotifications = 'pushed_notifications';
 
@@ -128,6 +130,9 @@ class Store {
       kUserMobile,
       kCustomerMobile,
       kCartItems,
+      // The express/standard choice belongs to the person who made it; the web
+      // app clears it on the way out too.
+      kDeliveryType,
       kCachedAddress,
       kCachedBookingAddress,
       kCachedProfile,
@@ -140,6 +145,28 @@ class Store {
     ]) {
       await remove(key);
     }
+
+    // The notification lists are written one per customer -- the key is the
+    // name with `_<customerId>` on the end (see `Notifications._key`) -- so the
+    // bare names above never match anything. Without this sweep a signed-out
+    // customer's order history stayed on the phone for whoever signed in next,
+    // which is the exact thing the web app's prefix list exists to prevent.
+    for (final prefix in const [
+      'customer_notifications_',
+      'cleared_notifications_',
+      'deleted_notifications_',
+      'pushed_notifications_',
+    ]) {
+      await removeWithPrefix(prefix);
+    }
+
     _authChanges.add(null);
+  }
+
+  /// Removes every stored key that begins with [prefix].
+  static Future<void> removeWithPrefix(String prefix) async {
+    for (final key in _prefs.getKeys().where((k) => k.startsWith(prefix))) {
+      await _prefs.remove(key);
+    }
   }
 }

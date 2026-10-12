@@ -89,8 +89,14 @@ class _CaptainAppState extends State<CaptainApp> with WidgetsBindingObserver {
   void _openTapped() {
     final orderId = Notifications.instance.tappedOrderId.value;
     if (orderId == null || orderId.isEmpty) return;
+    // The screen the message was about: the pickup list for a new job, the
+    // delivery list for one that is ready to go out.
+    final screen = Notifications.instance.tappedScreen;
     Notifications.instance.tappedOrderId.value = null;
-    _navigator.currentState?.pushNamed('/pickups');
+    Notifications.instance.tappedScreen = null;
+    _navigator.currentState?.pushNamed(
+      (screen == null || screen.isEmpty) ? '/pickups' : screen,
+    );
   }
 
   /// The hardware back button. Only the three work screens the bottom bar

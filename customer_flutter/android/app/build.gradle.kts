@@ -43,7 +43,7 @@ android {
         applicationId = "com.urbansteam.customerapp"
         minSdk = flutter.minSdkVersion
         targetSdk = 35
-        // The Capacitor build shipped 15 / 2.3.3, so this has to be higher.
+        // The Capacitor build shipped 16 / 2.3.4, so this has to be higher.
         versionCode = 17
         versionName = "2.4.0"
     }

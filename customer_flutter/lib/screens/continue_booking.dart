@@ -715,6 +715,14 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
 
   // ---- placing the order -------------------------------------------------
 
+  /// What the web app passes as Razorpay's `method`: the saved method's type
+  /// decides which rail the sheet opens on.
+  static String _razorpayMethod(String type) {
+    if (type == 'UPI') return 'upi';
+    if (type == 'Card') return 'card';
+    return 'netbanking';
+  }
+
   Map<String, dynamic> _orderPayload({
     required String customerId,
     required String paymentMethod,
@@ -840,6 +848,8 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
       receipt: 'order_${DateTime.now().millisecondsSinceEpoch}',
       contact: _customer?.mobile,
       email: _customer?.email,
+      name: _customer?.name,
+      method: _razorpayMethod(primary.type),
     );
     if (!mounted) return;
 

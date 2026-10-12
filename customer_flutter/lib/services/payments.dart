@@ -43,6 +43,10 @@ class Payments {
     String? receipt,
     String? contact,
     String? email,
+    String? name,
+
+    /// 'upi', 'card' or 'netbanking' -- which rail the sheet should open on.
+    String? method,
   }) async {
     // Step 1: the server creates the Razorpay order and hands back its key id.
     final created = await Api.razorpayCreateOrder(
@@ -116,8 +120,13 @@ class Payments {
         'description': description,
         'order_id': rzpOrderId,
         'theme': {'color': '#452D9B'},
+        // The saved method's type, so the sheet opens on the rail the customer
+        // chose instead of its own front page -- what the web app sends.
+        if ((method ?? '').isNotEmpty) 'method': method,
         'prefill': {
-          'name': Store.userName,
+          // The profile's name first: a customer who signed in with Google or
+          // Apple has nothing stored on the phone.
+          'name': (name ?? '').isNotEmpty ? name : Store.userName,
           if ((contact ?? '').isNotEmpty) 'contact': contact,
           if ((email ?? '').isNotEmpty) 'email': email,
         },

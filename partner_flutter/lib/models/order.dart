@@ -113,6 +113,7 @@ class PartnerOrder {
   DateTime? get createdAt => parseDate(_str(raw['createdAt']));
   DateTime? get deliveredAt => parseDate(_str(raw['deliveredAt']));
   DateTime? get pickedUpAt => parseDate(_str(raw['pickedUpAt']));
+  DateTime? get deliveredToHubAt => parseDate(_str(raw['deliveredToHubAt']));
 }
 
 class OrderItem {

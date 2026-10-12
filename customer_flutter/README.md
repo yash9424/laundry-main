@@ -11,8 +11,8 @@ Capacitor. Same backend, same screens, same flows. It is built to ship as an
 | Android `applicationId` | `com.urbansteam.customerapp` | what is on Play; a different id becomes a separate listing |
 | iOS bundle id | `com.acsgroup.urbansteam.customer` | what is on the App Store — deliberately **not** the same as Android |
 | Signing key | `../customer/android/app/laundry-customer.keystore` | Play rejects an upload signed with anything else, and this cannot be undone |
-| `versionCode` | 16 (the Capacitor build shipped 15) | Play needs a higher one every upload |
-| `versionName` | 2.4.0 | the Capacitor build shipped 2.3.3 |
+| `versionCode` | 17 (the Capacitor build shipped 16) | Play needs a higher one every upload |
+| `versionName` | 2.4.0 | the Capacitor build shipped 2.3.4 |
 | `minSdk` | 24 | Flutter's floor. The Capacitor build was 23, so phones on Android 6.0 stop getting updates |
 | `targetSdk` / `compileSdk` | 35 | same as the Capacitor build |
 
@@ -229,6 +229,43 @@ a sweep of the screens the first pass had not reached turned up three more.
   the order Line 1, Line 2, City, State, Pincode -- then a round Primary radio
   and a fixed footer with Cancel beside Save Address.
 
+## The fourth pass: a call-by-call audit against the shipped app
+
+Every backend call the shipped app makes was put beside this one's. The order
+payload is field-for-field identical -- which matters, because the route copies
+only the fields it knows and silently drops the rest -- as are the Razorpay,
+wallet top-up, voucher, profile and notification flows. These did not match.
+
+- **A submitted review always said it had failed.** The review route answers
+  with the saved document rather than the usual `{success, data}` envelope, so
+  a perfectly good 201 parsed as a failure: the rating was written and the
+  customer was told it was not, and trying again got "Review already exists".
+  That one call now reads the status code, as the web screen does.
+- **The invoice could come out with no name and no number.** It printed
+  whoever was signed in on the phone, and a customer who signed in with Google
+  or Apple has neither stored. It now takes them off the order, which the
+  route populates with the customer's name and mobile.
+- **A social sign-in stored no name at all.** Both routes return `data.name`;
+  this read `data.customer.name`, found nothing, and the home screen greeted
+  nobody.
+- **Signing out left the previous customer's notifications on the phone.**
+  They are stored one key per customer -- the name with `_<customerId>` on the
+  end -- so clearing the bare names matched nothing. The sweep now clears by
+  prefix, and the express/standard choice with them.
+- **A card or bank method added here showed blank in the admin panel.** It
+  gates the detail block on `cardNumber` / `accountNumber`, which this app
+  stopped writing when it stopped storing card numbers. The last four digits go
+  in those fields as well, so the admin prints `****1234` and the full number is
+  still never stored.
+- **The Razorpay sheet opened on its own front page.** The web app passes the
+  saved method's type as `method`, so it opens on UPI, card or netbanking as
+  chosen, and prefills the name from the profile rather than from storage.
+- **There was no receipt for a wallet top-up.** My Wallet Plans now has the
+  web screen's two tiles, its View Receipt modal and its downloadable PDF.
+- **`Api.postProfile` was dead and wrong.** Its comment said addresses and
+  payment methods POST rather than PUT; the POST route only ever sets name,
+  email, mobile and referral code. Nothing called it, and it is gone.
+
 ## What is deliberately different from the web app
 
 Everything else is a faithful port. These are the exceptions, each for a reason:
@@ -264,6 +301,14 @@ Everything else is a faithful port. These are the exceptions, each for a reason:
 8. **Saving an address returns to the screen it was opened from.** The web
    screen always navigates to Profile afterwards, so adding an address in the
    middle of checkout dropped the customer out of it.
+9. **The first payment method added is marked primary.** The web app leaves
+   `isPrimary` unset until the customer taps "set primary", which strands them
+   at "Please set a primary payment method" right after adding their only one.
+10. **Admin-chosen brand typography is not applied.** `brandFonts.ts` reads
+   `brandHeadingFont` / `brandBodyFont` off `/api/order-charges` and re-skins
+   the app from Google Fonts; this app ships Montserrat and Manrope, which are
+   what those fields default to. Following them would mean downloading a font
+   at startup, so it is left out until someone actually changes them.
 
 ## The one thing that cannot be avoided
 

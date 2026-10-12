@@ -133,6 +133,34 @@ class CustomerOrder {
 
   bool get hasPartner => (partnerId ?? '').isNotEmpty;
 
+  /// The customer this order belongs to, as `GET /api/orders/{id}` populates
+  /// it (`name mobile email address`). The invoice prints these rather than
+  /// whoever happens to be signed in on the phone: a customer who signed in
+  /// with Google or Apple has no name or number stored locally at all, and
+  /// their invoice came out with the "Billed to" and "Contact Number" lines
+  /// missing.
+  Map<String, dynamic>? get customer =>
+      raw['customerId'] is Map<String, dynamic>
+      ? raw['customerId'] as Map<String, dynamic>
+      : (raw['customerId'] is Map
+            ? Map<String, dynamic>.from(raw['customerId'] as Map)
+            : null);
+
+  String? get customerName {
+    final name = customer?['name']?.toString().trim();
+    return (name == null || name.isEmpty) ? null : name;
+  }
+
+  String? get customerMobile {
+    final mobile = customer?['mobile']?.toString().trim();
+    if (mobile == null || mobile.isEmpty) return null;
+    // Google and Apple sign-ups carry a placeholder in this field.
+    if (mobile.startsWith('google_') || mobile.startsWith('apple_')) {
+      return null;
+    }
+    return mobile;
+  }
+
   /// "Processing" and "ironing" both just mean the clothes are at the hub, and
   /// saying so is more use to a customer than the internal word.
   String get statusLabel {

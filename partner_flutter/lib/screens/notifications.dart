@@ -80,26 +80,36 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     // The order monitor's own messages are already on the phone.
     final local = List<PartnerNotification>.from(Notifications.instance.items);
 
-    // Anything the admin has broadcast to captains.
+    // Anything the admin has broadcast to captains. A broadcast carries no
+    // per-captain state -- the route hands every one of them back as unread on
+    // every load -- so which ones this captain has opened or swiped away is
+    // remembered on the phone, under the same two keys the web app uses.
+    final readIds = Store.getIds(Store.kReadNotifications);
+    final deletedIds = Store.getIds(Store.kDeletedNotifications);
+
     final result = await Api.notifications(partnerId);
     final remote = <PartnerNotification>[];
     if (result.ok) {
       for (final raw in result.list.whereType<Map>()) {
         final map = Map<String, dynamic>.from(raw);
         final id = (map['_id'] ?? map['id'] ?? '').toString();
-        if (id.isEmpty) continue;
+        if (id.isEmpty || deletedIds.contains(id)) continue;
         remote.add(PartnerNotification(
           id: id,
           title: (map['title'] ?? '').toString(),
           message: (map['message'] ?? '').toString(),
-          timestamp:
-              parseDate((map['sentAt'] ?? map['createdAt'] ?? '').toString()) ??
-                  DateTime.now(),
+          // The route renames `sentAt` to `timestamp` on the way out
+          // (admin panel/app/api/mobile/notifications/route.ts). Reading the
+          // stored name instead left every broadcast dated "now", which also
+          // sorted three-day-old messages above this morning's pickup alert.
+          timestamp: parseDate(
+                (map['timestamp'] ?? map['sentAt'] ?? map['createdAt'] ?? '')
+                    .toString(),
+              ) ??
+              DateTime.now(),
           orderId: (map['orderId'] ?? '').toString(),
           screen: '/pickups',
-          // A broadcast carries no per-captain read state, so it is only
-          // unread until this captain opens it.
-          read: false,
+          read: readIds.contains(id),
         ));
       }
     }
@@ -117,11 +127,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (item.read) return;
     setState(() => item.read = true);
     await Notifications.instance.markRead(item.id);
+    // The monitor's own messages live in its list; a broadcast does not, so
+    // its id is kept here or it comes back unread on the next load.
+    await Store.addId(Store.kReadNotifications, item.id);
   }
 
   Future<void> _delete(PartnerNotification item) async {
     setState(() => _items = _items.where((n) => n.id != item.id).toList());
     await Notifications.instance.remove(item.id);
+    await Store.addId(Store.kDeletedNotifications, item.id);
   }
 
   void _openFull(PartnerNotification item) {

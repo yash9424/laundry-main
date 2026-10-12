@@ -265,10 +265,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   Future<void> _downloadInvoice(CustomerOrder order) async {
     showToast(context, 'Preparing invoice...');
+    // The order's own populated customer first -- the signed-in name and
+    // number are only a fallback, and are empty for a social sign-in.
+    final storedName = Store.userName.trim();
+    final storedMobile = Store.getString(Store.kCustomerMobile)?.trim();
     final error = await Invoice.shareFor(
       order,
-      customerName: Store.userName.isEmpty ? null : Store.userName,
-      customerMobile: Store.getString(Store.kCustomerMobile),
+      customerName:
+          order.customerName ?? (storedName.isEmpty ? null : storedName),
+      customerMobile:
+          order.customerMobile ??
+          ((storedMobile == null || storedMobile.isEmpty)
+              ? null
+              : storedMobile),
     );
     if (!mounted || error == null) return;
     showToast(context, error, error: true);

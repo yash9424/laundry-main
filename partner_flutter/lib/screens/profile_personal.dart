@@ -29,6 +29,9 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
   final List<TextEditingController> _pincodes = [];
 
   String _mobile = '';
+
+  /// What the server already holds, kept so a save cannot blank it.
+  String _addressPincode = '';
   String _vehicleType = '';
   bool _loading = true;
   bool _editing = false;
@@ -82,6 +85,7 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
       _city.text = (address['city'] ?? '').toString();
       _state.text = (address['state'] ?? '').toString();
       _street.text = (address['street'] ?? '').toString();
+      _addressPincode = (address['pincode'] ?? '').toString();
       _vehicleType = (data['vehicleType'] ?? '').toString();
       _vehicleNumber.text = (data['vehicleNumber'] ?? '').toString();
 
@@ -102,6 +106,10 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
     if (partnerId == null) return;
 
     setState(() => _saving = true);
+    final pincodes = _pincodes
+        .map((c) => c.text.trim())
+        .where((p) => p.length == 6)
+        .toList();
     final result = await Api.updatePartner(partnerId, {
       'name': _name.text.trim(),
       'email': _email.text.trim(),
@@ -109,11 +117,13 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
         'street': _street.text.trim(),
         'city': _city.text.trim(),
         'state': _state.text.trim(),
+        // The web screen re-derives this from the first service pincode on
+        // every save, and two screens depend on it: the hub a drop-off is
+        // matched to, and the pincodes a delivery is offered for. Leaving it
+        // out let it drift behind the service pincodes.
+        'pincode': pincodes.isNotEmpty ? pincodes.first : _addressPincode,
       },
-      'pincodes': _pincodes
-          .map((c) => c.text.trim())
-          .where((p) => p.length == 6)
-          .toList(),
+      'pincodes': pincodes,
       'vehicleType': _vehicleType,
       'vehicleNumber': _vehicleNumber.text.trim(),
     });

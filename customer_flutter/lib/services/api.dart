@@ -202,17 +202,6 @@ class Api {
     body: fields,
   );
 
-  /// Addresses and payment methods POST rather than PUT.
-  static Future<ApiResult> postProfile(
-    String customerId,
-    Map<String, dynamic> fields,
-  ) => _send(
-    'POST',
-    '/api/mobile/profile',
-    query: {'customerId': customerId},
-    body: fields,
-  );
-
   static Future<ApiResult> patchCustomer(
     String customerId,
     Map<String, dynamic> fields,
@@ -265,16 +254,33 @@ class Api {
   static Future<ApiResult> patchOrder(String id, Map<String, dynamic> fields) =>
       _send('PATCH', '/api/orders/$id', body: fields);
 
+  /// Leaves a rating.
+  ///
+  /// This route answers with the saved review document itself rather than the
+  /// `{success, data}` envelope the rest of the backend uses, so a perfectly
+  /// good 201 parses as a failure and the customer is told their review did
+  /// not go through -- while it sits in the database. The web screen reads
+  /// `response.ok`, so the status code is what decides here too.
   static Future<ApiResult> reviewOrder(
     String id, {
     required int rating,
     required String comment,
     required String customerId,
-  }) => _send(
-    'POST',
-    '/api/orders/$id/review',
-    body: {'rating': rating, 'comment': comment, 'customerId': customerId},
-  );
+  }) async {
+    final result = await _send(
+      'POST',
+      '/api/orders/$id/review',
+      body: {'rating': rating, 'comment': comment, 'customerId': customerId},
+    );
+    final code = result.statusCode;
+    if (result.ok || code == null || code >= 400) return result;
+    return ApiResult(
+      ok: true,
+      data: result.raw,
+      statusCode: code,
+      raw: result.raw,
+    );
+  }
 
   /// The assigned captain, so the customer can ring them.
   static Future<ApiResult> partner(String partnerId) =>

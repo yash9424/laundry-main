@@ -88,6 +88,11 @@ class Notifications {
   /// notification there did nothing.
   final tappedOrderId = ValueNotifier<String?>(null);
 
+  /// The screen that notification was about -- a new pickup points at the
+  /// pickup list, an order ready to go out points at the delivery list. Set
+  /// alongside [tappedOrderId], and read by the listener in main.dart.
+  String? tappedScreen;
+
   final _items = <PartnerNotification>[];
   List<PartnerNotification> get items => List.unmodifiable(_items);
 
@@ -106,6 +111,7 @@ class Notifications {
         if (payload == null || payload.isEmpty) return;
         try {
           final data = jsonDecode(payload) as Map<String, dynamic>;
+          tappedScreen = data['screen']?.toString();
           tappedOrderId.value = data['orderId']?.toString();
         } catch (_) {
           // A payload we cannot read is not worth crashing over.
@@ -298,9 +304,9 @@ class Notifications {
     );
   }
 
-  /// Marks one as read. A broadcast from the admin is not in this list, so
-  /// nothing to persist for those -- they are unread until opened and that is
-  /// per-session.
+  /// Marks one of the monitor's own messages as read. A broadcast from the
+  /// admin is not in this list; the notifications screen keeps those ids in
+  /// `partner_read_notifications`, as the web app does.
   Future<void> markRead(String id) async {
     final match = _items.where((n) => n.id == id);
     if (match.isEmpty) return;

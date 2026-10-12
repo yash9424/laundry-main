@@ -71,6 +71,260 @@ class Invoice {
     }
   }
 
+  /// The receipt for a wallet top-up, which the web app calls a subscription
+  /// invoice. Same sheet as an order's, with the plan as the single line and a
+  /// green band for what reached the wallet.
+  static Future<String?> shareForSubscription({
+    required String receiptId,
+    required String planName,
+    required num price,
+    required num walletCredited,
+    DateTime? purchasedAt,
+    String? paymentId,
+    String? customerName,
+    String? customerMobile,
+  }) async {
+    try {
+      final identity = await _identity();
+      final bytes = await _buildSubscription(
+        identity: identity,
+        receiptId: receiptId,
+        planName: planName,
+        price: price,
+        walletCredited: walletCredited,
+        purchasedAt: purchasedAt,
+        paymentId: paymentId,
+        customerName: customerName,
+        customerMobile: customerMobile,
+      );
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename: 'UrbanSteam_Topup_$receiptId.pdf',
+      );
+      return null;
+    } catch (e, stack) {
+      debugPrint('Top-up receipt failed for $receiptId: $e\n$stack');
+      return 'Failed to create receipt. Please try again.';
+    }
+  }
+
+  static Future<Uint8List> _buildSubscription({
+    required ({String gst, String email}) identity,
+    required String receiptId,
+    required String planName,
+    required num price,
+    required num walletCredited,
+    DateTime? purchasedAt,
+    String? paymentId,
+    String? customerName,
+    String? customerMobile,
+  }) async {
+    final acs = pw.MemoryImage(
+      (await rootBundle.load(
+        'assets/images/invoice_acs_logo.png',
+      )).buffer.asUint8List(),
+    );
+    final mark = pw.MemoryImage(
+      (await rootBundle.load(
+        'assets/images/invoice_urban_steam_mark.png',
+      )).buffer.asUint8List(),
+    );
+
+    final issued = purchasedAt == null ? '' : _dayMonthYear.format(purchasedAt);
+    final amount = 'Rs.${price.round()}';
+
+    final doc = pw.Document();
+    doc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.fromLTRB(15, 12, 15, 24),
+        footer: (context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              'Thank you for choosing Urban Steam',
+              style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 3),
+            pw.Text(
+              'In case of any issues contact ${identity.email} within 24 hours',
+              style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+            ),
+          ],
+        ),
+        build: (context) => [
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Image(acs, width: 45, height: 40, fit: pw.BoxFit.contain),
+              pw.Image(mark, width: 35, height: 32, fit: pw.BoxFit.contain),
+            ],
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            'ORIGINAL FOR RECIPIENT',
+            style: const pw.TextStyle(fontSize: 8),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            'TAX INVOICE',
+            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.Text(
+            '#$receiptId',
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+          ),
+          pw.SizedBox(height: 14),
+          pw.Table(
+            border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.2),
+            columnWidths: const {
+              0: pw.FlexColumnWidth(3),
+              1: pw.FlexColumnWidth(4),
+              2: pw.FlexColumnWidth(4),
+            },
+            children: [
+              pw.TableRow(
+                children: [
+                  _block([
+                    _label('Issued'),
+                    _value(issued),
+                    pw.SizedBox(height: 6),
+                    _label('Due'),
+                    _value(issued),
+                  ]),
+                  _block([
+                    _label('Billed to'),
+                    if ((customerName ?? '').isNotEmpty) _value(customerName!),
+                    pw.SizedBox(height: 6),
+                    if ((customerMobile ?? '').isNotEmpty)
+                      _small('Contact: $customerMobile'),
+                    _small('Receipt ID: $receiptId'),
+                  ]),
+                  _block([
+                    _label('From'),
+                    _value(identity.email),
+                    pw.SizedBox(height: 4),
+                    _value('GST: ${identity.gst}'),
+                  ]),
+                ],
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 14),
+          pw.Table(
+            columnWidths: {
+              0: const pw.FlexColumnWidth(5),
+              1: const pw.FlexColumnWidth(1),
+              2: const pw.FlexColumnWidth(1.5),
+              3: const pw.FlexColumnWidth(1.8),
+            },
+            children: [
+              pw.TableRow(
+                decoration: const pw.BoxDecoration(color: PdfColors.grey100),
+                children: [
+                  _cell('Plan / Description', header: true),
+                  _cell('Qty', header: true, align: pw.TextAlign.center),
+                  _cell('Rate', header: true, align: pw.TextAlign.center),
+                  _cell('Total', header: true, align: pw.TextAlign.right),
+                ],
+              ),
+              pw.TableRow(
+                children: [
+                  _cell(planName.isEmpty ? 'Wallet Top-Up Plan' : planName),
+                  _cell('1', align: pw.TextAlign.center),
+                  _cell(amount, align: pw.TextAlign.center),
+                  _cell(amount, align: pw.TextAlign.right),
+                ],
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 16),
+          pw.Align(
+            alignment: pw.Alignment.centerRight,
+            child: pw.SizedBox(
+              width: 230,
+              child: pw.Column(
+                children: [
+                  for (final row in [
+                    (label: 'Subtotal', value: amount, emphasis: false),
+                    (label: 'Tax (0%)', value: 'Rs.0.00', emphasis: false),
+                    (label: 'Total', value: amount, emphasis: false),
+                    (label: 'Grand Total', value: amount, emphasis: true),
+                  ])
+                    pw.Container(
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom: pw.BorderSide(
+                            color: PdfColors.grey300,
+                            width: 0.2,
+                          ),
+                        ),
+                      ),
+                      padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                      child: pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text(
+                            row.label,
+                            style: pw.TextStyle(
+                              fontSize: 11,
+                              fontWeight: pw.FontWeight.bold,
+                              color: row.emphasis
+                                  ? const PdfColor.fromInt(0xFF452D9B)
+                                  : PdfColors.black,
+                            ),
+                          ),
+                          pw.Text(
+                            row.value,
+                            style: pw.TextStyle(
+                              fontSize: 11,
+                              fontWeight: pw.FontWeight.bold,
+                              color: row.emphasis
+                                  ? const PdfColor.fromInt(0xFF452D9B)
+                                  : PdfColors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          pw.SizedBox(height: 12),
+          pw.Container(
+            width: double.infinity,
+            color: const PdfColor.fromInt(0xFFF0FDF4),
+            padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  'Wallet Credited: Rs.${walletCredited.round()}',
+                  style: pw.TextStyle(
+                    fontSize: 10,
+                    fontWeight: pw.FontWeight.bold,
+                    color: const PdfColor.fromInt(0xFF16A34A),
+                  ),
+                ),
+                pw.Text(
+                  'Payment ID: ${(paymentId ?? '').isEmpty ? 'N/A' : paymentId}',
+                  style: const pw.TextStyle(
+                    fontSize: 9,
+                    color: PdfColor.fromInt(0xFF16A34A),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return doc.save();
+  }
+
   static Future<Uint8List> _build(
     CustomerOrder order, {
     required ({String gst, String email}) identity,

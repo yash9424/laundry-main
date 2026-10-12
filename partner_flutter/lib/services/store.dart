@@ -4,8 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Everything the Capacitor build kept in the WebView's localStorage.
 ///
-/// The Captain app only ever stored four keys, and they keep their names here
-/// so the two builds describe the same thing. What a Flutter build cannot do is
+/// The Captain app stores six keys, and they keep their names here so the two
+/// builds describe the same thing. What a Flutter build cannot do is
 /// *read* what the WebView wrote: the storage belongs to the webview, not the
 /// app, so the first launch after this update signs every captain out. That is
 /// unavoidable and is called out in the README.
@@ -20,6 +20,12 @@ class Store {
   static const kAuthToken = 'authToken';
   static const kPartnerMobile = 'partnerMobile';
   static const kNotifications = 'partner_notifications';
+
+  /// Which of the admin's broadcasts this captain has opened or swiped away.
+  /// They come back from the server on every load with `read: false` and no
+  /// per-captain state, so the phone is the only place that remembers.
+  static const kReadNotifications = 'partner_read_notifications';
+  static const kDeletedNotifications = 'partner_deleted_notifications';
 
   static late SharedPreferences _prefs;
   static final _auth = StreamController<String?>.broadcast();
@@ -63,6 +69,8 @@ class Store {
     await _prefs.remove(kAuthToken);
     await _prefs.remove(kPartnerMobile);
     await _prefs.remove(kNotifications);
+    await _prefs.remove(kReadNotifications);
+    await _prefs.remove(kDeletedNotifications);
     _auth.add(null);
   }
 
@@ -72,4 +80,15 @@ class Store {
   static String? getString(String key) => _prefs.getString(key);
 
   static Future<void> remove(String key) => _prefs.remove(key);
+
+  /// A list of ids kept under one key, as the web app keeps them.
+  static List<String> getIds(String key) =>
+      _prefs.getStringList(key) ?? const [];
+
+  static Future<void> addId(String key, String id) async {
+    final ids = _prefs.getStringList(key) ?? <String>[];
+    if (ids.contains(id)) return;
+    ids.add(id);
+    await _prefs.setStringList(key, ids);
+  }
 }

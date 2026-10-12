@@ -1000,17 +1000,27 @@ class _PaymentSheetState extends State<_PaymentSheet> {
     } else if (_type == 'Card') {
       payload['cardHolder'] = _cardHolder.text.trim();
       payload['expiryDate'] = _expiry.text.trim();
-      payload['cardLast4'] = _last4(
+      final cardLast4 = _last4(
         _cardNumber.text,
         (widget.existing?['cardLast4'] ?? '').toString(),
       );
+      payload['cardLast4'] = cardLast4;
+      // The admin panel prints `****${pm.cardNumber.slice(-4)}` and shows the
+      // whole block only when that field is set, so a method added here would
+      // appear with no detail line at all. The four digits go in it as well:
+      // the admin reads what it expects, and the full number is still never
+      // stored anywhere.
+      payload['cardNumber'] = cardLast4;
     } else if (_type == 'Bank Transfer') {
       payload['bankName'] = _bankName.text.trim();
       payload['ifscCode'] = _ifsc.text.trim().toUpperCase();
-      payload['accountLast4'] = _last4(
+      final accountLast4 = _last4(
         _accountNumber.text,
         (widget.existing?['accountLast4'] ?? '').toString(),
       );
+      payload['accountLast4'] = accountLast4;
+      // Same reason as the card above.
+      payload['accountNumber'] = accountLast4;
     }
 
     Navigator.of(context).pop(payload);

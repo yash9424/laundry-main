@@ -389,17 +389,19 @@ touching it; the short version:
 - Android `applicationId` `com.urbansteam.customerapp`, iOS bundle id
   `com.acsgroup.urbansteam.customer` (deliberately different from each other),
   signed with the **same** `customer/android/app/laundry-customer.keystore`.
-  `versionCode` 16 / `versionName` 2.4.0, above the Capacitor build's 15 / 2.3.3.
+  `versionCode` 17 / `versionName` 2.4.0, above the Capacitor build's 16 / 2.3.4.
 - `minSdk` is 24, not 23 — Flutter's floor. Android 6.0 phones stop getting updates.
 - Build: `cd customer_flutter && flutter pub get && flutter analyze && flutter build apk --release`.
   `--dart-define=API_URL=...` overrides the base URL (default `https://acsgroup.cloud`).
 - **Shipping it signs every customer out**: the session lives in the WebView's
   localStorage, which a Flutter build cannot read. Roll out in stages.
-- It deviates from `customer/` in eight places on purpose (no stored card
-  numbers or CVVs, per-order fetches instead of `GET /api/orders` unfiltered, no
-  sample-data fallback on invoices, OSM map tiles, and four smaller fixes).
-  Every one is listed in its README; everything else, including the legacy
-  `/booking` screen and the two bottom bars that open it, is a faithful port.
+- It deviates from `customer/` in ten places on purpose (no stored card numbers
+  or CVVs, per-order fetches instead of `GET /api/orders` unfiltered, no
+  sample-data fallback on invoices, OSM map tiles, no runtime brand-font
+  override, and five smaller fixes). Every one is listed in its README, which
+  also records the call-by-call audit against the shipped app; everything else,
+  including the legacy `/booking` screen and the two bottom bars that open it,
+  is a faithful port.
 
 ### 8.5 Flutter Captain app (`partner_flutter/`) — not shipped yet
 A Flutter rewrite of `partner/`, built to go out as an **update** to the published
