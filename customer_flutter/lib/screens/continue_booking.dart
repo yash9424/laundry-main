@@ -1010,6 +1010,30 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
               ],
             ),
           ),
+          const SizedBox(width: 8),
+          // px-2 py-1 rounded-full, gradient, white semibold -- the same badge
+          // the web screen puts beside the summary.
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              gradient: Brand.gradient,
+              borderRadius: BorderRadius.circular(999),
+              boxShadow: const [
+                BoxShadow(
+                    color: Color(0x1A000000),
+                    blurRadius: 6,
+                    offset: Offset(0, 2)),
+              ],
+            ),
+            child: const Text(
+              'In Progress',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
         ],
       ),
     );

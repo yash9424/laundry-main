@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../models/customer.dart';
@@ -84,18 +83,6 @@ class _AddressMapState extends State<AddressMap> {
     }
   }
 
-  /// Opens the real Maps app, which is what someone tapping a map expects.
-  Future<void> _openInMaps() async {
-    final a = widget.address;
-    final query = a.hasPin ? '${a.latitude},${a.longitude}' : a.searchQuery;
-    final uri = Uri.parse(
-        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}');
-    try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      // Nothing to open the link with; leaving the map in place is fine.
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,38 +98,6 @@ class _AddressMapState extends State<AddressMap> {
               const _MapFallback()
             else
               WebViewWidget(controller: _controller!),
-            // The embed swallows taps, so the "open in Maps" affordance sits on
-            // top of it as its own button rather than over the whole map.
-            Positioned(
-              right: 8,
-              bottom: 8,
-              child: Material(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                elevation: 2,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  onTap: _openInMaps,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                    child: Row(
-                      children: [
-                        Icon(Icons.open_in_new, size: 14, color: Brand.purple),
-                        SizedBox(width: 5),
-                        Text(
-                          'Open in Maps',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: Brand.purple,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ),
