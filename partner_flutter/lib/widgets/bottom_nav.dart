@@ -4,7 +4,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/brand.dart';
 
 /// Which of the five tabs a screen belongs to.
-enum NavTab { pickup, hub, pickForDelivery, delivery, profile }
+///
+/// `none` is for the screens the web app's path matching does not claim --
+/// `/notifications` is the one that reaches it -- where the bar is drawn with
+/// nothing highlighted.
+enum NavTab { pickup, hub, pickForDelivery, delivery, profile, none }
 
 /// `components/BottomNav.tsx`.
 ///
@@ -138,8 +142,9 @@ class _NavItem extends StatelessWidget {
             const SizedBox(height: 4), // gap-1
             Text(
               label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              // The web label is a plain span in a grid cell: it wraps rather
+              // than truncating, so "Pick for Delivery" takes two lines.
+              maxLines: 2,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 10,

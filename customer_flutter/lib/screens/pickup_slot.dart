@@ -336,10 +336,12 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
                     children: [
                       const Text(
                         'Order summary',
+                        // An <h2> with no text-* class, so index.css's base
+                        // rule decides: text-sm/semibold.
                         style: TextStyle(
                           fontFamily: 'Montserrat',
                           fontWeight: FontWeight.w600,
-                          fontSize: 15.5,
+                          fontSize: 14,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -545,10 +547,11 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
       children: [
         Text(
           'Slots for ${_dayLabel(_dayIndex)}',
+          // <h2> with no text-* class -> base rule, text-sm/semibold.
           style: const TextStyle(
             fontFamily: 'Montserrat',
             fontWeight: FontWeight.w600,
-            fontSize: 15.5,
+            fontSize: 14,
           ),
         ),
         const SizedBox(height: 12),

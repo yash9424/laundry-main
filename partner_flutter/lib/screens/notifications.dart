@@ -7,6 +7,8 @@ import '../services/notifications.dart';
 import '../services/store.dart';
 import '../theme/brand.dart';
 import '../widgets/common.dart';
+import '../utils/dates.dart';
+import '../widgets/bottom_nav.dart';
 
 /// `app/notifications/page.tsx`.
 ///
@@ -90,9 +92,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           id: id,
           title: (map['title'] ?? '').toString(),
           message: (map['message'] ?? '').toString(),
-          timestamp: DateTime.tryParse(
-                  (map['sentAt'] ?? map['createdAt'] ?? '').toString()) ??
-              DateTime.now(),
+          timestamp:
+              parseDate((map['sentAt'] ?? map['createdAt'] ?? '').toString()) ??
+                  DateTime.now(),
           orderId: (map['orderId'] ?? '').toString(),
           screen: '/pickups',
           // A broadcast carries no per-captain read state, so it is only
@@ -142,7 +144,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
         content: Text(
           item.message,
-          style: const TextStyle(fontSize: 14, color: Brand.gray700),
+          style: const TextStyle(
+              fontSize: 14, height: Brand.leadSm, color: Brand.gray700),
         ),
         actions: [
           if (item.orderId.isNotEmpty)
@@ -181,6 +184,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     return Scaffold(
+      bottomNavigationBar: const PartnerBottomNav(current: NavTab.none),
       backgroundColor: Brand.gray50,
       appBar: AppHeader(
         title: 'Notifications',
@@ -243,7 +247,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 const Text(
                   'Get instant updates about new orders and when orders are '
                   'ready for delivery!',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF1D4ED8)),
+                  style: TextStyle(
+                      fontSize: 14,
+                      height: Brand.leadSm,
+                      color: Color(0xFF1D4ED8)),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -266,7 +273,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               'Allow Notifications',
                               style: TextStyle(
                                 fontFamily: Brand.heading,
-                                fontSize: 14,
+                                fontSize: Brand.buttonText, // <button>
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
                               ),
@@ -289,7 +296,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             'Maybe Later',
                             style: TextStyle(
                               fontFamily: Brand.heading,
-                              fontSize: 14,
+                              fontSize: Brand.buttonText, // <button>
                               fontWeight: FontWeight.w600,
                               color: Brand.gray700,
                             ),
@@ -348,8 +355,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             item.title,
                             style: TextStyle(
                               fontFamily: Brand.heading,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                              fontSize: Brand.h3, // <h3>
+                              fontWeight: FontWeight.w500,
                               color: unread ? Colors.black : Brand.gray700,
                             ),
                           ),
@@ -358,7 +365,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         Text(
                           _ago(item.timestamp),
                           style: const TextStyle(
-                              fontSize: 12, color: Brand.gray500),
+                              fontSize: 12,
+                              height: Brand.leadXs,
+                              color: Brand.gray500),
                         ),
                         const SizedBox(width: 4),
                         GestureDetector(
@@ -376,6 +385,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       short,
                       style: TextStyle(
                         fontSize: 14,
+                        height: Brand.leadSm,
                         color: unread ? Brand.gray700 : Brand.gray500,
                       ),
                     ),
@@ -407,19 +417,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Icon(Icons.notifications_none, size: 64, color: Brand.gray300),
             SizedBox(height: 16),
             Text(
-              'No notifications yet',
+              'No Notifications',
               style: TextStyle(
                 fontFamily: Brand.heading,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Brand.gray700,
+                fontSize: Brand.h3, // <h3>
+                fontWeight: FontWeight.w500,
+                color: Brand.gray600,
               ),
             ),
-            SizedBox(height: 4),
+            SizedBox(height: 8), // mb-2
             Text(
-              'New orders and delivery updates will appear here.',
+              "You're all caught up! New notifications will appear here.",
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Brand.gray500),
+              style: TextStyle(
+                  fontSize: 14, height: Brand.leadSm, color: Brand.gray500),
             ),
           ],
         ),

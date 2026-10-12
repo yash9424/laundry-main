@@ -209,7 +209,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                     const SizedBox(height: 20), // mt-5
                     GradientButton(
                       label: _loading ? 'Saving...' : 'Save & Continue',
-                      height: 48,
+                      height: 42, // py-3 around text-base at 12px
                       radius: Brand.rXl,
                       busy: _loading,
                       onPressed: _loading ? null : _save,
@@ -235,6 +235,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               'Service Areas (Pincodes)',
               style: TextStyle(
                 fontSize: 14,
+                height: Brand.leadSm,
                 fontWeight: FontWeight.w500,
                 color: Brand.gray700,
               ),
@@ -252,6 +253,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                     '+ Add Pincode',
                     style: TextStyle(
                       fontSize: 14,
+                      height: Brand.leadSm,
                       fontWeight: FontWeight.w500,
                       color: Brand.purple,
                     ),
@@ -298,6 +300,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                         '×',
                         style: TextStyle(
                           fontSize: 14,
+                          height: Brand.leadSm,
                           fontWeight: FontWeight.bold,
                           color: Brand.red600,
                         ),
@@ -312,7 +315,8 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
         const SizedBox(height: 4), // mt-1
         const Text(
           'Add all pincodes where you can provide delivery services',
-          style: TextStyle(fontSize: 12, color: Brand.gray500),
+          style: TextStyle(
+              fontSize: 12, height: Brand.leadXs, color: Brand.gray500),
         ),
       ],
     );

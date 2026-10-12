@@ -110,7 +110,10 @@ class _SplashScreenState extends State<SplashScreen>
               const SizedBox(height: 12),
               const Text(
                 'Smart pickups & fast deliveries',
-                style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
+                style: TextStyle(
+                    fontSize: 16,
+                    height: Brand.leadBase,
+                    color: Color(0xFF6B7280)),
               ),
               const SizedBox(height: 30),
               AnimatedBuilder(
@@ -128,7 +131,10 @@ class _SplashScreenState extends State<SplashScreen>
               const SizedBox(height: 20),
               const Text(
                 'Initializing...',
-                style: TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
+                style: TextStyle(
+                    fontSize: 14,
+                    height: Brand.leadSm,
+                    color: Color(0xFF9CA3AF)),
               ),
             ],
           ),

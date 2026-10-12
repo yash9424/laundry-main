@@ -5,6 +5,7 @@ import '../services/api.dart';
 import '../theme/brand.dart';
 import '../widgets/common.dart';
 import '../widgets/photo_picker.dart';
+import '../widgets/bottom_nav.dart';
 
 /// `app/pickups/confirm/page.tsx`.
 ///
@@ -134,6 +135,7 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
     final done = order.status != 'reached_location';
 
     return Scaffold(
+      bottomNavigationBar: const PartnerBottomNav(current: NavTab.pickup),
       backgroundColor: Brand.gray50,
       appBar: AppHeader(
         title: 'Confirm',
@@ -164,7 +166,8 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: _notes,
-              style: const TextStyle(fontSize: 16, color: Colors.black),
+              style: const TextStyle(
+                  fontSize: 16, height: Brand.leadBase, color: Colors.black),
               decoration: InputDecoration(
                 hintText: 'Add Notes (optional)…',
                 hintStyle: const TextStyle(color: Brand.gray600),
@@ -202,7 +205,10 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
                   const Expanded(
                     child: Text(
                       'I have collected all items from customer.',
-                      style: TextStyle(fontSize: 16, color: Colors.black),
+                      style: TextStyle(
+                          fontSize: 16,
+                          height: Brand.leadBase,
+                          color: Colors.black),
                     ),
                   ),
                 ],
@@ -230,7 +236,7 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
             else
               GradientButton(
                 label: 'Confirm & Proceed',
-                height: 48,
+                height: 42, // py-3 around text-base at 12px
                 radius: Brand.rXl,
                 busy: _confirming,
                 onPressed: (_confirmed && _photos.length >= 2 && !_confirming)
@@ -276,33 +282,50 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text('Customer: ${order.customerName}',
-                        style:
-                            const TextStyle(fontSize: 14, color: Colors.black)),
+                        style: const TextStyle(
+                            fontSize: 14,
+                            height: Brand.leadSm,
+                            color: Colors.black)),
                     Text('Phone: ${order.customerMobile}',
-                        style:
-                            const TextStyle(fontSize: 14, color: Colors.black)),
+                        style: const TextStyle(
+                            fontSize: 14,
+                            height: Brand.leadSm,
+                            color: Colors.black)),
                     const SizedBox(height: 8),
                     Text(
                       '\u{1F4CD} ${order.pickupAddress.shortLine}',
-                      style: const TextStyle(fontSize: 14, color: Colors.black),
+                      style: const TextStyle(
+                          fontSize: 14,
+                          height: Brand.leadSm,
+                          color: Colors.black),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(Brand.rLg),
-                  border: Border.all(color: Brand.inputBorder, width: 2),
-                ),
-                child: Text(
-                  _statusLabel(order.status),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Brand.purple,
+              // Both halves of this row are flex items with the default
+              // `flex: 0 1 auto`, and together they are wider than the card,
+              // so both shrink: the badge ends up about 100dp and wraps
+              // "Reached Location" onto two lines. Flutter has no
+              // proportional shrink, so the cap is written down.
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 102),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(Brand.rLg),
+                    border: Border.all(color: Brand.inputBorder, width: 2),
+                  ),
+                  child: Text(
+                    _statusLabel(order.status),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: Brand.leadSm,
+                      fontWeight: FontWeight.w600,
+                      color: Brand.purple,
+                    ),
                   ),
                 ),
               ),
@@ -364,6 +387,7 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
                       'View order items',
                       style: TextStyle(
                         fontSize: 14,
+                        height: Brand.leadSm,
                         fontWeight: FontWeight.bold,
                         color: Brand.purple,
                       ),
@@ -391,7 +415,8 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
       isScrollControlled: true,
       backgroundColor: Brand.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(Brand.r2xl)),
+        // rounded-t-3xl
+        borderRadius: BorderRadius.vertical(top: Radius.circular(Brand.r3xl)),
       ),
       builder: (context) => DraggableScrollableSheet(
         expand: false,
@@ -405,10 +430,10 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Order items (${order.itemCount})',
+                      'Items to collect (${order.itemCount})',
                       style: const TextStyle(
                         fontFamily: Brand.heading,
-                        fontSize: 18,
+                        fontSize: 16, // text-base on a <p>, so not overruled
                         fontWeight: FontWeight.w700,
                         color: Colors.black,
                       ),
@@ -439,12 +464,15 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
                           child: Text.rich(
                             TextSpan(
                               style: const TextStyle(
-                                  fontSize: 15, color: Colors.black),
+                                  fontSize: 14,
+                                  height: Brand.leadSm,
+                                  color: Colors.black), // text-sm
                               children: [
                                 TextSpan(
                                   text: '${item.quantity}x ',
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.w700),
+                                      fontWeight: FontWeight.w700,
+                                      color: Brand.purple),
                                 ),
                                 TextSpan(text: item.name),
                               ],
@@ -454,7 +482,9 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
                         Text(
                           rupees(item.price * item.quantity),
                           style: const TextStyle(
-                              fontSize: 15, color: Brand.gray600),
+                              fontSize: 14,
+                              height: Brand.leadSm,
+                              color: Brand.gray600),
                         ),
                       ],
                     ),
@@ -462,23 +492,48 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
                 },
               ),
             ),
+            const Divider(height: 1, color: Brand.gray200), // border-t
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12), // px-4 py-3
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('Total',
-                        style: TextStyle(
-                            fontFamily: Brand.heading,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700)),
-                    Text(rupees(order.totalAmount),
-                        style: const TextStyle(
-                            fontFamily: Brand.heading,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Brand.purple)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Order total',
+                            style: TextStyle(
+                                fontSize: 14,
+                                height: Brand.leadSm, // text-sm font-bold
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black)),
+                        Text(rupees(order.totalAmount),
+                            style: const TextStyle(
+                                fontSize: 14,
+                                height: Brand.leadSm,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black)),
+                      ],
+                    ),
+                    if (order.specialInstructions.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8), // mt-2
+                        child: Text(
+                          'Note: ${order.specialInstructions}',
+                          style: const TextStyle(
+                              fontSize: 12,
+                              height: Brand.leadXs,
+                              color: Brand.gray600), // text-xs
+                        ),
+                      ),
+                    const SizedBox(height: 12), // mt-3
+                    GradientButton(
+                      label: 'Done',
+                      height: 38, // py-2.5
+                      radius: Brand.rXl,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
                   ],
                 ),
               ),
@@ -531,7 +586,10 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
               ),
               child: const Center(
                 child: Text('×',
-                    style: TextStyle(fontSize: 12, color: Colors.white)),
+                    style: TextStyle(
+                        fontSize: 12,
+                        height: Brand.leadXs,
+                        color: Colors.white)),
               ),
             ),
           ),
@@ -547,17 +605,27 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
         decoration: BoxDecoration(
           color: Brand.gray100,
           borderRadius: BorderRadius.circular(Brand.rXl),
-          border: Border.all(color: Brand.purple, width: 2),
         ),
-        child: const Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('\u{1F4F7}', style: TextStyle(fontSize: 22)),
-              SizedBox(height: 4),
-              Text('Add Photo',
-                  style: TextStyle(fontSize: 12, color: Brand.purple)),
-            ],
+        // `border-2 border-dashed`
+        child: const CustomPaint(
+          painter: DashedBorderPainter(
+            color: Brand.purple,
+            radius: Brand.rXl,
+            strokeWidth: 2,
+          ),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('\u{1F4F7}', style: TextStyle(fontSize: 24)), // text-2xl
+                SizedBox(height: 4), // mb-1
+                Text('Add Photo',
+                    style: TextStyle(
+                        fontSize: 12,
+                        height: Brand.leadXs,
+                        color: Brand.purple)), // text-xs
+              ],
+            ),
           ),
         ),
       ),
@@ -569,7 +637,7 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
   Widget _uploadButton() {
     final ready = _photos.length >= 2;
     return SizedBox(
-      height: 48,
+      height: 42, // py-3 around text-base at 12px
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(Brand.rXl),
@@ -599,7 +667,7 @@ class _PickupConfirmScreenState extends State<PickupConfirmScreen> {
                       'Upload Images (${_photos.length}/2)',
                       style: const TextStyle(
                         fontFamily: Brand.heading,
-                        fontSize: 16,
+                        fontSize: Brand.buttonText, // <button>
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),

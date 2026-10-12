@@ -9,6 +9,8 @@ import '../services/store.dart';
 import '../theme/brand.dart';
 import '../widgets/common.dart';
 import '../widgets/photo_picker.dart';
+import '../utils/dates.dart';
+import '../widgets/bottom_nav.dart';
 
 /// `app/profile/kyc-details/page.tsx`.
 ///
@@ -174,6 +176,7 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
         (partner['drivingLicenseNumber'] ?? '').toString().isEmpty;
 
     return Scaffold(
+      bottomNavigationBar: const PartnerBottomNav(current: NavTab.profile),
       backgroundColor: Brand.gray50,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -206,7 +209,9 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
                           child: const Text(
                             '\u{1F4CB} Your KYC is under review. Admin will verify within 24–48 hours.',
                             style: TextStyle(
-                                fontSize: 14, color: Color(0xFF854D0E)),
+                                fontSize: 14,
+                                height: Brand.leadSm,
+                                color: Color(0xFF854D0E)),
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -222,7 +227,9 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
                           child: const Text(
                             '✅ Your KYC has been approved! You can now accept orders.',
                             style: TextStyle(
-                                fontSize: 14, color: Color(0xFF166534)),
+                                fontSize: 14,
+                                height: Brand.leadSm,
+                                color: Color(0xFF166534)),
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -287,7 +294,7 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
             'KYC Information',
             style: TextStyle(
               fontFamily: Brand.heading,
-              fontSize: 18,
+              fontSize: Brand.h2, // <h2>
               fontWeight: FontWeight.w600,
               color: Brand.gray900,
             ),
@@ -302,6 +309,7 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
               _status.toUpperCase(),
               style: TextStyle(
                 fontSize: 14,
+                height: Brand.leadSm,
                 fontWeight: FontWeight.w600,
                 color: foreground,
               ),
@@ -355,7 +363,8 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
             Text(
               'Your KYC has been sent to admin for review. You will be able to '
               'accept orders once admin approves. Please wait 24–48 hours.',
-              style: TextStyle(fontSize: 14, color: Color(0xFF15803D)),
+              style: TextStyle(
+                  fontSize: 14, height: Brand.leadSm, color: Color(0xFF15803D)),
             ),
           ],
         ),
@@ -393,6 +402,7 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
             'Reason from Admin:',
             style: TextStyle(
               fontSize: 14,
+              height: Brand.leadSm,
               fontWeight: FontWeight.w600,
               color: Brand.red600,
             ),
@@ -409,6 +419,7 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
               reason.isEmpty ? 'No reason provided' : reason,
               style: const TextStyle(
                 fontSize: 14,
+                height: Brand.leadSm,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFFB91C1C),
               ),
@@ -417,7 +428,8 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
           const SizedBox(height: 8),
           const Text(
             'Review your documents below and tap Resubmit KYC to send again.',
-            style: TextStyle(fontSize: 12, color: Color(0xFFEF4444)),
+            style: TextStyle(
+                fontSize: 12, height: Brand.leadXs, color: Color(0xFFEF4444)),
           ),
         ],
       ),
@@ -442,6 +454,7 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
               label.toUpperCase(),
               style: const TextStyle(
                 fontSize: 12,
+                height: Brand.leadXs,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
                 color: Brand.gray500,
@@ -452,6 +465,7 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
               empty ? 'Not provided' : value,
               style: TextStyle(
                 fontSize: 16,
+                height: Brand.leadBase,
                 fontWeight: FontWeight.w500,
                 color: empty ? Brand.gray400 : Brand.gray900,
               ),
@@ -481,6 +495,7 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
               label.toUpperCase(),
               style: const TextStyle(
                 fontSize: 12,
+                height: Brand.leadXs,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
                 color: Brand.gray500,
@@ -501,7 +516,8 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
             const SizedBox(height: 4),
             const Text(
               'Tap image to view full size',
-              style: TextStyle(fontSize: 12, color: Brand.gray400),
+              style: TextStyle(
+                  fontSize: 12, height: Brand.leadXs, color: Brand.gray400),
             ),
           ],
         ),
@@ -533,7 +549,8 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
         children: [
           Text.rich(
             TextSpan(
-              style: const TextStyle(fontSize: 12, color: Brand.gray500),
+              style: const TextStyle(
+                  fontSize: 12, height: Brand.leadXs, color: Brand.gray500),
               children: [
                 const TextSpan(
                   text: 'Your existing documents will be resubmitted to admin '
@@ -575,7 +592,8 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
         children: [
           const Text(
             '\u{1F4DD} Complete your KYC verification to start accepting orders.',
-            style: TextStyle(fontSize: 14, color: Color(0xFF1E40AF)),
+            style: TextStyle(
+                fontSize: 14, height: Brand.leadSm, color: Color(0xFF1E40AF)),
           ),
           const SizedBox(height: 8),
           Align(
@@ -626,7 +644,7 @@ class _ProfileKycDetailsScreenState extends State<ProfileKycDetailsScreen> {
   }
 
   static String _formatDate(Object? value) {
-    final parsed = DateTime.tryParse(value?.toString() ?? '');
+    final parsed = parseDate(value?.toString() ?? '');
     if (parsed == null) return '';
     return DateFormat("d MMMM yyyy, hh:mm a").format(parsed.toLocal());
   }

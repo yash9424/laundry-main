@@ -138,7 +138,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 16),
             _row(
-              icon: Icons.verified_outlined,
+              // The web icon is a tick inside a plain circle, not a
+              // scalloped verification badge.
+              icon: Icons.check_circle_outline,
               iconColor: Brand.green600,
               iconBackground: const Color(0xFFDCFCE7),
               title: 'KYC Details',
@@ -160,7 +162,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 16),
             SizedBox(
-              height: 48,
+              // py-3 with no text class: a button's 12px against the inherited
+              // 1.5 line-height.
+              height: 42,
               child: ElevatedButton.icon(
                 onPressed: _logout,
                 style: ElevatedButton.styleFrom(
@@ -258,14 +262,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _name.isEmpty ? 'Partner' : _name,
                   style: const TextStyle(
                     fontFamily: Brand.heading,
-                    fontSize: 24,
+                    fontSize: Brand.h1, // <h1>
                     fontWeight: FontWeight.w700,
                     color: Brand.gray900,
                   ),
                 ),
                 Text(
                   _mobile.isEmpty ? 'No mobile' : _mobile,
-                  style: const TextStyle(color: Brand.gray500),
+                  style: const TextStyle(color: Brand.gray600),
                 ),
                 const SizedBox(height: 4),
                 _statusChip(_kycStatus, prefix: 'KYC: '),
@@ -294,6 +298,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         '$prefix${status.toUpperCase()}',
         style: TextStyle(
           fontSize: 12,
+          height: Brand.leadXs,
           fontWeight: FontWeight.w500,
           color: foreground,
         ),
@@ -340,20 +345,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       title,
                       style: const TextStyle(
                         fontFamily: Brand.heading,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
+                        fontSize: Brand.h3, // <h3>
+                        fontWeight: FontWeight.w500,
                         color: Brand.gray900,
                       ),
                     ),
                     Text(
                       subtitle,
-                      style:
-                          const TextStyle(fontSize: 14, color: Brand.gray500),
+                      style: const TextStyle(
+                          fontSize: 14,
+                          height: Brand.leadSm,
+                          color: Brand.gray500),
                     ),
                   ],
                 ),
               ),
-              if (trailing != null) ...[trailing, const SizedBox(width: 8)],
+              // gap-4 between every pair, including the chip and the
+              // chevron -- it is what squeezes the subtitle onto three lines
+              // on the KYC row.
+              if (trailing != null) ...[
+                const SizedBox(width: 16),
+                trailing,
+              ],
+              const SizedBox(width: 16),
               const Icon(Icons.chevron_right, size: 24, color: Brand.gray400),
             ],
           ),

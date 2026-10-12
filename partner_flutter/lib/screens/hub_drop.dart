@@ -11,6 +11,7 @@ import '../theme/brand.dart';
 import '../widgets/address_map.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
+import '../utils/dates.dart';
 
 /// `app/hub/drop/page.tsx` -- everything the captain is carrying, and the hub
 /// to take it to.
@@ -246,7 +247,7 @@ class _HubDropScreenState extends State<HubDropScreen> {
                       'Drop To Hub',
                       style: TextStyle(
                         fontFamily: Brand.heading,
-                        fontSize: 18,
+                        fontSize: Brand.h2, // <h2>
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
@@ -317,7 +318,7 @@ class _HubDropScreenState extends State<HubDropScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
                       child: GradientButton(
                         label: 'Drop to Hub ($count)',
-                        height: 48,
+                        height: 42, // py-3 around text-base at 12px
                         radius: Brand.rXl,
                         busy: _dropping,
                         onPressed: _orders.isEmpty || _dropping ? null : _drop,
@@ -351,8 +352,11 @@ class _HubDropScreenState extends State<HubDropScreen> {
                 Container(
                   height: 32,
                   width: 32,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.25),
+                  decoration: const BoxDecoration(
+                    // `bg-white bg-opacity-25`: Tailwind v4 dropped the
+                    // bg-opacity-* utilities, so the class does nothing and
+                    // the circle is solid white.
+                    color: Colors.white,
                     shape: BoxShape.circle,
                   ),
                   child: const Center(
@@ -368,6 +372,7 @@ class _HubDropScreenState extends State<HubDropScreen> {
                         'Orders Delivered to Hub',
                         style: TextStyle(
                           fontSize: 14,
+                          height: Brand.leadSm,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -378,6 +383,7 @@ class _HubDropScreenState extends State<HubDropScreen> {
                             : '${_deliveredToHub.length} order(s) • Tap to view details',
                         style: TextStyle(
                           fontSize: 12,
+                          height: Brand.leadXs,
                           color: Colors.white.withValues(alpha: 0.9),
                         ),
                       ),
@@ -435,6 +441,7 @@ class _HubDropScreenState extends State<HubDropScreen> {
                       (hub['name'] ?? '').toString(),
                       style: const TextStyle(
                         fontSize: 14,
+                        height: Brand.leadSm,
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
@@ -447,7 +454,10 @@ class _HubDropScreenState extends State<HubDropScreen> {
                       ),
                       child: const Text(
                         'Open in Google Maps',
-                        style: TextStyle(fontSize: 12, color: Brand.purple),
+                        style: TextStyle(
+                            fontSize: 12,
+                            height: Brand.leadXs,
+                            color: Brand.purple),
                       ),
                     ),
                   ],
@@ -463,7 +473,7 @@ class _HubDropScreenState extends State<HubDropScreen> {
   Widget _card(PartnerOrder order) {
     final failed = order.status == 'delivery_failed';
     final expected =
-        DateTime.tryParse((order.raw['expectedDeliveryAt'] ?? '').toString());
+        parseDate((order.raw['expectedDeliveryAt'] ?? '').toString());
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -506,6 +516,7 @@ class _HubDropScreenState extends State<HubDropScreen> {
                         'Order ID: #${order.orderId}',
                         style: const TextStyle(
                           fontSize: 14,
+                          height: Brand.leadSm,
                           fontWeight: FontWeight.w600,
                           color: Colors.black,
                         ),
@@ -524,6 +535,7 @@ class _HubDropScreenState extends State<HubDropScreen> {
                           'Express Delivery',
                           style: TextStyle(
                             fontSize: 12,
+                            height: Brand.leadXs,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFFD97706),
                           ),
@@ -534,7 +546,10 @@ class _HubDropScreenState extends State<HubDropScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text('${order.items.length} items',
-                    style: const TextStyle(fontSize: 12, color: Colors.black)),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        height: Brand.leadXs,
+                        color: Colors.black)),
                 if (expected != null) ...[
                   const SizedBox(height: 4),
                   if (order.expressDelivery)
@@ -545,6 +560,7 @@ class _HubDropScreenState extends State<HubDropScreen> {
                       '${DateFormat('dd MMM, h:mm a').format(expected.toLocal())}',
                       style: const TextStyle(
                         fontSize: 12,
+                        height: Brand.leadXs,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFFD97706),
                       ),
@@ -559,6 +575,7 @@ class _HubDropScreenState extends State<HubDropScreen> {
                       : 'Picked Up',
                   style: TextStyle(
                     fontSize: 12,
+                    height: Brand.leadXs,
                     color: failed ? Brand.red600 : Brand.purple,
                   ),
                 ),
@@ -567,7 +584,8 @@ class _HubDropScreenState extends State<HubDropScreen> {
           ),
           const SizedBox(width: 8),
           Text(order.customerName,
-              style: const TextStyle(fontSize: 14, color: Colors.black)),
+              style: const TextStyle(
+                  fontSize: 14, height: Brand.leadSm, color: Colors.black)),
         ],
       ),
     );
@@ -587,6 +605,7 @@ class _HubDropScreenState extends State<HubDropScreen> {
       '⏳ ${overdue ? 'Overdue by $text' : '$text left'}',
       style: TextStyle(
         fontSize: 12,
+        height: Brand.leadXs,
         fontWeight: FontWeight.bold,
         color: overdue ? Brand.red600 : const Color(0xFFD97706),
       ),
@@ -594,7 +613,9 @@ class _HubDropScreenState extends State<HubDropScreen> {
   }
 
   Widget _empty() => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
+        // mt-12 px-6, and nothing underneath: the mt-5 above the button is the
+        // only gap between this and it.
+        padding: const EdgeInsets.fromLTRB(24, 48, 24, 0),
         child: Column(
           children: [
             Container(
@@ -617,8 +638,8 @@ class _HubDropScreenState extends State<HubDropScreen> {
               'All Clear!',
               style: TextStyle(
                 fontFamily: Brand.heading,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
+                fontSize: Brand.h3, // <h3>
+                fontWeight: FontWeight.w500,
                 color: Brand.gray900,
               ),
             ),
@@ -627,7 +648,8 @@ class _HubDropScreenState extends State<HubDropScreen> {
               'No orders ready to drop at the hub right now. Orders will '
               'appear here after you complete pickups.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Brand.gray500),
+              style: TextStyle(
+                  fontSize: 14, height: Brand.leadSm, color: Brand.gray600),
             ),
           ],
         ),

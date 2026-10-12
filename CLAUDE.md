@@ -420,6 +420,17 @@ Captain app. Read `partner_flutter/README.md` first; the short version:
 - The radius scale here is **stock Tailwind and ascending** (lg 8, xl 12, 2xl 16),
   the opposite of the customer app's. Don't copy widgets between the two ports
   without checking.
+- **`partner/src/app/globals.css` decides every heading and button size, not the
+  Tailwind classes.** It ends with unlayered `h1 { font-size: 16px } … button
+  { font-size: 12px }` rules, and Tailwind v4 puts all utilities inside
+  `@layer utilities`, which unlayered rules beat. So `<h1 class="text-3xl">`
+  renders at 16px and every button label at 12px. This matters for the **web app
+  too**: changing `text-lg` on a heading there does nothing. The customer app has
+  the same five rules but inside `@layer base`, where the classes do win.
+- The Captain app is on **Tailwind v4**, whose default palette is OKLCH and whose
+  mid/dark shades differ from the v3 hexes (`red-600` is `#e7000b`, not `#dc2626`).
+  `bg-opacity-*` was removed in v4 and silently does nothing where the markup
+  still uses it.
 
 ### 8.6 Production
 - PM2: `admin panel/ecosystem.config.js` — app `admin-panel`, `npm start`, cwd

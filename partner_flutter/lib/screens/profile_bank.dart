@@ -6,6 +6,7 @@ import '../services/store.dart';
 import '../theme/brand.dart';
 import '../widgets/common.dart';
 import 'profile_personal.dart' show UpperCaseTextFormatter;
+import '../widgets/bottom_nav.dart';
 
 /// `app/profile/bank/page.tsx` -- where the captain's payouts go.
 ///
@@ -122,6 +123,7 @@ class _ProfileBankScreenState extends State<ProfileBankScreen> {
     }
 
     return Scaffold(
+      bottomNavigationBar: const PartnerBottomNav(current: NavTab.profile),
       backgroundColor: Brand.gray50,
       body: SafeArea(
         child: ListView(
@@ -166,10 +168,10 @@ class _ProfileBankScreenState extends State<ProfileBankScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Bank Details',
+                          'Bank Account Information',
                           style: TextStyle(
                             fontFamily: Brand.heading,
-                            fontSize: 18,
+                            fontSize: Brand.h2, // <h2>
                             fontWeight: FontWeight.w600,
                             color: Brand.gray900,
                           ),
@@ -253,6 +255,7 @@ class _ProfileBankScreenState extends State<ProfileBankScreen> {
             label,
             style: const TextStyle(
               fontSize: 14,
+              height: Brand.leadSm,
               fontWeight: FontWeight.w600,
               color: Color(0xFF1F2937),
             ),
@@ -263,7 +266,8 @@ class _ProfileBankScreenState extends State<ProfileBankScreen> {
               controller: controller,
               keyboardType: keyboardType,
               inputFormatters: formatters,
-              style: const TextStyle(fontSize: 16, color: Brand.gray900),
+              style: const TextStyle(
+                  fontSize: 16, height: Brand.leadBase, color: Brand.gray900),
               decoration: InputDecoration(
                 isDense: false,
                 contentPadding:
@@ -281,7 +285,8 @@ class _ProfileBankScreenState extends State<ProfileBankScreen> {
           else
             Text(
               controller.text.trim().isEmpty ? 'N/A' : controller.text,
-              style: const TextStyle(fontSize: 16, color: Brand.gray900),
+              style: const TextStyle(
+                  fontSize: 16, height: Brand.leadBase, color: Brand.gray900),
             ),
         ],
       ),

@@ -70,7 +70,10 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontFamily: Brand.heading,
-                      fontSize: 18, // text-lg
+                      // text-lg says 18, but globals.css sets `h2 { font-size:
+                      // 14px }` outside any cascade layer, which beats every
+                      // Tailwind utility. See theme/brand.dart.
+                      fontSize: Brand.h2,
                       fontWeight: FontWeight.w600,
                       color: Colors.black,
                     ),
@@ -91,6 +94,74 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
+/// Centres a page the way the shipped app ends up centring one.
+///
+/// Every page sits inside `div.safe-area`, which carries
+/// `padding-top: env(safe-area-inset-top)`, and the centred pages then ask for
+/// `h-screen` or `min-h-screen` -- a full **100vh**, measured against the whole
+/// window and not against what is left under the status bar. So the box the
+/// content is centred in starts below the status bar and is still a whole
+/// screen tall: it hangs off the bottom of the display, and `overflow-hidden`
+/// (or simply the end of the page) hides the overhang.
+///
+/// The visible result is that everything sits roughly 36dp lower than a plain
+/// `SafeArea` + `Center` puts it. That is small enough to look like nothing and
+/// large enough to be the first thing you notice with the two apps side by
+/// side, so it is reproduced here rather than tidied up.
+///
+/// [above] is whatever shares that box above this one -- the sticky header,
+/// on the screens that have one.
+class WebCentre extends StatelessWidget {
+  const WebCentre({
+    super.key,
+    required this.child,
+    this.above = 0,
+    this.belowStatusBar = true,
+  });
+
+  final double above;
+
+  /// Whether the box starts under the status bar.
+  ///
+  /// It does on `h-screen` pages, which are pinned where `.safe-area`'s
+  /// padding puts them. The `min-h-screen` ones overhang the page by the same
+  /// amount and come to rest scrolled past it, so they end up a status bar
+  /// higher -- about 48dp, which is plainly visible with the two apps side by
+  /// side. Measured, not reasoned: congrats and not-available want false.
+  final bool belowStatusBar;
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final screen = MediaQuery.sizeOf(context).height;
+    // A whole 100vh, so the box runs off the bottom of the display -- the
+    // ClipRect is the `overflow-hidden`.
+    final box = screen - above;
+
+    return ClipRect(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Everything in this app is already inside the app-level SafeArea,
+          // so this body starts a status bar down the screen. That is where an
+          // `h-screen` page's box begins; a `min-h-screen` one begins at the
+          // very top instead.
+          final statusBar = screen - constraints.maxHeight - above;
+          return Transform.translate(
+            offset: Offset(0, belowStatusBar ? 0 : -statusBar),
+            child: OverflowBox(
+              alignment: Alignment.topCenter,
+              minHeight: box,
+              maxHeight: box,
+              child: Center(child: child),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 /// The full-width gradient button the whole app is built out of.
 ///
 /// Disabled here is a flat `#9ca3af`, which is what every screen writes
@@ -103,7 +174,8 @@ class GradientButton extends StatelessWidget {
     required this.onPressed,
     this.height = 48,
     this.radius = Brand.rXl,
-    this.fontSize = 16,
+    this.fontSize = Brand.buttonText,
+    this.fontFamily = Brand.heading,
     this.busy = false,
     this.icon,
   });
@@ -113,6 +185,11 @@ class GradientButton extends StatelessWidget {
   final double height;
   final double radius;
   final double fontSize;
+
+  /// Montserrat by default, because globals.css puts it on every `<button>`.
+  /// The handful of these that are really an `<a>` or a `<Link>` pass the body
+  /// font instead.
+  final String fontFamily;
   final bool busy;
   final Widget? icon;
 
@@ -151,7 +228,7 @@ class GradientButton extends StatelessWidget {
                         Text(
                           label,
                           style: TextStyle(
-                            fontFamily: Brand.heading,
+                            fontFamily: fontFamily,
                             fontSize: fontSize,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -244,6 +321,7 @@ void showToast(BuildContext context, String message,
                 message,
                 style: const TextStyle(
                   fontSize: 14,
+                  height: Brand.leadSm,
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
                 ),
@@ -283,8 +361,8 @@ Future<bool> confirmModal(
               title,
               style: const TextStyle(
                 fontFamily: Brand.heading,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
+                fontSize: Brand.h3, // <h3>: 14/500, whatever the class says
+                fontWeight: FontWeight.w500,
                 color: Colors.black,
               ),
             ),
@@ -294,7 +372,8 @@ Future<bool> confirmModal(
             padding: const EdgeInsets.all(16),
             child: Text(
               message,
-              style: const TextStyle(fontSize: 14, color: Brand.gray700),
+              style: const TextStyle(
+                  fontSize: 14, height: Brand.leadSm, color: Brand.gray700),
             ),
           ),
           const Divider(height: 1, color: Brand.gray200),
@@ -304,7 +383,7 @@ Future<bool> confirmModal(
               children: [
                 Expanded(
                   child: SizedBox(
-                    height: 42, // py-2.5
+                    height: 38, // py-2.5 around a button's 12px line
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(false),
                       style: OutlinedButton.styleFrom(
@@ -317,6 +396,7 @@ Future<bool> confirmModal(
                         cancelText,
                         style: const TextStyle(
                           fontFamily: Brand.heading,
+                          fontSize: Brand.buttonText,
                           fontWeight: FontWeight.w600,
                           color: Brand.gray700,
                         ),
@@ -328,9 +408,8 @@ Future<bool> confirmModal(
                 Expanded(
                   child: GradientButton(
                     label: confirmText,
-                    height: 42,
+                    height: 38, // py-2.5
                     radius: Brand.rLg,
-                    fontSize: 14,
                     onPressed: () => Navigator.of(context).pop(true),
                   ),
                 ),
@@ -349,4 +428,46 @@ String rupees(Object? value) {
   final amount =
       value is num ? value : num.tryParse(value?.toString() ?? '') ?? 0;
   return '₹${amount.round()}';
+}
+
+/// `border-dashed` has no Flutter equivalent, so it is drawn.
+class DashedBorderPainter extends CustomPainter {
+  const DashedBorderPainter({
+    required this.color,
+    required this.radius,
+    required this.strokeWidth,
+  });
+
+  final Color color;
+  final double radius;
+  final double strokeWidth;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(strokeWidth / 2, strokeWidth / 2, size.width - strokeWidth,
+          size.height - strokeWidth),
+      Radius.circular(radius),
+    );
+
+    const dash = 6.0;
+    const gap = 4.0;
+    for (final metric in (Path()..addRRect(rect)).computeMetrics()) {
+      var distance = 0.0;
+      while (distance < metric.length) {
+        final next = (distance + dash).clamp(0.0, metric.length);
+        canvas.drawPath(metric.extractPath(distance, next), paint);
+        distance = next + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant DashedBorderPainter old) =>
+      old.color != color || old.radius != radius;
 }

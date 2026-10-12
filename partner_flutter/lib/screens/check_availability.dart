@@ -46,80 +46,80 @@ class _CheckAvailabilityScreenState extends State<CheckAvailabilityScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const AppHeader(title: 'Check Availability'),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  'assets/images/pincode_check.png',
-                  width: 288,
-                  height: 288,
-                  fit: BoxFit.contain,
+      body: WebCentre(
+        above: 48,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/images/pincode_check.png',
+                // 412x392 asset + preflight's `height: auto`: 288 wide, 274 tall.
+                width: 288,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(height: 24), // mb-6
+              const Text(
+                'Enter your area pincode to check\nservice availability',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Brand.gray500,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 24), // mb-6
-                const Text(
-                  'Enter your area pincode to check\nservice availability',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Brand.gray500,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 32), // mb-8
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 448), // max-w-md
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      TextField(
-                        controller: _pincode,
-                        keyboardType: TextInputType.phone,
-                        textAlign: TextAlign.center,
-                        maxLength: 6,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(6),
-                        ],
-                        onChanged: (_) => setState(() {}),
-                        onSubmitted: (_) => _check(),
-                        style:
-                            const TextStyle(fontSize: 18, color: Colors.black),
-                        decoration: InputDecoration(
-                          hintText: 'Pincode',
-                          counterText: '',
-                          hintStyle: const TextStyle(color: Brand.gray400),
-                          isDense: false,
-                          // px-4 py-4
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 16),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(Brand.rXl),
-                            borderSide: const BorderSide(color: Brand.gray300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(Brand.rXl),
-                            borderSide:
-                                const BorderSide(color: Brand.purple, width: 2),
-                          ),
+              ),
+              const SizedBox(height: 32), // mb-8
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 448), // max-w-md
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: _pincode,
+                      keyboardType: TextInputType.phone,
+                      textAlign: TextAlign.center,
+                      maxLength: 6,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(6),
+                      ],
+                      onChanged: (_) => setState(() {}),
+                      onSubmitted: (_) => _check(),
+                      style: const TextStyle(fontSize: 18, color: Colors.black),
+                      decoration: InputDecoration(
+                        hintText: 'Pincode',
+                        counterText: '',
+                        hintStyle: const TextStyle(color: Brand.gray400),
+                        isDense: false,
+                        // px-4 py-4
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(Brand.rXl),
+                          borderSide: const BorderSide(color: Brand.gray300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(Brand.rXl),
+                          borderSide:
+                              const BorderSide(color: Brand.purple, width: 2),
                         ),
                       ),
-                      const SizedBox(height: 16), // space-y-4
-                      GradientButton(
-                        label: 'Check Availability',
-                        height: 56, // py-4 around text-lg
-                        radius: Brand.rXl,
-                        fontSize: 18,
-                        busy: _checking,
-                        onPressed: ready ? _check : null,
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 16), // space-y-4
+                    GradientButton(
+                      label: 'Check Availability',
+                      // py-4 around a 12px line: `text-lg` on a <button> is
+                      // overruled by globals.css (see Brand.buttonText).
+                      height: 50,
+                      radius: Brand.rXl,
+                      fontSize: Brand.buttonText,
+                      busy: _checking,
+                      onPressed: ready ? _check : null,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

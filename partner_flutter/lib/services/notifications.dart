@@ -8,6 +8,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../models/order.dart';
 import 'api.dart';
 import 'store.dart';
+import '../utils/dates.dart';
 
 /// One thing the captain was told about, kept so the notifications screen can
 /// show a history rather than only what Android still has in its tray.
@@ -45,8 +46,8 @@ class PartnerNotification {
         id: (json['id'] ?? '').toString(),
         title: (json['title'] ?? '').toString(),
         message: (json['message'] ?? '').toString(),
-        timestamp: DateTime.tryParse((json['timestamp'] ?? '').toString()) ??
-            DateTime.now(),
+        timestamp:
+            parseDate((json['timestamp'] ?? '').toString()) ?? DateTime.now(),
         orderId: (json['orderId'] ?? '').toString(),
         screen: (json['screen'] ?? '/pickups').toString(),
         read: json['read'] == true,

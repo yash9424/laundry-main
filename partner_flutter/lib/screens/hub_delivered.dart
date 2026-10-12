@@ -6,6 +6,8 @@ import '../services/api.dart';
 import '../services/store.dart';
 import '../theme/brand.dart';
 import '../widgets/common.dart';
+import '../utils/dates.dart';
+import '../widgets/bottom_nav.dart';
 
 /// `app/hub/delivered/page.tsx` -- what this captain has already handed over,
 /// searchable by order id or customer name.
@@ -66,11 +68,17 @@ class _HubDeliveredScreenState extends State<HubDeliveredScreen> {
   Widget build(BuildContext context) {
     final visible = _visible;
     return Scaffold(
+      bottomNavigationBar: const PartnerBottomNav(current: NavTab.hub),
       backgroundColor: Brand.gray50,
       appBar: AppHeader(
         title: 'Delivered to Hub',
         onBack: () => Navigator.of(context)
             .pushNamedAndRemoveUntil('/hub/drop', (r) => false),
+        // A bare emoji in the web header, with nothing behind it.
+        trailing: const Align(
+          alignment: Alignment.centerRight,
+          child: Text('\u{1F53D}', style: TextStyle(fontSize: 16)),
+        ),
       ),
       body: SafeArea(
         child: ListView(
@@ -78,26 +86,50 @@ class _HubDeliveredScreenState extends State<HubDeliveredScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: TextField(
-                controller: _search,
-                onChanged: (_) => setState(() {}),
-                style: const TextStyle(fontSize: 14, color: Colors.black),
-                decoration: InputDecoration(
-                  hintText: 'Search by Order ID / Customer',
-                  filled: true,
-                  fillColor: Brand.surface,
-                  isDense: false,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(Brand.rXl),
-                    borderSide: const BorderSide(color: Brand.gray300),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _search,
+                      onChanged: (_) => setState(() {}),
+                      style: const TextStyle(
+                          fontSize: 14,
+                          height: Brand.leadSm,
+                          color: Colors.black),
+                      decoration: InputDecoration(
+                        hintText: 'Search by Order ID / Customer',
+                        filled: true,
+                        fillColor: Brand.surface,
+                        isDense: false,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 12),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(Brand.rXl),
+                          borderSide: const BorderSide(color: Brand.gray300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(Brand.rXl),
+                          borderSide:
+                              const BorderSide(color: Brand.purple, width: 2),
+                        ),
+                      ),
+                    ),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(Brand.rXl),
-                    borderSide: const BorderSide(color: Brand.purple, width: 2),
+                  const SizedBox(width: 8), // gap-2
+                  // h-10 w-10 bordered square. It has no handler in the web
+                  // app either -- it is there and does nothing.
+                  Container(
+                    height: 40,
+                    width: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(Brand.rXl),
+                      border: Border.all(color: Brand.gray300),
+                    ),
+                    child:
+                        const Text('\u{1F53D}', style: TextStyle(fontSize: 16)),
                   ),
-                ),
+                ],
               ),
             ),
             if (_loading)
@@ -123,8 +155,7 @@ class _HubDeliveredScreenState extends State<HubDeliveredScreen> {
   }
 
   Widget _card(PartnerOrder order) {
-    final at =
-        DateTime.tryParse((order.raw['deliveredToHubAt'] ?? '').toString());
+    final at = parseDate((order.raw['deliveredToHubAt'] ?? '').toString());
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -171,6 +202,7 @@ class _HubDeliveredScreenState extends State<HubDeliveredScreen> {
                             : 'Standard Delivery',
                         style: TextStyle(
                           fontSize: 12,
+                          height: Brand.leadXs,
                           fontWeight: FontWeight.bold,
                           color: order.expressDelivery
                               ? const Color(0xFFD97706)
@@ -182,22 +214,28 @@ class _HubDeliveredScreenState extends State<HubDeliveredScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(order.customerName,
-                    style: const TextStyle(fontSize: 14, color: Brand.gray700)),
+                    style: const TextStyle(
+                        fontSize: 14,
+                        height: Brand.leadSm,
+                        color: Brand.gray700)),
                 const SizedBox(height: 4),
                 Text(
                   '${order.items.length} items • ${rupees(order.totalAmount)}',
-                  style: const TextStyle(fontSize: 12, color: Colors.black),
+                  style: const TextStyle(
+                      fontSize: 12, height: Brand.leadXs, color: Colors.black),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Delivered: ${at == null ? 'N/A' : DateFormat('dd MMM, hh:mm a').format(at.toLocal())}',
-                  style: const TextStyle(fontSize: 12, color: Brand.gray600),
+                  style: const TextStyle(
+                      fontSize: 12, height: Brand.leadXs, color: Brand.gray600),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Status: ${_titleCase(order.status)}',
                   style: const TextStyle(
                     fontSize: 12,
+                    height: Brand.leadXs,
                     fontWeight: FontWeight.w600,
                     color: Brand.purple,
                   ),
@@ -216,6 +254,7 @@ class _HubDeliveredScreenState extends State<HubDeliveredScreen> {
               _statusLabel(order.status),
               style: const TextStyle(
                 fontSize: 12,
+                height: Brand.leadXs,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
@@ -230,11 +269,13 @@ class _HubDeliveredScreenState extends State<HubDeliveredScreen> {
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
         child: Column(
           children: [
+            // Same picture, declared 260x180, really 260x224 (see
+            // delivery_history.dart).
             Image.asset(
               'assets/images/delivery.png',
               width: 260,
-              height: 180,
-              fit: BoxFit.contain,
+              height: 224,
+              fit: BoxFit.cover,
             ),
             const SizedBox(height: 8),
             const Text(
@@ -247,7 +288,8 @@ class _HubDeliveredScreenState extends State<HubDeliveredScreen> {
             ),
             const Text(
               'Orders you deliver to hub will appear here.',
-              style: TextStyle(fontSize: 12, color: Colors.black),
+              style: TextStyle(
+                  fontSize: 12, height: Brand.leadXs, color: Colors.black),
             ),
           ],
         ),

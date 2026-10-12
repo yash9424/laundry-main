@@ -10,6 +10,7 @@ import '../theme/brand.dart';
 import '../widgets/address_map.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
+import '../utils/dates.dart';
 
 /// `app/pickups/page.tsx` -- where a captain starts their day.
 ///
@@ -243,8 +244,8 @@ class _PickupsScreenState extends State<PickupsScreen> {
             "Today's Pickups",
             style: TextStyle(
               fontFamily: Brand.heading,
-              fontSize: 20, // text-xl
-              fontWeight: FontWeight.w700,
+              fontSize: Brand.h2, // <h2> // text-xl
+              fontWeight: FontWeight.w600,
               color: Brand.gray900,
             ),
           ),
@@ -297,13 +298,17 @@ class _PickupsScreenState extends State<PickupsScreen> {
                       'Active Pickup in Progress',
                       style: TextStyle(
                         fontSize: 14,
+                        height: Brand.leadSm,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                     Text(
                       'Order #${order.orderId} - Tap to continue',
-                      style: const TextStyle(fontSize: 12, color: Colors.white),
+                      style: const TextStyle(
+                          fontSize: 12,
+                          height: Brand.leadXs,
+                          color: Colors.white),
                     ),
                   ],
                 ),
@@ -342,6 +347,7 @@ class _PickupsScreenState extends State<PickupsScreen> {
                 Text('Refreshing...',
                     style: TextStyle(
                         fontSize: 14,
+                        height: Brand.leadSm,
                         fontWeight: FontWeight.w500,
                         color: Brand.purple)),
               ],
@@ -390,6 +396,7 @@ class _PickupsScreenState extends State<PickupsScreen> {
                   TextSpan(
                     style: const TextStyle(
                       fontSize: 14,
+                      height: Brand.leadSm,
                       fontWeight: FontWeight.w600,
                       color: Brand.gray900,
                     ),
@@ -450,8 +457,8 @@ class _PickupsScreenState extends State<PickupsScreen> {
               'No Orders Yet',
               style: TextStyle(
                 fontFamily: Brand.heading,
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
+                fontSize: Brand.h2, // <h2>
+                fontWeight: FontWeight.w600,
                 color: Brand.gray900,
               ),
             ),
@@ -460,7 +467,8 @@ class _PickupsScreenState extends State<PickupsScreen> {
               'No customers have placed orders in your area. Orders will '
               'appear here when customers make bookings.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Brand.gray500),
+              style: TextStyle(
+                  fontSize: 16, height: Brand.leadBase, color: Brand.gray500),
             ),
           ],
         ),
@@ -503,8 +511,10 @@ class _PickupsScreenState extends State<PickupsScreen> {
                     const SizedBox(height: 4),
                     Text(
                       '\u{1F4CD} ${pickup.pickupAddress.shortLine}',
-                      style:
-                          const TextStyle(fontSize: 14, color: Brand.gray600),
+                      style: const TextStyle(
+                          fontSize: 14,
+                          height: Brand.leadSm,
+                          color: Brand.gray600),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -512,6 +522,7 @@ class _PickupsScreenState extends State<PickupsScreen> {
                       '\u{1F550} ${pickup.pickupSlotTime.isEmpty ? 'Time not set' : pickup.pickupSlotTime}',
                       style: const TextStyle(
                         fontSize: 12,
+                        height: Brand.leadXs,
                         fontWeight: FontWeight.w500,
                         color: Brand.purple,
                       ),
@@ -522,6 +533,7 @@ class _PickupsScreenState extends State<PickupsScreen> {
                       '${pickup.expressDelivery ? '12hr' : '24hr'} turnaround',
                       style: const TextStyle(
                         fontSize: 12,
+                        height: Brand.leadXs,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFFD97706),
                       ),
@@ -529,7 +541,9 @@ class _PickupsScreenState extends State<PickupsScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              // No gap: the web row is `flex items-start justify-between`, and
+              // the address column needs every pixel to keep the SLA line on
+              // one line.
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -544,6 +558,7 @@ class _PickupsScreenState extends State<PickupsScreen> {
                       '#${pickup.orderId}',
                       style: const TextStyle(
                         fontSize: 12,
+                        height: Brand.leadXs,
                         fontWeight: FontWeight.w600,
                         color: Brand.gray500,
                       ),
@@ -565,6 +580,7 @@ class _PickupsScreenState extends State<PickupsScreen> {
                           : 'Standard Delivery',
                       style: TextStyle(
                         fontSize: 12,
+                        height: Brand.leadXs,
                         fontWeight: FontWeight.bold,
                         color: pickup.expressDelivery
                             ? const Color(0xFFD97706)
@@ -589,7 +605,7 @@ class _PickupsScreenState extends State<PickupsScreen> {
                     label: starting ? 'Starting...' : 'Start Pickup',
                     height: 42, // py-2.5
                     radius: Brand.rXl,
-                    fontSize: 14,
+                    fontSize: Brand.buttonText, // <button>
                     busy: starting,
                     onPressed: starting ? null : () => _start(pickup),
                   ),
@@ -621,9 +637,13 @@ class _PickupsScreenState extends State<PickupsScreen> {
             SizedBox(width: 8),
             Text(
               'Call',
+              // An <a>, so it stays on the body font -- only headings and
+              // buttons move to Montserrat. (This is why "Call" reads larger
+              // than "Start Pickup" beside it: the button is capped at 12px,
+              // the link is not.)
               style: TextStyle(
-                fontFamily: Brand.heading,
                 fontSize: 14,
+                height: Brand.leadSm,
                 fontWeight: FontWeight.bold,
                 color: Brand.purple,
               ),
@@ -636,7 +656,7 @@ class _PickupsScreenState extends State<PickupsScreen> {
 
   /// "Today" for today's slot, otherwise `d-m-yyyy`, as the web app prints it.
   static String _displayDate(String value) {
-    final date = DateTime.tryParse(value);
+    final date = parseDate(value);
     if (date == null) return '';
     final now = DateTime.now();
     final day = DateTime(date.year, date.month, date.day);
@@ -648,7 +668,7 @@ class _PickupsScreenState extends State<PickupsScreen> {
   /// A pickup can be started once its day has arrived; a slot dated for
   /// tomorrow cannot be started today.
   static bool _isStartable(String value) {
-    final date = DateTime.tryParse(value);
+    final date = parseDate(value);
     if (date == null) return true;
     final now = DateTime.now();
     final day = DateTime(date.year, date.month, date.day);

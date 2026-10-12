@@ -7,6 +7,7 @@ import '../services/store.dart';
 import '../theme/brand.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
+import '../utils/dates.dart';
 
 /// `app/delivery/history/page.tsx` -- everything this captain has finished,
 /// delivered or not, with the same two filters the web screen has: the status
@@ -23,7 +24,11 @@ enum _DateFilter { all, thisWeek, lastWeek, thisMonth }
 class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
   final _search = TextEditingController();
   List<PartnerOrder> _all = const [];
-  String _status = 'delivered';
+
+  /// 'all' until a tab is tapped, exactly as the web screen starts: both tabs
+  /// show their grey gradient and the list carries delivered and failed
+  /// deliveries together. Neither tab ever goes back to 'all'.
+  String _status = 'all';
   _DateFilter _date = _DateFilter.all;
   bool _loading = true;
 
@@ -62,13 +67,15 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
   /// The timestamp a row is filtered and sorted by: when it was delivered, or
   /// when the delivery failed.
   DateTime? _completedAt(PartnerOrder order) =>
-      DateTime.tryParse((order.raw['deliveredAt'] ?? '').toString()) ??
-      DateTime.tryParse((order.raw['deliveryFailedAt'] ?? '').toString());
+      parseDate((order.raw['deliveredAt'] ?? '').toString()) ??
+      parseDate((order.raw['deliveryFailedAt'] ?? '').toString());
 
   List<PartnerOrder> get _visible {
-    var list = _all.where((o) => _status == 'delivered'
-        ? o.status == 'delivered'
-        : o.status == 'delivery_failed');
+    var list = _all.where((o) => switch (_status) {
+          'delivered' => o.status == 'delivered',
+          'undelivered' => o.status == 'delivery_failed',
+          _ => true,
+        });
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -119,6 +126,12 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
         title: 'Delivery History',
         onBack: () => Navigator.of(context)
             .pushNamedAndRemoveUntil('/delivery/pick', (r) => false),
+        // The web header's right-hand slot is a bare down-arrow emoji, not a
+        // control: it opens nothing. Android paints it as an orange tile.
+        trailing: const Align(
+          alignment: Alignment.centerRight,
+          child: Text('\u{1F53D}', style: TextStyle(fontSize: 16)),
+        ),
       ),
       body: SafeArea(
         bottom: false,
@@ -152,7 +165,8 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
               child: TextField(
                 controller: _search,
                 onChanged: (_) => setState(() {}),
-                style: const TextStyle(fontSize: 14, color: Colors.black),
+                style: const TextStyle(
+                    fontSize: 14, height: Brand.leadSm, color: Colors.black),
                 decoration: InputDecoration(
                   hintText: 'Search by Order ID or Customer',
                   filled: true,
@@ -193,7 +207,7 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
                 ),
               )
             else if (visible.isEmpty)
-              _empty()
+              _empty(context)
             else
               for (final order in visible)
                 Padding(
@@ -213,7 +227,7 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
   }) {
     final active = _status == value;
     return SizedBox(
-      height: 42, // py-2.5
+      height: 37, // py-2.5 around text-sm's line box at a button's 12px
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(Brand.rXl),
@@ -236,7 +250,7 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
                 label,
                 style: const TextStyle(
                   fontFamily: Brand.heading,
-                  fontSize: 14,
+                  fontSize: Brand.buttonText, // <button>
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
@@ -266,6 +280,7 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
             label,
             style: TextStyle(
               fontSize: 12,
+              height: Brand.leadXs,
               fontWeight: FontWeight.w600,
               color: active ? Colors.white : Colors.black,
             ),
@@ -277,7 +292,7 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
 
   Widget _card(PartnerOrder order) {
     final delivered = order.status == 'delivered';
-    final at = DateTime.tryParse((order.raw['deliveredAt'] ?? '').toString());
+    final at = parseDate((order.raw['deliveredAt'] ?? '').toString());
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -304,6 +319,7 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
                         'Order #${order.orderId}',
                         style: const TextStyle(
                           fontSize: 14,
+                          height: Brand.leadSm,
                           fontWeight: FontWeight.w600,
                           color: Colors.black,
                         ),
@@ -322,6 +338,7 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
                           'Express Delivery',
                           style: TextStyle(
                             fontSize: 12,
+                            height: Brand.leadXs,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFFD97706),
                           ),
@@ -333,7 +350,10 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
                 const SizedBox(height: 8),
                 Text.rich(
                   TextSpan(
-                    style: const TextStyle(fontSize: 12, color: Brand.gray600),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        height: Brand.leadXs,
+                        color: Brand.gray600),
                     children: [
                       TextSpan(text: '${order.customerName}, '),
                       TextSpan(
@@ -347,7 +367,8 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
                 Text(
                   'Delivered on: '
                   '${at == null ? 'N/A' : DateFormat('dd MMM, hh:mm a').format(at.toLocal())}',
-                  style: const TextStyle(fontSize: 12, color: Brand.gray600),
+                  style: const TextStyle(
+                      fontSize: 12, height: Brand.leadXs, color: Brand.gray600),
                 ),
               ],
             ),
@@ -363,6 +384,7 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
               delivered ? 'Delivered' : 'Undelivered',
               style: const TextStyle(
                 fontSize: 12,
+                height: Brand.leadXs,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
@@ -373,29 +395,38 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
     );
   }
 
-  Widget _empty() => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 48, 16, 0),
+  /// `min-height: calc(100vh - 300px)` with the block centred inside it, so
+  /// the scooter sits well down the screen rather than under the filters.
+  Widget _empty(BuildContext context) => ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.sizeOf(context).height - 300,
+        ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // `Delivery.svg` is 200x172 with a square raster inside it, so a
+            // declared 220x160 really draws 220x189 with the top and bottom of
+            // the picture cropped away evenly. BoxFit.cover does exactly that.
             Image.asset(
               'assets/images/delivery.png',
               width: 220,
-              height: 160,
-              fit: BoxFit.contain,
+              height: 189,
+              fit: BoxFit.cover,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 8), // mt-2
             const Text(
               'No delivery history yet.',
               style: TextStyle(
-                fontFamily: Brand.heading,
                 fontSize: 16,
+                height: Brand.leadBase,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF1F2937),
+                color: Brand.gray800,
               ),
             ),
             const Text(
               'Completed orders will appear here.',
-              style: TextStyle(fontSize: 12, color: Brand.gray600),
+              style: TextStyle(
+                  fontSize: 12, height: Brand.leadXs, color: Brand.gray600),
             ),
           ],
         ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../models/order.dart';
@@ -83,16 +82,6 @@ class _AddressMapState extends State<AddressMap> {
     }
   }
 
-  Future<void> _openInMaps() async {
-    final uri =
-        Uri.parse(MapLinks.directionsUrl(widget.address, raw: widget.raw));
-    try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      // Nothing to open the link with; leaving the map in place is fine.
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -100,49 +89,12 @@ class _AddressMapState extends State<AddressMap> {
       child: SizedBox(
         height: widget.height,
         width: double.infinity,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (_failed || _controller == null)
-              const _MapFallback()
-            else
-              WebViewWidget(controller: _controller!),
-            // The embed swallows taps, so the way out to the real maps app is
-            // its own button rather than the whole tile.
-            Positioned(
-              right: 8,
-              bottom: 8,
-              child: Material(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(Brand.rLg),
-                elevation: 2,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(Brand.rLg),
-                  onTap: _openInMaps,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.navigation_outlined,
-                            size: 14, color: Brand.purple),
-                        SizedBox(width: 5),
-                        Text(
-                          'Navigate',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: Brand.purple,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+        // Nothing on top of the map: the web app's tile is the bare iframe,
+        // and the screens that need a way out to Google Maps already have
+        // their own link under it.
+        child: _failed || _controller == null
+            ? const _MapFallback()
+            : WebViewWidget(controller: _controller!),
       ),
     );
   }
@@ -162,7 +114,8 @@ class _MapFallback extends StatelessWidget {
             Text('\u{1F4CD}', style: TextStyle(fontSize: 32)),
             SizedBox(height: 8),
             Text('Map unavailable',
-                style: TextStyle(fontSize: 14, color: Brand.gray500)),
+                style: TextStyle(
+                    fontSize: 14, height: Brand.leadSm, color: Brand.gray500)),
           ],
         ),
       ),
@@ -187,7 +140,8 @@ class NoLocationsMap extends StatelessWidget {
             const Text('\u{1F4CD}', style: TextStyle(fontSize: 36)),
             const SizedBox(height: 8),
             Text(message,
-                style: const TextStyle(fontSize: 14, color: Brand.gray500)),
+                style: const TextStyle(
+                    fontSize: 14, height: Brand.leadSm, color: Brand.gray500)),
           ],
         ),
       ),

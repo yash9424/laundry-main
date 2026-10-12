@@ -4,6 +4,10 @@
 /// order by spreading values they never read, and the backend accepts whatever
 /// JSON it is sent, so throwing away the rest of the document would quietly
 /// change what gets written back.
+library;
+
+import '../utils/dates.dart';
+
 class PartnerOrder {
   PartnerOrder(this.raw);
 
@@ -106,9 +110,9 @@ class PartnerOrder {
   bool get redeliveryScheduled => raw['redeliveryScheduled'] == true;
   bool get orderSuspended => raw['orderSuspended'] == true;
 
-  DateTime? get createdAt => DateTime.tryParse(_str(raw['createdAt']));
-  DateTime? get deliveredAt => DateTime.tryParse(_str(raw['deliveredAt']));
-  DateTime? get pickedUpAt => DateTime.tryParse(_str(raw['pickedUpAt']));
+  DateTime? get createdAt => parseDate(_str(raw['createdAt']));
+  DateTime? get deliveredAt => parseDate(_str(raw['deliveredAt']));
+  DateTime? get pickedUpAt => parseDate(_str(raw['pickedUpAt']));
 }
 
 class OrderItem {

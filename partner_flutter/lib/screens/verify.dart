@@ -150,14 +150,19 @@ class _VerifyScreenState extends State<VerifyScreen> {
                     style: TextStyle(color: Brand.purple)),
               ),
               const SizedBox(height: 16), // mt-4
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for (var i = 0; i < 6; i++) ...[
-                    if (i > 0) const SizedBox(width: 12), // gap-3
-                    _box(i),
+              // Six w-14 boxes plus five gap-3 gaps come to 396, which is
+              // wider than the 379 that px-4 leaves, so as flex items they
+              // shrink to fit -- 53dp each, not 56. Expanded does the same.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16), // px-4
+                child: Row(
+                  children: [
+                    for (var i = 0; i < 6; i++) ...[
+                      if (i > 0) const SizedBox(width: 12), // gap-3
+                      Expanded(child: _box(i)),
+                    ],
                   ],
-                ],
+                ),
               ),
               const SizedBox(height: 16),
               const Text('Didn’t get OTP?',
@@ -171,7 +176,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: GradientButton(
                   label: _loading ? 'Verifying...' : 'Verify & Continue',
-                  height: 48,
+                  height: 42, // py-3 around text-base's line box at 12px
                   radius: Brand.rXl,
                   busy: _loading,
                   onPressed: _code.length == 6 && !_loading ? _verify : null,
@@ -200,7 +205,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
                               '⌫',
                               style: TextStyle(
                                 fontFamily: Brand.heading,
-                                fontSize: 16,
+                                fontSize: Brand.buttonText,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.black,
                               ),
@@ -223,8 +228,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
   Widget _box(int index) {
     final isNext = index == _nextEmpty;
     return Container(
-      height: 56,
-      width: 56,
+      height: 56, // h-14; the width comes from the row
       alignment: Alignment.center,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(Brand.r2xl),
@@ -263,7 +267,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontFamily: Brand.heading,
-                      fontSize: 16,
+                      fontSize: Brand.buttonText,
                       fontWeight: FontWeight.w600,
                       color: Colors.black,
                     ),

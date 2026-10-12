@@ -5,6 +5,7 @@ import '../services/api.dart';
 import '../services/store.dart';
 import '../theme/brand.dart';
 import '../widgets/common.dart';
+import '../widgets/bottom_nav.dart';
 
 /// `app/profile/personal/page.tsx`.
 ///
@@ -158,6 +159,7 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
         _pincodes.map((c) => c.text.trim()).where((p) => p.isNotEmpty).toList();
 
     return Scaffold(
+      bottomNavigationBar: const PartnerBottomNav(current: NavTab.profile),
       backgroundColor: Brand.gray50,
       body: SafeArea(
         child: ListView(
@@ -238,7 +240,7 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
             'Personal Information',
             style: TextStyle(
               fontFamily: Brand.heading,
-              fontSize: 18,
+              fontSize: Brand.h2, // <h2>
               fontWeight: FontWeight.w600,
               color: Brand.gray900,
             ),
@@ -282,6 +284,7 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
         text,
         style: const TextStyle(
           fontSize: 14,
+          height: Brand.leadSm,
           fontWeight: FontWeight.w600,
           color: Color(0xFF1F2937),
         ),
@@ -305,7 +308,8 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
               controller: controller,
               keyboardType: keyboardType,
               inputFormatters: formatters,
-              style: const TextStyle(fontSize: 16, color: Brand.gray900),
+              style: const TextStyle(
+                  fontSize: 16, height: Brand.leadBase, color: Brand.gray900),
               decoration: InputDecoration(
                 isDense: false,
                 contentPadding:
@@ -323,7 +327,8 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
           else
             Text(
               controller.text.trim().isEmpty ? 'N/A' : controller.text,
-              style: const TextStyle(fontSize: 16, color: Brand.gray900),
+              style: const TextStyle(
+                  fontSize: 16, height: Brand.leadBase, color: Brand.gray900),
             ),
         ],
       ),
@@ -338,7 +343,10 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
             _label(label),
             const SizedBox(height: 4),
             Text(value,
-                style: const TextStyle(fontSize: 16, color: Brand.gray900)),
+                style: const TextStyle(
+                    fontSize: 16,
+                    height: Brand.leadBase,
+                    color: Brand.gray900)),
           ],
         ),
       );
@@ -431,6 +439,7 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
                         child: Text('+ Add Pincode',
                             style: TextStyle(
                                 fontSize: 14,
+                                height: Brand.leadSm,
                                 fontWeight: FontWeight.w500,
                                 color: Brand.purple)),
                       ),
@@ -455,7 +464,10 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
             if (note != null) ...[
               const SizedBox(height: 4),
               Text(note,
-                  style: const TextStyle(fontSize: 12, color: Brand.gray500)),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      height: Brand.leadXs,
+                      color: Brand.gray500)),
             ],
           ],
         ),
@@ -464,7 +476,8 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
   Widget _chipRow(List<String> values) {
     if (values.isEmpty) {
       return const Text('N/A',
-          style: TextStyle(fontSize: 16, color: Brand.gray900));
+          style: TextStyle(
+              fontSize: 16, height: Brand.leadBase, color: Brand.gray900));
     }
     return Wrap(
       spacing: 8,
@@ -481,6 +494,7 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
               value,
               style: const TextStyle(
                 fontSize: 14,
+                height: Brand.leadSm,
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
@@ -503,7 +517,8 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
               _vehicleType.isEmpty
                   ? 'N/A'
                   : '${_vehicleType[0].toUpperCase()}${_vehicleType.substring(1)}',
-              style: const TextStyle(fontSize: 16, color: Brand.gray900),
+              style: const TextStyle(
+                  fontSize: 16, height: Brand.leadBase, color: Brand.gray900),
             )
           else
             Container(
@@ -517,8 +532,14 @@ class _ProfilePersonalScreenState extends State<ProfilePersonalScreen> {
                   isExpanded: true,
                   value: _vehicleType.isEmpty ? null : _vehicleType,
                   hint: const Text('Select Vehicle Type',
-                      style: TextStyle(fontSize: 16, color: Brand.gray400)),
-                  style: const TextStyle(fontSize: 16, color: Brand.gray900),
+                      style: TextStyle(
+                          fontSize: 16,
+                          height: Brand.leadBase,
+                          color: Brand.gray400)),
+                  style: const TextStyle(
+                      fontSize: 16,
+                      height: Brand.leadBase,
+                      color: Brand.gray900),
                   items: [
                     for (final type in _vehicleTypes)
                       DropdownMenuItem(

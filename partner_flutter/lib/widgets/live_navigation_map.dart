@@ -118,6 +118,7 @@ class _LiveNavigationMapState extends State<LiveNavigationMap> {
               widget.label,
               style: const TextStyle(
                 fontSize: 14,
+                height: Brand.leadSm,
                 fontWeight: FontWeight.w600,
                 color: Colors.black,
               ),
@@ -131,7 +132,10 @@ class _LiveNavigationMapState extends State<LiveNavigationMap> {
                     color: Brand.gray100,
                     child: Center(
                       child: Text('Loading map...',
-                          style: TextStyle(fontSize: 14, color: Brand.gray500)),
+                          style: TextStyle(
+                              fontSize: 14,
+                              height: Brand.leadSm,
+                              color: Brand.gray500)),
                     ),
                   )
                 : WebViewWidget(controller: _controller!),
@@ -188,6 +192,7 @@ class _LiveNavigationMapState extends State<LiveNavigationMap> {
             widget.label,
             style: const TextStyle(
               fontSize: 14,
+              height: Brand.leadSm,
               fontWeight: FontWeight.w600,
               color: Color(0xFF92400E),
             ),
@@ -200,7 +205,8 @@ class _LiveNavigationMapState extends State<LiveNavigationMap> {
                 : 'This customer has not pinned their location, so live '
                     'navigation is not available. Use the address and open it '
                     'in Google Maps.',
-            style: const TextStyle(fontSize: 12, color: Color(0xFFB45309)),
+            style: const TextStyle(
+                fontSize: 12, height: Brand.leadXs, color: Color(0xFFB45309)),
           ),
           const SizedBox(height: 8),
           GestureDetector(
@@ -209,6 +215,7 @@ class _LiveNavigationMapState extends State<LiveNavigationMap> {
               'Open in Google Maps',
               style: TextStyle(
                 fontSize: 12,
+                height: Brand.leadXs,
                 fontWeight: FontWeight.w600,
                 color: Brand.purple,
               ),

@@ -7,6 +7,7 @@ import '../services/store.dart';
 import '../theme/brand.dart';
 import '../widgets/common.dart';
 import '../widgets/live_navigation_map.dart';
+import '../widgets/bottom_nav.dart';
 
 /// `app/pickups/start/page.tsx`.
 ///
@@ -122,6 +123,7 @@ class _PickupStartScreenState extends State<PickupStartScreen> {
     if (order.status == 'cancelled') return _cancelled(order);
 
     return Scaffold(
+      bottomNavigationBar: const PartnerBottomNav(current: NavTab.pickup),
       backgroundColor: Brand.gray50,
       appBar: AppHeader(
         title: 'Pickup in Progress',
@@ -147,14 +149,14 @@ class _PickupStartScreenState extends State<PickupStartScreen> {
             const SizedBox(height: 20), // mt-5
             GradientButton(
               label: 'Reached Location',
-              height: 48,
+              height: 42, // py-3 around text-base at 12px
               radius: Brand.rXl,
               busy: _working,
               onPressed: _working ? null : _reached,
             ),
             const SizedBox(height: 12), // mt-3
             SizedBox(
-              height: 48,
+              height: 42, // py-3 around text-base at 12px
               child: OutlinedButton(
                 onPressed: _working ? null : _stop,
                 style: OutlinedButton.styleFrom(
@@ -168,7 +170,7 @@ class _PickupStartScreenState extends State<PickupStartScreen> {
                   'Stop Pickup',
                   style: TextStyle(
                     fontFamily: Brand.heading,
-                    fontSize: 16,
+                    fontSize: Brand.buttonText, // <button>
                     fontWeight: FontWeight.w600,
                     color: Brand.red600,
                   ),
@@ -213,18 +215,21 @@ class _PickupStartScreenState extends State<PickupStartScreen> {
           ),
           const SizedBox(height: 4),
           Text(mobile,
-              style: const TextStyle(fontSize: 12, color: Colors.black)),
+              style: const TextStyle(
+                  fontSize: 12, height: Brand.leadXs, color: Colors.black)),
           const SizedBox(height: 4),
           Text(
             '\u{1F4CD} ${order.pickupAddress.shortLine}',
-            style: const TextStyle(fontSize: 12, color: Colors.black),
+            style: const TextStyle(
+                fontSize: 12, height: Brand.leadXs, color: Colors.black),
           ),
           const SizedBox(height: 12),
           // Only when there is a number to reach. An order without one used to
           // take the whole screen down with it.
           if (mobile.isEmpty)
             const Text('No contact number on this order.',
-                style: TextStyle(fontSize: 12, color: Brand.gray500))
+                style: TextStyle(
+                    fontSize: 12, height: Brand.leadXs, color: Brand.gray500))
           else
             Row(
               children: [
@@ -274,9 +279,11 @@ class _PickupStartScreenState extends State<PickupStartScreen> {
               const SizedBox(width: 8),
               Text(
                 label,
+                // An <a>, so it keeps the body font: only headings and
+                // buttons are switched to Montserrat.
                 style: const TextStyle(
-                  fontFamily: Brand.heading,
                   fontSize: 14,
+                  height: Brand.leadSm,
                   fontWeight: FontWeight.w600,
                   color: Brand.purple,
                 ),
@@ -307,19 +314,26 @@ class _PickupStartScreenState extends State<PickupStartScreen> {
           ),
           const SizedBox(height: 8),
           Text('Order ID: ${order.orderId}',
-              style: const TextStyle(fontSize: 14, color: Colors.black)),
+              style: const TextStyle(
+                  fontSize: 14, height: Brand.leadSm, color: Colors.black)),
           const SizedBox(height: 12),
           Text(
             items.isEmpty ? 'Items:' : 'Items (${order.itemCount} pieces):',
             style: const TextStyle(
-                fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black),
+                fontSize: 14,
+                height: Brand.leadSm,
+                fontWeight: FontWeight.w500,
+                color: Colors.black),
           ),
           const SizedBox(height: 6),
           if (items.isEmpty)
             const Padding(
               padding: EdgeInsets.only(left: 8),
               child: Text('No items found',
-                  style: TextStyle(fontSize: 12, color: Brand.gray600)),
+                  style: TextStyle(
+                      fontSize: 12,
+                      height: Brand.leadXs,
+                      color: Brand.gray600)),
             )
           else
             // Laid out like a cart receipt so the captain can tick garments off
@@ -343,7 +357,9 @@ class _PickupStartScreenState extends State<PickupStartScreen> {
                             child: Text.rich(
                               TextSpan(
                                 style: const TextStyle(
-                                    fontSize: 14, color: Colors.black),
+                                    fontSize: 14,
+                                    height: Brand.leadSm,
+                                    color: Colors.black),
                                 children: [
                                   TextSpan(
                                     text: '${items[i].quantity}x ',
@@ -359,7 +375,9 @@ class _PickupStartScreenState extends State<PickupStartScreen> {
                           Text(
                             rupees(items[i].price * items[i].quantity),
                             style: const TextStyle(
-                                fontSize: 14, color: Brand.gray600),
+                                fontSize: 14,
+                                height: Brand.leadSm,
+                                color: Brand.gray600),
                           ),
                         ],
                       ),
@@ -370,11 +388,13 @@ class _PickupStartScreenState extends State<PickupStartScreen> {
             ),
           const SizedBox(height: 8),
           Text('Total Price: ${rupees(order.totalAmount)}',
-              style: const TextStyle(fontSize: 14, color: Colors.black)),
+              style: const TextStyle(
+                  fontSize: 14, height: Brand.leadSm, color: Colors.black)),
           Text(
             'Special Instructions: '
             '${order.specialInstructions.isEmpty ? 'None' : order.specialInstructions}',
-            style: const TextStyle(fontSize: 14, color: Colors.black),
+            style: const TextStyle(
+                fontSize: 14, height: Brand.leadSm, color: Colors.black),
           ),
           if (order.specialInstructions.isNotEmpty) ...[
             const SizedBox(height: 8),
@@ -392,12 +412,15 @@ class _PickupStartScreenState extends State<PickupStartScreen> {
                   const Text('Customer Notes:',
                       style: TextStyle(
                           fontSize: 12,
+                          height: Brand.leadXs,
                           fontWeight: FontWeight.w500,
                           color: Color(0xFF854D0E))),
                   const SizedBox(height: 4),
                   Text(order.specialInstructions,
                       style: const TextStyle(
-                          fontSize: 12, color: Color(0xFFA16207))),
+                          fontSize: 12,
+                          height: Brand.leadXs,
+                          color: Color(0xFFA16207))),
                 ],
               ),
             ),
@@ -409,6 +432,7 @@ class _PickupStartScreenState extends State<PickupStartScreen> {
 
   Widget _cancelled(PartnerOrder order) {
     return Scaffold(
+      bottomNavigationBar: const PartnerBottomNav(current: NavTab.pickup),
       backgroundColor: Brand.gray50,
       body: SafeArea(
         child: Center(
@@ -446,8 +470,8 @@ class _PickupStartScreenState extends State<PickupStartScreen> {
                       'Order Cancelled',
                       style: TextStyle(
                         fontFamily: Brand.heading,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
+                        fontSize: Brand.h2, // <h2>
+                        fontWeight: FontWeight.w600,
                         color: Brand.gray900,
                       ),
                     ),
@@ -460,14 +484,20 @@ class _PickupStartScreenState extends State<PickupStartScreen> {
                     const SizedBox(height: 16),
                     Text(
                       'Order ID: ${order.orderId}',
-                      style:
-                          const TextStyle(fontSize: 14, color: Brand.gray500),
+                      style: const TextStyle(
+                          fontSize: 14,
+                          height: Brand.leadSm,
+                          color: Brand.gray500),
                     ),
                     const SizedBox(height: 24),
                     GradientButton(
                       label: 'Back to Pickups',
+                      // A <Link>, not a <button>: text-base really is 16 and
+                      // the line box 24, so py-3 makes 48.
                       height: 48,
                       radius: Brand.rXl,
+                      fontSize: 16,
+                      fontFamily: Brand.body,
                       onPressed: () => Navigator.of(context)
                           .pushNamedAndRemoveUntil('/pickups', (r) => false),
                     ),

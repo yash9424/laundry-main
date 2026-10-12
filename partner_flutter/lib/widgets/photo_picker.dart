@@ -122,7 +122,8 @@ class AvatarPicker extends StatelessWidget {
         const SizedBox(height: 12), // mt-3
         Text(
           caption,
-          style: const TextStyle(fontSize: 14, color: Brand.gray600),
+          style: const TextStyle(
+              fontSize: 14, height: Brand.leadSm, color: Brand.gray600),
         ),
       ],
     );

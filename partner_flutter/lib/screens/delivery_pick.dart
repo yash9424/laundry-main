@@ -9,6 +9,7 @@ import '../services/store.dart';
 import '../theme/brand.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
+import '../utils/dates.dart';
 
 /// `app/delivery/pick/page.tsx` -- orders the hub has finished, waiting to be
 /// taken out.
@@ -222,8 +223,10 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
                             Text(
                               'Orders ready for delivery in your area will appear here.',
                               textAlign: TextAlign.center,
-                              style:
-                                  TextStyle(fontSize: 12, color: Brand.gray600),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  height: Brand.leadXs,
+                                  color: Brand.gray600),
                             ),
                           ],
                         ),
@@ -238,7 +241,7 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
                       child: GradientButton(
                         label: 'Confirm Selection (${_selected.length})',
-                        height: 48,
+                        height: 42, // py-3 around text-base at 12px
                         radius: Brand.rXl,
                         onPressed: _orders.isEmpty ? null : _confirm,
                       ),
@@ -270,7 +273,7 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
                   'Pick for Delivery',
                   style: TextStyle(
                     fontFamily: Brand.heading,
-                    fontSize: 18,
+                    fontSize: Brand.h2, // <h2>
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
                   ),
@@ -287,6 +290,7 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
+                height: Brand.leadSm,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
@@ -316,8 +320,11 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
                 Container(
                   height: 32,
                   width: 32,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.25),
+                  decoration: const BoxDecoration(
+                    // `bg-white bg-opacity-25`: Tailwind v4 dropped the
+                    // bg-opacity-* utilities, so the class does nothing and
+                    // the circle is solid white.
+                    color: Colors.white,
                     shape: BoxShape.circle,
                   ),
                   child: const Center(
@@ -333,6 +340,7 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
                         'Delivery in Progress',
                         style: TextStyle(
                           fontSize: 14,
+                          height: Brand.leadSm,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -341,6 +349,7 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
                         'Order #${order.orderId} - Tap to continue',
                         style: TextStyle(
                           fontSize: 12,
+                          height: Brand.leadXs,
                           color: Colors.white.withValues(alpha: 0.9),
                         ),
                       ),
@@ -361,8 +370,8 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
     final selected = _selected.contains(order.id);
     final paid = order.paymentStatus == 'paid';
     final expected =
-        DateTime.tryParse((order.raw['expectedDeliveryAt'] ?? '').toString());
-    final slotDate = DateTime.tryParse(order.deliverySlotDate);
+        parseDate((order.raw['expectedDeliveryAt'] ?? '').toString());
+    final slotDate = parseDate(order.deliverySlotDate);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -391,6 +400,7 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
                       'Order ID: #${order.orderId}',
                       style: const TextStyle(
                         fontSize: 14,
+                        height: Brand.leadSm,
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
@@ -413,6 +423,7 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
                       '${DateFormat('dd MMM, h:mm a').format(expected.toLocal())}',
                       style: const TextStyle(
                         fontSize: 12,
+                        height: Brand.leadXs,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFFD97706),
                       ),
@@ -433,6 +444,7 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
                       ' | ${order.deliverySlotTime}',
                       style: const TextStyle(
                         fontSize: 12,
+                        height: Brand.leadXs,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF1E40AF),
                       ),
@@ -449,6 +461,7 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
                             : 'Collect ${rupees(order.totalAmount)}',
                         style: TextStyle(
                           fontSize: 12,
+                          height: Brand.leadXs,
                           fontWeight: FontWeight.bold,
                           color: paid
                               ? const Color(0xFF15803D)
@@ -458,8 +471,10 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
                       TextSpan(
                         text:
                             ' · ${order.paymentMethod.isEmpty ? 'Cash on Delivery' : order.paymentMethod}',
-                        style:
-                            const TextStyle(fontSize: 12, color: Brand.gray500),
+                        style: const TextStyle(
+                            fontSize: 12,
+                            height: Brand.leadXs,
+                            color: Brand.gray500),
                       ),
                     ],
                   ),
@@ -499,11 +514,19 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
               child: selected
                   ? const Center(
                       child: Text('✔',
-                          style: TextStyle(fontSize: 14, color: Colors.white)),
+                          style: TextStyle(
+                              fontSize: 14,
+                              height: Brand.leadSm,
+                              color: Colors.white)),
                     )
                   : null,
             ),
           ),
+          // A bare emoji beside the box, as in the web app -- it is not a
+          // control there either.
+          const SizedBox(width: 12), // gap-3
+          const Text('\u{2139}\u{FE0F}',
+              style: TextStyle(fontSize: 16, color: Brand.purple)),
         ],
       ),
     );
@@ -527,7 +550,8 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
 
   Widget _line(String label, String value) => Text.rich(
         TextSpan(
-          style: const TextStyle(fontSize: 12, color: Brand.gray600),
+          style: const TextStyle(
+              fontSize: 12, height: Brand.leadXs, color: Brand.gray600),
           children: [
             TextSpan(text: label),
             TextSpan(text: value, style: const TextStyle(color: Colors.black)),
@@ -547,6 +571,7 @@ class _DeliveryPickScreenState extends State<DeliveryPickScreen> {
       '⏳ ${overdue ? 'Overdue by $text' : '$text left'}',
       style: TextStyle(
         fontSize: 12,
+        height: Brand.leadXs,
         fontWeight: FontWeight.bold,
         color: overdue ? Brand.red600 : const Color(0xFFD97706),
       ),

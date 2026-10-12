@@ -231,7 +231,7 @@ class _ProfileKycScreenState extends State<ProfileKycScreen> {
               const SizedBox(height: 24),
               GradientButton(
                 label: _loading ? 'Submitting...' : 'Submit KYC',
-                height: 48,
+                height: 42, // py-3 around text-base at 12px
                 radius: Brand.rXl,
                 busy: _loading,
                 onPressed: _loading ? null : _submit,
@@ -249,6 +249,7 @@ class _ProfileKycScreenState extends State<ProfileKycScreen> {
           text,
           style: const TextStyle(
             fontSize: 14,
+            height: Brand.leadSm,
             fontWeight: FontWeight.w500,
             color: Brand.gray700,
           ),
@@ -267,8 +268,10 @@ class _ProfileKycScreenState extends State<ProfileKycScreen> {
           isExpanded: true,
           value: _vehicleType.isEmpty ? null : _vehicleType,
           hint: const Text('Select Vehicle Type',
-              style: TextStyle(fontSize: 16, color: Brand.gray400)),
-          style: const TextStyle(fontSize: 16, color: Colors.black),
+              style: TextStyle(
+                  fontSize: 16, height: Brand.leadBase, color: Brand.gray400)),
+          style: const TextStyle(
+              fontSize: 16, height: Brand.leadBase, color: Colors.black),
           padding: const EdgeInsets.symmetric(vertical: 6),
           items: [
             for (final type in _vehicleTypes)
@@ -295,7 +298,7 @@ class _ProfileKycScreenState extends State<ProfileKycScreen> {
           borderRadius: BorderRadius.circular(Brand.rXl),
         ),
         child: CustomPaint(
-          painter: const _DashedBorderPainter(
+          painter: const DashedBorderPainter(
             color: Brand.inputBorder,
             radius: Brand.rXl,
             strokeWidth: 2,
@@ -354,8 +357,8 @@ class _ProfileKycScreenState extends State<ProfileKycScreen> {
                       'KYC Under Review',
                       style: TextStyle(
                         fontFamily: Brand.heading,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
+                        fontSize: Brand.h2, // <h2>
+                        fontWeight: FontWeight.w600,
                         color: Brand.gray900,
                       ),
                     ),
@@ -378,6 +381,7 @@ class _ProfileKycScreenState extends State<ProfileKycScreen> {
                         'Status: ${_status.toUpperCase()}',
                         style: const TextStyle(
                           fontSize: 14,
+                          height: Brand.leadSm,
                           fontWeight: FontWeight.w500,
                           color: Brand.purple,
                         ),
@@ -402,46 +406,4 @@ class UpperCaseFormatter extends TextInputFormatter {
       TextEditingValue oldValue, TextEditingValue newValue) {
     return newValue.copyWith(text: newValue.text.toUpperCase());
   }
-}
-
-/// `border-dashed` has no Flutter equivalent, so it is drawn.
-class _DashedBorderPainter extends CustomPainter {
-  const _DashedBorderPainter({
-    required this.color,
-    required this.radius,
-    required this.strokeWidth,
-  });
-
-  final Color color;
-  final double radius;
-  final double strokeWidth;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
-
-    final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(strokeWidth / 2, strokeWidth / 2, size.width - strokeWidth,
-          size.height - strokeWidth),
-      Radius.circular(radius),
-    );
-
-    const dash = 6.0;
-    const gap = 4.0;
-    for (final metric in (Path()..addRRect(rect)).computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        final next = (distance + dash).clamp(0.0, metric.length);
-        canvas.drawPath(metric.extractPath(distance, next), paint);
-        distance = next + gap;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedBorderPainter old) =>
-      old.color != color || old.radius != radius;
 }

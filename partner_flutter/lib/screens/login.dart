@@ -132,19 +132,35 @@ class _LoginScreenState extends State<LoginScreen> {
               // SVG <pattern> behind a drop-shadow <filter>, which flutter_svg
               // does not draw -- the illustration came out blank. This is the
               // same picture, pulled out of it.
+              // The SVG's own box is 228x244 and the markup asks for
+              // `width={220} height={140}`; preflight's `height: auto` throws
+              // the 140 away, so it draws 220 wide and 235 tall. Inside that,
+              // the pattern stretches the square raster to 225x235 and lets
+              // the sides fall outside -- which is what the clip is for.
               Center(
-                child: Image.asset(
-                  'assets/images/scooter.png',
-                  width: 220,
-                  height: 140,
-                  fit: BoxFit.contain,
+                child: ClipRect(
+                  child: SizedBox(
+                    width: 220,
+                    height: 235,
+                    child: OverflowBox(
+                      minWidth: 225,
+                      maxWidth: 225,
+                      minHeight: 235,
+                      maxHeight: 235,
+                      child: Image.asset(
+                        'assets/images/scooter.png',
+                        fit: BoxFit.fill,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 16), // mt-4
               const Center(
                 child: Text(
                   'Sign in to your account.',
-                  style: TextStyle(fontSize: 14, color: Brand.gray500),
+                  style: TextStyle(
+                      fontSize: 14, height: Brand.leadSm, color: Brand.gray500),
                 ),
               ),
               const SizedBox(height: 40), // mt-10
@@ -172,7 +188,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                       onChanged: (_) => setState(() {}),
                       onSubmitted: (_) => _login(),
-                      style: const TextStyle(fontSize: 16, color: Colors.black),
+                      style: const TextStyle(
+                          fontSize: 16,
+                          height: Brand.leadBase,
+                          color: Colors.black),
                       decoration: InputDecoration(
                         hintText: 'Enter your phone no',
                         counterText: '',
@@ -181,8 +200,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         prefixIcon: const Padding(
                           padding: EdgeInsets.only(left: 12, right: 6),
                           child: Text('\u{1F464}',
-                              style:
-                                  TextStyle(fontSize: 16, color: Brand.purple)),
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  height: Brand.leadBase,
+                                  color: Brand.purple)),
                         ),
                         prefixIconConstraints:
                             const BoxConstraints(minWidth: 0, minHeight: 0),
@@ -203,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 20), // mt-5
                     GradientButton(
                       label: _loading ? 'Logging in...' : 'Login',
-                      height: 48, // py-3 around text-base
+                      height: 42, // py-3 around text-base's line box at 12px
                       radius: Brand.rXl,
                       busy: _loading,
                       onPressed: _loading ? null : _login,
@@ -218,7 +239,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: Colors.white,
                             child: const Text('OR',
                                 style: TextStyle(
-                                    fontSize: 14, color: Brand.gray500)),
+                                    fontSize: 14,
+                                    height: Brand.leadSm,
+                                    color: Brand.gray500)),
                           ),
                         ),
                         const Expanded(child: Divider(color: Brand.gray300)),
@@ -239,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
   /// `border-2 border-gray-300 rounded-xl py-3 shadow-lg`.
   Widget _googleButton() {
     return SizedBox(
-      height: 48,
+      height: 42, // py-3, same as the Login button above it
       child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(Brand.rXl),
@@ -262,7 +285,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Continue with Google',
                   style: TextStyle(
                     fontFamily: Brand.heading,
-                    fontSize: 16,
+                    fontSize: Brand.buttonText,
                     fontWeight: FontWeight.w600,
                     color: Brand.gray700,
                   ),

@@ -11,6 +11,8 @@ import '../utils/order_breakdown.dart';
 import '../widgets/address_map.dart';
 import '../widgets/common.dart';
 import '../widgets/live_navigation_map.dart';
+import '../utils/dates.dart';
+import '../widgets/bottom_nav.dart';
 
 /// `app/delivery/details/page.tsx` -- the last screen of an order's life.
 ///
@@ -208,11 +210,17 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
             : null);
 
     return Scaffold(
+      bottomNavigationBar: const PartnerBottomNav(current: NavTab.delivery),
       backgroundColor: Brand.gray50,
       appBar: AppHeader(
         title: 'Delivery Details',
         onBack: () => Navigator.of(context)
             .pushNamedAndRemoveUntil('/delivery/pick', (r) => false),
+        // A bare bell emoji in the web header, with nothing behind it.
+        trailing: const Align(
+          alignment: Alignment.centerRight,
+          child: Text('\u{1F514}', style: TextStyle(fontSize: 16)),
+        ),
       ),
       body: SafeArea(
         child: ListView(
@@ -266,7 +274,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
 
   Widget _summaryCard(PartnerOrder order) {
     final expected =
-        DateTime.tryParse((order.raw['expectedDeliveryAt'] ?? '').toString());
+        parseDate((order.raw['expectedDeliveryAt'] ?? '').toString());
     final showExpress = order.expressDelivery &&
         order.status != 'delivered' &&
         order.status != 'cancelled';
@@ -283,6 +291,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
                   'Order #${order.orderId}',
                   style: const TextStyle(
                     fontSize: 14,
+                    height: Brand.leadSm,
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
                   ),
@@ -301,6 +310,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
                       : _titleCase(order.status),
                   style: const TextStyle(
                     fontSize: 12,
+                    height: Brand.leadXs,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
@@ -315,6 +325,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
               '${expected == null ? 'Timer starts at pickup' : _countdownText(expected)}',
               style: TextStyle(
                 fontSize: 12,
+                height: Brand.leadXs,
                 fontWeight: FontWeight.bold,
                 color: expected != null && expected.isBefore(_now)
                     ? Brand.red600
@@ -327,10 +338,14 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
             children: [
               Expanded(
                 child: Text(order.customerName,
-                    style: const TextStyle(fontSize: 14, color: Colors.black)),
+                    style: const TextStyle(
+                        fontSize: 14,
+                        height: Brand.leadSm,
+                        color: Colors.black)),
               ),
               Text(order.customerMobile,
-                  style: const TextStyle(fontSize: 14, color: Colors.black)),
+                  style: const TextStyle(
+                      fontSize: 14, height: Brand.leadSm, color: Colors.black)),
               const SizedBox(width: 8),
               GestureDetector(
                 onTap: order.customerMobile.isEmpty
@@ -353,7 +368,8 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
           const SizedBox(height: 8),
           Text(
             '\u{1F4CD} ${order.deliveryAddress.shortLine}',
-            style: const TextStyle(fontSize: 14, color: Colors.black),
+            style: const TextStyle(
+                fontSize: 14, height: Brand.leadSm, color: Colors.black),
           ),
         ],
       ),
@@ -383,12 +399,16 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
                 children: [
                   Expanded(
                     child: Text('${item.quantity} ${item.name}',
-                        style:
-                            const TextStyle(fontSize: 14, color: Colors.black)),
+                        style: const TextStyle(
+                            fontSize: 14,
+                            height: Brand.leadSm,
+                            color: Colors.black)),
                   ),
                   Text(rupees(item.price * item.quantity),
-                      style:
-                          const TextStyle(fontSize: 14, color: Colors.black)),
+                      style: const TextStyle(
+                          fontSize: 14,
+                          height: Brand.leadSm,
+                          color: Colors.black)),
                 ],
               ),
             ),
@@ -397,6 +417,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
             'Total Price: ${rupees(order.totalAmount)}',
             style: const TextStyle(
               fontSize: 14,
+              height: Brand.leadSm,
               fontWeight: FontWeight.w600,
               color: Brand.purple,
             ),
@@ -438,6 +459,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
                   paid ? 'Paid' : 'Collect ${rupees(b.total)}',
                   style: TextStyle(
                     fontSize: 12,
+                    height: Brand.leadXs,
                     fontWeight: FontWeight.bold,
                     color: paid
                         ? const Color(0xFF15803D)
@@ -452,7 +474,8 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
             order.paymentMethod.isEmpty
                 ? 'Cash on Delivery'
                 : order.paymentMethod,
-            style: const TextStyle(fontSize: 12, color: Brand.gray500),
+            style: const TextStyle(
+                fontSize: 12, height: Brand.leadXs, color: Brand.gray500),
           ),
           const SizedBox(height: 12),
           _money('Items Subtotal', rupees(b.subtotal)),
@@ -483,6 +506,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
             label,
             style: TextStyle(
               fontSize: 14,
+              height: Brand.leadSm,
               fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
               color: bold ? Colors.black : Brand.gray600,
             ),
@@ -491,6 +515,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
             value,
             style: TextStyle(
               fontSize: 14,
+              height: Brand.leadSm,
               fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
               color: valueColour ?? Colors.black,
             ),
@@ -509,7 +534,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
               label: order.redeliveryScheduled
                   ? 'Start Redelivery'
                   : 'Start Delivery',
-              height: 48,
+              height: 42, // py-3 around text-base at 12px
               radius: Brand.rXl,
               busy: _working,
               onPressed: _working ? null : _startDelivery,
@@ -518,7 +543,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: SizedBox(
-              height: 48,
+              height: 42, // py-3 around text-base at 12px
               child: OutlinedButton(
                 onPressed: _working ? null : _cancelDelivery,
                 style: OutlinedButton.styleFrom(
@@ -532,7 +557,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
                   'Cancel Delivery',
                   style: TextStyle(
                     fontFamily: Brand.heading,
-                    fontSize: 16,
+                    fontSize: Brand.buttonText, // <button>
                     fontWeight: FontWeight.w600,
                     color: Brand.red600,
                   ),
@@ -549,7 +574,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
         children: [
           Expanded(
             child: SizedBox(
-              height: 48,
+              height: 42, // py-3 around text-base at 12px
               child: ElevatedButton(
                 onPressed: _working ? null : _delivered,
                 style: ElevatedButton.styleFrom(
@@ -564,7 +589,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
                   'Order Delivered',
                   style: TextStyle(
                       fontFamily: Brand.heading,
-                      fontSize: 16,
+                      fontSize: Brand.buttonText, // <button>
                       fontWeight: FontWeight.w600),
                 ),
               ),
@@ -573,7 +598,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: SizedBox(
-              height: 48,
+              height: 42, // py-3 around text-base at 12px
               child: ElevatedButton(
                 onPressed: _working ? null : _notDelivered,
                 style: ElevatedButton.styleFrom(
@@ -588,7 +613,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
                   'Not Delivered',
                   style: TextStyle(
                       fontFamily: Brand.heading,
-                      fontSize: 16,
+                      fontSize: Brand.buttonText, // <button>
                       fontWeight: FontWeight.w600),
                 ),
               ),
@@ -599,6 +624,8 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
     }
 
     return Container(
+      // A <div>, not a <button>, so text-base really is 16 here and the line
+      // box is 24: py-3 makes it 48.
       height: 48,
       alignment: Alignment.center,
       decoration: BoxDecoration(
@@ -609,7 +636,7 @@ class _DeliveryDetailsScreenState extends State<DeliveryDetailsScreen> {
         order.status == 'delivered' ? 'Delivered' : 'Completed',
         style: const TextStyle(
           fontFamily: Brand.heading,
-          fontSize: 16,
+          fontSize: 16, // text-base on a div
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
@@ -668,8 +695,8 @@ class _FailureDialogState extends State<_FailureDialog> {
               'Delivery Failure Reason',
               style: TextStyle(
                 fontFamily: Brand.heading,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
+                fontSize: Brand.h3, // <h3>
+                fontWeight: FontWeight.w500,
                 color: Colors.black,
               ),
             ),

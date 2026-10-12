@@ -20,9 +20,10 @@ class LegalBody extends StatelessWidget {
             if (section.heading != null) ...[
               Text(
                 section.heading!,
+                // <h2 class="text-lg font-bold">
                 style: const TextStyle(
                   fontFamily: 'Montserrat',
-                  fontSize: 17,
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -31,9 +32,10 @@ class LegalBody extends StatelessWidget {
             for (final paragraph in section.paragraphs) ...[
               Text(
                 paragraph,
+                // <p class="text-sm leading-relaxed">
                 style: const TextStyle(
-                  fontSize: 13.5,
-                  height: 1.6,
+                  fontSize: 14,
+                  height: 1.625,
                   color: Color(0xFF1F2937),
                 ),
               ),
