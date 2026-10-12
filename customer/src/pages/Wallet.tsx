@@ -251,7 +251,14 @@ const Wallet = () => {
 
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-4 sm:p-6 shadow-lg flex items-center justify-between gap-4 border-2 border-green-200 hover:shadow-xl transition-shadow">
           <p className="text-gray-800 text-sm sm:text-base flex-1 font-medium">Invite a friend to Urban Steam.</p>
-          <button className="bg-gradient-to-r from-blue-500 to-blue-700 p-2 rounded-full shadow-md hover:shadow-lg transition-shadow flex-shrink-0">
+          {/* This had no handler at all, so the button did nothing. Refer & Earn
+              is where the customer's own code is loaded and shared from, rather
+              than fetching and sharing it from two places. */}
+          <button
+            onClick={() => navigate('/refer-earn')}
+            aria-label="Invite a friend to Urban Steam"
+            className="bg-gradient-to-r from-blue-500 to-blue-700 p-2 rounded-full shadow-md hover:shadow-lg transition-shadow flex-shrink-0"
+          >
             <Share2 className="w-5 h-5 text-white" />
           </button>
         </div>

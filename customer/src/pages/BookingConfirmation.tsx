@@ -24,6 +24,26 @@ const BookingConfirmation = () => {
   // going ahead charged them a cancellation fee on a completed order.
   const isFinished = ['delivered', 'cancelled'].includes(String(status).toLowerCase());
 
+  // How this order was actually paid for, rather than whichever card or UPI id
+  // happens to be marked primary on the profile. An order settled entirely from
+  // the wallet was showing "UPI", and one split between the two showed only the
+  // UPI side.
+  const walletPaid = Math.round(Number(orderData.walletUsed) || 0);
+  const onlinePaid = Math.round(Number(orderData.paidOnline) || 0);
+  const onlineMethod =
+    orderData.paymentMethod && orderData.paymentMethod !== 'Wallet'
+      ? orderData.paymentMethod
+      : orderData.customerInfo?.paymentMethods?.find(
+          (pm: { isPrimary?: boolean; type?: string }) => pm.isPrimary
+        )?.type || 'Cash on Delivery';
+
+  const paymentMethodLabel =
+    walletPaid > 0 && onlinePaid > 0
+      ? `Urban Steam Wallet ₹${walletPaid} + ${onlineMethod} ₹${onlinePaid}`
+      : walletPaid > 0
+        ? 'Urban Steam Wallet'
+        : onlineMethod;
+
   useEffect(() => {
     fetchCancellationCharges();
   }, []);
@@ -42,7 +62,9 @@ const BookingConfirmation = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 bg-background border-b border-border px-4 sm:px-6 py-4 flex items-center">
-        <button onClick={() => navigate(-1)} className="flex-shrink-0" aria-label="Go back">
+        {/* Home, not back. The order is placed; stepping back from here used to
+            return to the cart it was paid from, where it could be paid again. */}
+        <button onClick={() => navigate('/home', { replace: true })} className="flex-shrink-0" aria-label="Go back">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
         <h1 className="text-lg sm:text-xl font-bold ml-3 sm:ml-4">Order Confirmed</h1>
@@ -120,7 +142,7 @@ const BookingConfirmation = () => {
             </div>
             <div className="flex justify-between items-start gap-3">
               <span className="text-muted-foreground text-sm sm:text-base">Payment Method:</span>
-              <span className="font-semibold text-sm sm:text-base">{orderData.customerInfo?.paymentMethods?.find((pm: { isPrimary?: boolean; type?: string }) => pm.isPrimary)?.type || 'Cash on Delivery'}</span>
+              <span className="font-semibold text-sm sm:text-base text-right">{paymentMethodLabel}</span>
             </div>
             <div className="flex justify-between items-start gap-3">
               <span className="text-muted-foreground text-sm sm:text-base">Payment Status:</span>

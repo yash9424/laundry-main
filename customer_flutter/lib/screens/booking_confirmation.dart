@@ -25,6 +25,24 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
   String get _items => (widget.args['items'] ?? '').toString();
   String get _status => (widget.args['status'] ?? 'Pending').toString();
 
+  /// How this order was actually paid for, rather than whichever card or UPI id
+  /// happens to be marked primary on the profile -- an order settled entirely
+  /// from the wallet was being labelled "UPI".
+  String get _paymentMethodLabel {
+    final wallet = _amount('walletUsed').round();
+    final online = _amount('paidOnline').round();
+    final method = (widget.args['paymentMethod'] ?? '').toString();
+    final onlineMethod = (method.isEmpty || method == 'Wallet')
+        ? 'Cash on Delivery'
+        : method;
+
+    if (wallet > 0 && online > 0) {
+      return 'Urban Steam Wallet ₹$wallet + $onlineMethod ₹$online';
+    }
+    if (wallet > 0) return 'Urban Steam Wallet';
+    return onlineMethod;
+  }
+
   num _amount(String key) =>
       num.tryParse(widget.args[key]?.toString() ?? '') ?? 0;
 
@@ -284,6 +302,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                   _row('Paid from Wallet:', rupees(_amount('walletUsed'))),
                 if (_amount('paidOnline') > 0)
                   _row('Paid Online:', rupees(_amount('paidOnline'))),
+                _row('Payment Method:', _paymentMethodLabel),
                 _row('Status:', _status, valueColor: Brand.purple),
                 _row('Payment Status:', 'Paid', valueColor: Brand.green600),
               ],

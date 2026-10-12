@@ -21,7 +21,7 @@ const ContinueBooking = () => {
   // Check if coming from cart
   const isFromCart = orderData.cartItems && Array.isArray(orderData.cartItems);
   
-  const [discount, setDiscount] = useState(0);
+
   const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
   const [couponError, setCouponError] = useState("");
   // Offers are listed here so a voucher can be applied with one tap instead of
@@ -85,6 +85,15 @@ const ContinueBooking = () => {
   const pickupDateForOrder = orderData.pickupDate
     ? new Date(orderData.pickupDate)
     : new Date(Date.now() + (orderData.pickupType === 'now' ? 0 : 24 * 60 * 60 * 1000));
+
+  // Worked out from the voucher and the items total every time, rather than
+  // stored when the coupon was applied. The stored figure went stale: the
+  // catalogue re-prices the cart after the screen opens, so a coupon applied
+  // first was still discounting the old total when the order was placed.
+  // The percentage comes off the garments, not off dues or the express fee.
+  const discount = appliedVoucher
+    ? Math.floor((totalAmount * Number(appliedVoucher.discount || 0)) / 100)
+    : 0;
 
   const grandTotal = totalAmount + expressDeliveryFee + dueAmount;
   const amountAfterDiscount = grandTotal - discount;
@@ -202,7 +211,6 @@ const ContinueBooking = () => {
   
   const removeVoucher = () => {
     setAppliedVoucher(null);
-    setDiscount(0);
     setCouponError("");
     setShowOffersSheet(false);
   };
@@ -233,7 +241,6 @@ const ContinueBooking = () => {
         
         if (alreadyUsed) {
           setCouponError("You have already used this coupon");
-          setDiscount(0);
           setAppliedVoucher(null);
           return;
         }
@@ -246,13 +253,10 @@ const ContinueBooking = () => {
         const voucher = data.data.find((v: any) => v.code === code && v.isActive);
         
         if (voucher) {
-          const discountAmount = Math.floor((totalAmount * voucher.discount) / 100);
-          setDiscount(discountAmount);
           setAppliedVoucher(voucher);
           setCouponError("");
         } else {
           setCouponError("Invalid or inactive coupon code");
-          setDiscount(0);
           setAppliedVoucher(null);
         }
       }
@@ -688,10 +692,15 @@ const ContinueBooking = () => {
                       selectedSlot: orderData.selectedSlot,
                       address: orderData.address,
                       paymentStatus: 'Paid',
+                      paymentMethod: 'Wallet',
                       expressDelivery: expressDelivery,
                       expressDeliveryFee: expressDeliveryFee,
                       expectedDeliveryAt: result.data.expectedDeliveryAt
-                    }
+                    },
+                    // Replace, so the checkout this order came from is gone from
+                    // history. Going back to it let the same cart be paid for a
+                    // second time.
+                    replace: true
                   });
                 } else {
                   alert('Failed to place order. Please try again.');
@@ -793,10 +802,12 @@ const ContinueBooking = () => {
                             selectedSlot: orderData.selectedSlot,
                             address: orderData.address,
                             paymentStatus: 'Paid',
+                            paymentMethod: paymentMethod,
                             expressDelivery: expressDelivery,
                             expressDeliveryFee: expressDeliveryFee,
                             expectedDeliveryAt: placeOrderResult.data.expectedDeliveryAt
-                          }
+                          },
+                          replace: true
                         });
                       } else {
                         alert('Payment successful but order placement failed. Please contact support.');

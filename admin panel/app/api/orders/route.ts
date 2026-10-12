@@ -15,6 +15,57 @@ export async function POST(request: NextRequest) {
     
     const orderData = await request.json()
 
+    // An order that has just been placed is not placed again.
+    //
+    // The checkout screen keeps the cart in the router's history entry, so
+    // going back to it after paying brought the whole cart back and the pay
+    // button worked a second time -- a second order for the same clothes, and
+    // the wallet debited twice. The app no longer allows that, but the apps
+    // already installed on people's phones still do, and they cannot be fixed
+    // from here. So the guard lives on this side, where every build reaches it.
+    //
+    // The match has to be exact -- same customer, same money, same garments --
+    // and within a couple of minutes. The existing order is returned as a
+    // success rather than an error, so an old build simply lands on the
+    // confirmation screen for the order it already has.
+    if (orderData.customerId) {
+      const since = new Date(Date.now() - 2 * 60 * 1000)
+      const signature = JSON.stringify(
+        (orderData.items || []).map((item: any) => [
+          String(item?.name ?? ''),
+          Number(item?.quantity) || 0,
+          Number(item?.price) || 0,
+        ])
+      )
+
+      const recent = await Order.find({
+        customerId: orderData.customerId,
+        totalAmount: orderData.totalAmount,
+        status: { $ne: 'cancelled' },
+        createdAt: { $gte: since },
+      }).sort({ createdAt: -1 }).limit(5)
+
+      const duplicate = recent.find((existing: any) => {
+        const existingSignature = JSON.stringify(
+          (existing.items || []).map((item: any) => [
+            String(item?.name ?? ''),
+            Number(item?.quantity) || 0,
+            Number(item?.price) || 0,
+          ])
+        )
+        return existingSignature === signature
+      })
+
+      if (duplicate) {
+        console.log(`Duplicate order suppressed for customer ${orderData.customerId}; returning ${duplicate.orderId}`)
+        return NextResponse.json({
+          success: true,
+          data: duplicate,
+          duplicate: true,
+        })
+      }
+    }
+
     // Generate unique 5-character alphanumeric order ID
     // Order numbering. Sequential is off by default so nothing changes until the
     // admin turns it on and picks a starting number.

@@ -114,8 +114,15 @@ const AppContent = () => {
         // kept losing the app mid-order instead of stepping back one screen.
         const exitPages = ['/home'];
 
+        // An order that has been placed is done. Stepping back from the
+        // confirmation used to land on the cart it was paid from, where paying
+        // again created a second order for the same clothes.
+        const homePages = ['/booking-confirmation'];
+
         if (exitPages.includes(currentPath)) {
           CapApp.exitApp();
+        } else if (homePages.includes(currentPath)) {
+          navigate('/home', { replace: true });
         } else if (canGoBack) {
           navigate(-1);
         } else {

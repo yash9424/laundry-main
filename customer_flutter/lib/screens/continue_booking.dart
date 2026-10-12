@@ -43,7 +43,6 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
   List<Voucher> _vouchers = [];
 
   Voucher? _appliedVoucher;
-  num _discount = 0;
   String _couponError = '';
 
   bool _expressDelivery = false;
@@ -72,6 +71,16 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
   num get _expressFee => _expressDelivery ? _charges.expressPrice : 0;
 
   num get _grandTotal => _itemsTotal + _expressFee + _dueAmount;
+  /// Worked out from the voucher and the items total every time, rather than
+  /// stored when the coupon was applied. The stored figure went stale: the
+  /// catalogue re-prices the cart after the screen opens, so a coupon applied
+  /// first was still discounting the old total when the order was placed.
+  /// The percentage comes off the garments, never off the due or the express
+  /// fee.
+  num get _discount => _appliedVoucher == null
+      ? 0
+      : (_itemsTotal * _appliedVoucher!.discount / 100).floor();
+
   num get _amountAfterDiscount => _grandTotal - _discount;
   num get _walletUsed => _walletBalance < _amountAfterDiscount
       ? _walletBalance
@@ -174,7 +183,6 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
   void _removeVoucher() {
     setState(() {
       _appliedVoucher = null;
-      _discount = 0;
       _couponError = '';
     });
   }
@@ -202,7 +210,6 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
       if (used.contains(trimmed)) {
         setState(() {
           _couponError = 'You have already used this coupon';
-          _discount = 0;
           _appliedVoucher = null;
         });
         return;
@@ -228,12 +235,8 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
     setState(() {
       if (match == null) {
         _couponError = 'Invalid or inactive coupon code';
-        _discount = 0;
         _appliedVoucher = null;
       } else {
-        // The discount is a percentage of the garments only, never of the due
-        // or the express fee.
-        _discount = (_itemsTotal * match.discount / 100).floor();
         _appliedVoucher = match;
         _couponError = '';
       }
@@ -795,7 +798,7 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
       if (!mounted) return;
       setState(() => _placing = false);
       if (created.ok) {
-        await _onPlaced(created, paidOnline: 0);
+        await _onPlaced(created, paidOnline: 0, paymentMethod: 'Wallet');
       } else {
         showToast(context, 'Failed to place order. Please try again.',
             error: true);
@@ -832,7 +835,8 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
     setState(() => _placing = false);
 
     if (created.ok) {
-      await _onPlaced(created, paidOnline: _finalAmount);
+      await _onPlaced(created,
+          paidOnline: _finalAmount, paymentMethod: primary.type);
     } else {
       // The money has left their account, so this cannot be a quiet failure.
       showToast(
@@ -844,7 +848,11 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
     }
   }
 
-  Future<void> _onPlaced(ApiResult created, {required num paidOnline}) async {
+  Future<void> _onPlaced(
+    ApiResult created, {
+    required num paidOnline,
+    required String paymentMethod,
+  }) async {
     await Cart.clear();
     if (!mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil(
@@ -859,6 +867,7 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
         'walletUsed': _walletUsed,
         'previousDue': _dueAmount,
         'paidOnline': paidOnline,
+        'paymentMethod': paymentMethod,
         'voucherCode': _appliedVoucher?.code,
         'selectedSlot': _draft?.selectedSlot,
         'pickupDayLabel': _draft?.pickupDayLabel,
