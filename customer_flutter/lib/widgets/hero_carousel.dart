@@ -5,6 +5,7 @@ import 'package:video_player/video_player.dart';
 
 import '../models/catalogue.dart';
 import '../theme/brand.dart';
+import 'remote_image.dart';
 
 /// The banner carousel at the top of the home screen: swipeable, auto-advancing
 /// every four seconds, and pausing for six seconds after a touch so it does not
@@ -143,10 +144,13 @@ class _Slide extends StatelessWidget {
         if (item.isVideo)
           _HeroVideo(url: item.url)
         else
-          Image.network(
-            item.url,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const ColoredBox(
+          // The banners run to several megabytes, so this shows a shimmer
+          // while one downloads instead of an empty panel, and decodes it at
+          // the width it is actually drawn.
+          RemoteImage(
+            url: item.url,
+            decodeWidth: MediaQuery.sizeOf(context).width,
+            fallback: const ColoredBox(
               color: Color(0xFFE5E7EB),
               child: Center(
                 child: Icon(Icons.image_not_supported_outlined,

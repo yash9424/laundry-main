@@ -10,6 +10,7 @@ import '../services/api.dart';
 import '../services/notifications.dart';
 import '../services/store.dart';
 import '../theme/brand.dart';
+import '../widgets/remote_image.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
 
@@ -544,10 +545,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return fallback();
       }
     } else {
-      picture = Image.network(
-        absoluteUrl(image) ?? '',
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => fallback(),
+      picture = RemoteImage(
+        url: absoluteUrl(image),
+        decodeWidth: 48,
+        fallback: fallback(),
       );
     }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/catalogue.dart';
 import '../services/api.dart';
 import '../theme/brand.dart';
+import '../widgets/remote_image.dart';
 import '../widgets/common.dart';
 import '../widgets/plan_card.dart';
 
@@ -163,10 +164,10 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     ? const Center(
                         child: Text('\u{1F48E}',
                             style: TextStyle(fontSize: 24)))
-                    : Image.network(
-                        plan.image!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Center(
+                    : RemoteImage(
+                        url: plan.image,
+                        decodeWidth: 64,
+                        fallback: const Center(
                           child: Text('\u{1F48E}',
                               style: TextStyle(fontSize: 24)),
                         ),

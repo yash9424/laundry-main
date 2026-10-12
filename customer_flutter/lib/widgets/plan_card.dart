@@ -7,6 +7,7 @@ import '../services/api.dart';
 import '../services/payments.dart';
 import '../services/store.dart';
 import '../theme/brand.dart';
+import 'remote_image.dart';
 import 'common.dart';
 
 /// The wallet top-up carousel on the home screen.
@@ -214,10 +215,10 @@ class _PlanSlide extends StatelessWidget {
                           ? const Center(
                               child: Text('\u{1F48E}',
                                   style: TextStyle(fontSize: 24)))
-                          : Image.network(
-                              plan.image!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Center(
+                          : RemoteImage(
+                              url: plan.image,
+                              decodeWidth: 54,
+                              fallback: const Center(
                                 child: Text('\u{1F48E}',
                                     style: TextStyle(fontSize: 24)),
                               ),
@@ -465,11 +466,11 @@ class _PlanSheetState extends State<_PlanSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (plan.image != null)
-              Image.network(
-                plan.image!,
+              RemoteImage(
+                url: plan.image,
                 height: 180,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const _PlanSheetBanner(),
+                decodeWidth: MediaQuery.sizeOf(context).width,
+                fallback: const _PlanSheetBanner(),
               )
             else
               const _PlanSheetBanner(),

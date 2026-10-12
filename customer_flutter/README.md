@@ -116,6 +116,42 @@ Worth knowing for the next person: the emulator and a Gradle build do not fit
 in memory together on this machine -- run `./android/gradlew --stop` before
 starting the emulator, and never build while it is running.
 
+## Pictures off the server
+
+Every remote picture goes through `widgets/remote_image.dart` rather than
+`Image.network` directly, and new code should keep doing that.
+
+`Image.network` draws nothing at all while it is downloading. The banners the
+admin uploads are not small -- the ones in production today run from 190 KB to
+4.6 MB -- so the home screen opened as an empty panel and filled in seconds
+later, which reads as a broken page rather than a loading one. The whole app
+looked unfinished because of it. `RemoteImage` shows a quiet shimmer in the
+meantime, fades the picture in, and falls back to something sensible if the
+download fails.
+
+It also caps the decode size. A 4.6 MB screenshot decoded at full resolution
+costs tens of megabytes for a banner a few hundred pixels wide, which on a
+mid-range phone is enough on its own to make the home screen stutter.
+
+The upstream fix is to stop serving multi-megabyte PNGs as banners -- the admin
+upload route does not resize anything (CLAUDE.md 9.1 notes it does not even
+check the file type). Until that changes, this keeps it from looking broken.
+
+## A difference left in place
+
+On eight screens -- Welcome, Check Availability, Congrats, Not Available,
+Create Profile, Verify Mobile, and the two checkout steps -- the web app's
+content sits about 38 logical pixels lower than this port's.
+
+That is not a mistake here. Those pages carry a `safe-top` class, which adds
+`env(safe-area-inset-top)` as padding, but the WebView already begins below the
+status bar because Capacitor runs with `overlaysWebView: false`. The inset is
+applied twice and the content is pushed down by a status bar for no reason.
+
+It is reproducible if an exact match matters more than the layout being right;
+it is left alone because nobody sees the two side by side, and the port's
+version is the one that is correct.
+
 ## What is deliberately different from the web app
 
 Everything else is a faithful port. These are the exceptions, each for a reason:

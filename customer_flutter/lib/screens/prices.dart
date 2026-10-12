@@ -5,6 +5,7 @@ import '../models/order_charges.dart';
 import '../services/api.dart';
 import '../services/cart.dart';
 import '../theme/brand.dart';
+import '../widgets/remote_image.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
 import '../widgets/lucide.dart';
@@ -224,14 +225,16 @@ class _PricesScreenState extends State<PricesScreen> {
                                           size: 86, color: Colors.white70),
                                     ),
                                   )
-                                : Image.network(
-                                    item.image!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => ColoredBox(
-                                      color: Color(0xFFF3F4F6),
+                                : RemoteImage(
+                                    url: item.image,
+                                    decodeWidth:
+                                        MediaQuery.sizeOf(context).width,
+                                    fallback: ColoredBox(
+                                      color: const Color(0xFFF3F4F6),
                                       child: Center(
                                         child: Lucide.shirt(
-                                            size: 64, color: Color(0xFFC4B5FD)),
+                                            size: 64,
+                                            color: const Color(0xFFC4B5FD)),
                                       ),
                                     ),
                                   ),
@@ -635,11 +638,10 @@ class _PricesScreenState extends State<PricesScreen> {
                 ),
                 child: image == null
                     ? Icon(icon, color: Colors.white, size: 22)
-                    : Image.network(
-                        image,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            Icon(icon, color: Brand.purple, size: 22),
+                    : RemoteImage(
+                        url: image,
+                        decodeWidth: 56,
+                        fallback: Icon(icon, color: Brand.purple, size: 22),
                       ),
               ),
               const SizedBox(height: 10),
@@ -761,12 +763,12 @@ class _PricesScreenState extends State<PricesScreen> {
                           child: Lucide.shirt(
                               size: 32, color: Color(0xFFC4B5FD)),
                         )
-                      : Image.network(
-                          item.image!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Center(
+                      : RemoteImage(
+                          url: item.image,
+                          decodeWidth: 96,
+                          fallback: Center(
                             child: Lucide.shirt(
-                                size: 32, color: Color(0xFFC4B5FD)),
+                                size: 32, color: const Color(0xFFC4B5FD)),
                           ),
                         ),
                 ),

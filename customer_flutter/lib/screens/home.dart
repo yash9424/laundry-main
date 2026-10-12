@@ -9,6 +9,7 @@ import '../models/order_charges.dart';
 import '../services/api.dart';
 import '../services/store.dart';
 import '../theme/brand.dart';
+import '../widgets/remote_image.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
 import '../widgets/hero_carousel.dart';
@@ -253,11 +254,10 @@ class _HomeScreenState extends State<HomeScreen> {
         return const Icon(Icons.person, color: Colors.white, size: 16);
       }
     }
-    return Image.network(
-      absoluteUrl(image) ?? '',
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) =>
-          const Icon(Icons.person, color: Colors.white, size: 16),
+    return RemoteImage(
+      url: absoluteUrl(image),
+      decodeWidth: 36,
+      fallback: const Icon(Icons.person, color: Colors.white, size: 16),
     );
   }
 

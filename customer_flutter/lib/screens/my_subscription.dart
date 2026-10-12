@@ -5,6 +5,7 @@ import '../models/catalogue.dart';
 import '../services/api.dart';
 import '../services/store.dart';
 import '../theme/brand.dart';
+import '../widgets/remote_image.dart';
 import '../widgets/common.dart';
 
 class _Subscription {
@@ -188,10 +189,10 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
                     ? const Center(
                         child: Text('\u{1F48E}',
                             style: TextStyle(fontSize: 22)))
-                    : Image.network(
-                        subscription.image!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Center(
+                    : RemoteImage(
+                        url: subscription.image,
+                        decodeWidth: 56,
+                        fallback: const Center(
                           child: Text('\u{1F48E}',
                               style: TextStyle(fontSize: 22)),
                         ),
