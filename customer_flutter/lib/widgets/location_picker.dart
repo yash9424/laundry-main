@@ -119,12 +119,13 @@ class _LocationPickerState extends State<LocationPicker> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(Brand.r2xl),
         boxShadow: const [
+          // shadow-lg
           BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 12,
-            offset: Offset(0, 4),
+            color: Color(0x1A000000),
+            blurRadius: 15,
+            offset: Offset(0, 10),
           ),
         ],
       ),
@@ -133,13 +134,18 @@ class _LocationPickerState extends State<LocationPicker> {
         children: [
           const Row(
             children: [
-              Icon(Icons.location_on, size: 17, color: Brand.purple),
-              SizedBox(width: 8),
+              Icon(
+                Icons.location_on,
+                size: 16, // w-4 h-4
+                color: Brand.purple,
+              ),
+              SizedBox(width: 8), // gap-2
               Text(
                 'Pin your exact location',
+                // <h3 class="text-base font-bold">
                 style: TextStyle(
                   fontFamily: 'Montserrat',
-                  fontSize: 15.5,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -149,13 +155,18 @@ class _LocationPickerState extends State<LocationPicker> {
           const Text(
             'Tap or drag the pin to your door. This is the point your captain '
             'will navigate to.',
-            style: TextStyle(fontSize: 12, color: Brand.gray600, height: 1.5),
+            style: TextStyle(fontSize: 12, color: Brand.gray600, height: 4 / 3),
           ),
           const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: SizedBox(
-              height: 220,
+          Container(
+            height: 224, // h-56
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(Brand.rXl), // rounded-xl
+              border: Border.all(color: Brand.gray200),
+              color: Brand.gray100,
+            ),
+            child: SizedBox.expand(
               child: FlutterMap(
                 mapController: _map,
                 options: MapOptions(
@@ -205,7 +216,7 @@ class _LocationPickerState extends State<LocationPicker> {
               _error,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 11.5,
+                fontSize: 11,
                 color: Brand.destructive,
                 height: 1.4,
               ),
@@ -215,13 +226,13 @@ class _LocationPickerState extends State<LocationPicker> {
               'Pinned at ${pin.latitude.toStringAsFixed(5)}, '
               '${pin.longitude.toStringAsFixed(5)}',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 11.5, color: Color(0xFF15803D)),
+              style: const TextStyle(fontSize: 11, color: Brand.green700),
             )
           else
             const Text(
               'No pin set yet — your captain will only have the typed address.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11.5, color: Brand.mutedForeground),
+              style: TextStyle(fontSize: 11, color: Brand.gray500),
             ),
         ],
       ),

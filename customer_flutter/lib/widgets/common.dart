@@ -399,6 +399,125 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
+/// `border-2 border-dashed`, which Flutter's own borders cannot draw.
+class DashedBorderPainter extends CustomPainter {
+  const DashedBorderPainter({
+    required this.color,
+    required this.radius,
+    required this.strokeWidth,
+  });
+
+  final Color color;
+  final double radius;
+  final double strokeWidth;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        strokeWidth / 2,
+        strokeWidth / 2,
+        size.width - strokeWidth,
+        size.height - strokeWidth,
+      ),
+      Radius.circular(radius),
+    );
+
+    const dash = 6.0;
+    const gap = 4.0;
+    for (final metric in (Path()..addRRect(rect)).computeMetrics()) {
+      var distance = 0.0;
+      while (distance < metric.length) {
+        final next = (distance + dash).clamp(0.0, metric.length);
+        canvas.drawPath(metric.extractPath(distance, next), paint);
+        distance = next + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant DashedBorderPainter old) =>
+      old.color != color || old.radius != radius;
+}
+
+/// The banner the Booking and Add Address screens show in place of an alert:
+/// a wide pill pinned near the top of the page, green when something worked
+/// and red when it did not.
+///
+/// `fixed top-4 left-1/2 -translate-x-1/2`, so it returns a [Positioned] and
+/// belongs directly inside a [Stack].
+class TopToast extends StatelessWidget {
+  const TopToast({
+    super.key,
+    required this.message,
+    required this.error,
+    required this.onClose,
+  });
+
+  final String message;
+  final bool error;
+  final VoidCallback onClose;
+
+  /// `shadow-2xl`.
+  static const _shadow = [
+    BoxShadow(color: Color(0x40000000), blurRadius: 50, offset: Offset(0, 25)),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 16, // top-4
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(minWidth: 300), // min-w-[300px]
+          padding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 16,
+          ), // px-6 py-4
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: error
+                  ? const [Brand.red500, Brand.red600]
+                  : const [Brand.green500, Brand.green600],
+            ),
+            borderRadius: BorderRadius.circular(Brand.r2xl),
+            boxShadow: _shadow,
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.error_outline, size: 24, color: Colors.white),
+              const SizedBox(width: 12), // gap-3
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: onClose,
+                behavior: HitTestBehavior.opaque,
+                child: const Icon(Icons.close, size: 20, color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// A one-line message, used where the web app called alert().
 void showToast(BuildContext context, String message, {bool error = false}) {
   if (!context.mounted) return;

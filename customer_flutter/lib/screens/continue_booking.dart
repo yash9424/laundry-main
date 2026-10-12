@@ -903,7 +903,7 @@ class _ContinueBookingScreenState extends State<ContinueBookingScreen> {
         'paymentMethod': paymentMethod,
         'voucherCode': _appliedVoucher?.code,
         'selectedSlot': _draft?.selectedSlot,
-        'pickupDayLabel': _draft?.pickupDayLabel,
+        'pickupType': _draft?.pickupType,
         'expressDelivery': _expressDelivery,
         'expressDeliveryFee': _expressFee,
         'expectedDeliveryAt': created.map['expectedDeliveryAt']?.toString(),

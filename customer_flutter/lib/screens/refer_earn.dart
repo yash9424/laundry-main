@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../services/api.dart';
 import '../services/store.dart';
 import '../theme/brand.dart';
+import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
 
 class _Referral {
@@ -148,6 +149,8 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
     return Scaffold(
       backgroundColor: Brand.gray50,
       appBar: const AppHeader(title: 'Refer & Earn', gradient: true),
+      // This screen carries its own bar too, a size up from the wallet's.
+      bottomNavigationBar: const LegacyBottomNav.referEarn(),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 24), // px-4 py-6
         children: [

@@ -218,17 +218,19 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                 child: AvatarPicker(dataUrl: _profileImage, onTap: _pick),
               ),
               const SizedBox(height: 16), // mb-4
-              _field(_name, 'Full Name'),
+              _field(_name, 'Full Name', Icons.person_outline),
               const SizedBox(height: 12), // space-y-3
               _field(
                 _email,
                 'Email Address',
+                Icons.mail_outline,
                 keyboard: TextInputType.emailAddress,
               ),
               const SizedBox(height: 12),
               _field(
                 _phone,
                 'Mobile Number',
+                Icons.phone_outlined,
                 keyboard: TextInputType.number,
                 formatters: [
                   FilteringTextInputFormatter.digitsOnly,
@@ -395,13 +397,13 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     );
   }
 
-  /// `h-10 rounded-xl border-2 border-blue-500 text-sm` with `pl-10` left
-  /// padding. The web screen also places an icon in that gap, but the input's
-  /// own white background paints over it, so nothing is actually visible --
-  /// the padding is reproduced, the invisible icon is not.
+  /// `h-10 rounded-xl border-2 border-blue-500 text-sm`, with a 16px blue icon
+  /// sitting in the `pl-10` gap. The icon is an absolutely positioned sibling
+  /// of the input, so it paints over the input's own white background.
   Widget _field(
     TextEditingController controller,
-    String hint, {
+    String hint,
+    IconData? icon, {
     TextInputType? keyboard,
     List<TextInputFormatter>? formatters,
   }) {
@@ -417,12 +419,23 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           hintText: hint,
           counterText: '',
           isDense: false,
-          contentPadding: const EdgeInsets.only(
-            left: 40,
+          // The icon occupies the first 40px, so the text starts after it.
+          prefixIcon: icon == null
+              ? null
+              : Padding(
+                  padding: const EdgeInsets.only(left: 12, right: 12), // left-3
+                  child: Icon(icon, size: 16, color: Brand.blue500), // w-4 h-4
+                ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 0,
+            minHeight: 0,
+          ),
+          contentPadding: EdgeInsets.only(
+            left: icon == null ? 12 : 0, // px-3 when there is no icon
             right: 12,
             top: 10,
             bottom: 10,
-          ), // pl-10
+          ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Brand.rXl),
             borderSide: const BorderSide(color: Brand.blue500, width: 2),

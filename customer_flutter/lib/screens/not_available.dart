@@ -37,7 +37,7 @@ class NotAvailableScreen extends StatelessWidget {
                       fontSize: 24, // text-2xl
                       fontWeight: FontWeight.w700,
                       color: Brand.foreground,
-                      height: 1.3,
+                      height: 4 / 3, // text-2xl -> 24/32
                     ),
                   ),
                   const SizedBox(height: 16), // mb-4
@@ -49,7 +49,7 @@ class NotAvailableScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14, // text-sm
                         color: Brand.mutedForeground,
-                        height: 1.5,
+                        height: 10 / 7, // text-sm -> 14/20
                       ),
                     ),
                   ),
@@ -59,7 +59,10 @@ class NotAvailableScreen extends StatelessWidget {
                     height: 44,
                     radius: Brand.r2xl,
                     fontSize: 16,
-                    onPressed: () => Navigator.of(context).pop(),
+                    // The web screen navigates rather than going back, so the
+                    // pincode field opens empty.
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed('/check-availability'),
                   ),
                   const SizedBox(height: 16), // space-y-4
                   GestureDetector(
@@ -69,6 +72,7 @@ class NotAvailableScreen extends StatelessWidget {
                     child: const Text(
                       'Back to Home',
                       style: TextStyle(
+                        fontFamily: Brand.heading, // a <button>
                         color: Brand.mutedForeground,
                         fontSize: 14,
                       ),

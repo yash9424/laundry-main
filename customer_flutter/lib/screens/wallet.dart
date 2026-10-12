@@ -123,14 +123,18 @@ class _WalletScreenState extends State<WalletScreen> {
       // The web screen carried its own copy of the nav bar whose middle button
       // went to the legacy booking page; this uses the one every other screen
       // uses, so the cart button goes to the cart.
-      bottomNavigationBar: const AppBottomNav(current: '/wallet'),
+      // This screen carries its own bar rather than the shared one: no
+      // labels, a smaller blue cart button, and the profile icon lit. Its
+      // middle button goes to the legacy `/booking` screen, which is where the
+      // Capacitor build sends it.
+      bottomNavigationBar: const LegacyBottomNav.wallet(),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: Brand.purple))
           : RefreshIndicator(
               onRefresh: () => _load(refresh: true),
               color: Brand.purple,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 24), // px-4 py-6
                 children: [
                   _balanceCard(),
                   if (_due > 0) ...[const SizedBox(height: 20), _dueCard()],
@@ -193,22 +197,30 @@ class _WalletScreenState extends State<WalletScreen> {
                               child: Text(
                                 'Invite a friend to Urban Steam.',
                                 style: TextStyle(
-                                  fontSize: 14.5,
+                                  fontSize: 14, // text-sm
                                   fontWeight: FontWeight.w500,
                                   color: Color(0xFF1F2937),
                                 ),
                               ),
                             ),
                             Container(
-                              height: 38,
-                              width: 38,
+                              // `p-2` around a `w-5 h-5` icon, in the blue
+                              // pair this screen uses rather than the brand
+                              // gradient.
+                              height: 36,
+                              width: 36,
                               decoration: const BoxDecoration(
-                                gradient: Brand.gradient,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color(0xFF3B82F6),
+                                    Color(0xFF1D4ED8),
+                                  ],
+                                ),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
                                 Icons.share,
-                                size: 18,
+                                size: 20, // w-5 h-5
                                 color: Colors.white,
                               ),
                             ),

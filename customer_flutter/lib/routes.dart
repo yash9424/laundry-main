@@ -4,6 +4,7 @@ import 'models/checkout.dart';
 
 import 'screens/check_availability.dart';
 import 'screens/add_address.dart';
+import 'screens/booking.dart';
 import 'screens/booking_confirmation.dart';
 import 'screens/booking_history.dart';
 import 'screens/cart.dart';
@@ -64,6 +65,10 @@ class AppRoutes {
           return const PricesScreen();
         case '/cart':
           return const CartScreen();
+        case '/booking':
+          // The legacy booking screen, still reachable from the Wallet and
+          // Refer & Earn bars.
+          return const BookingScreen();
         case '/pickup-checklist':
           return PickupChecklistScreen(
             draft: CheckoutDraft.fromArguments(args),

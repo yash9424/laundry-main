@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import '../content/legal.dart';
 
 /// Renders a list of legal sections: bold heading, then its paragraphs.
+///
+/// The page is `px-4 py-6 space-y-6`, each section a `<h2 class="text-lg
+/// font-bold mb-2">` over paragraphs that sit `space-y-2` apart. `space-y`
+/// puts a gap *between* children and none after the last, so the spacing is
+/// written that way here rather than as trailing padding.
 class LegalBody extends StatelessWidget {
   const LegalBody({super.key, required this.sections, this.padding});
 
@@ -12,14 +17,15 @@ class LegalBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: padding ?? const EdgeInsets.fromLTRB(16, 20, 16, 28),
+      padding: padding ?? const EdgeInsets.fromLTRB(16, 24, 16, 24), // py-6
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final section in sections) ...[
-            if (section.heading != null) ...[
+          for (var s = 0; s < sections.length; s++) ...[
+            if (s > 0) const SizedBox(height: 24), // space-y-6
+            if (sections[s].heading != null) ...[
               Text(
-                section.heading!,
+                sections[s].heading!,
                 // <h2 class="text-lg font-bold">
                 style: const TextStyle(
                   fontFamily: 'Montserrat',
@@ -27,11 +33,12 @@ class LegalBody extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 8), // mb-2
             ],
-            for (final paragraph in section.paragraphs) ...[
+            for (var p = 0; p < sections[s].paragraphs.length; p++) ...[
+              if (p > 0) const SizedBox(height: 8), // space-y-2
               Text(
-                paragraph,
+                sections[s].paragraphs[p],
                 // <p class="text-sm leading-relaxed">
                 style: const TextStyle(
                   fontSize: 14,
@@ -39,9 +46,7 @@ class LegalBody extends StatelessWidget {
                   color: Color(0xFF1F2937),
                 ),
               ),
-              const SizedBox(height: 8),
             ],
-            const SizedBox(height: 14),
           ],
         ],
       ),

@@ -200,6 +200,35 @@ a sweep of the screens the first pass had not reached turned up three more.
   `bg-gray-300 text-gray-500` there, not the faded gradient the rest of the app
   uses -- the one button in the app that does this.
 
+## The third pass: the screens and bars that were still missing
+
+- **The legacy `/booking` screen was not here at all.** "Book Your Order" is
+  the screen the app booked on before the catalogue and the cart, and nothing
+  in the live flow points at it -- but the bottom bars on Wallet and Refer &
+  Earn still do, so a customer can land on it. `lib/screens/booking.dart` is a
+  port of it, bugs included: the clock that greys out passed slots cannot read
+  minutes, so "10:00 AM - 12:00 PM" is never treated as having gone.
+- **Wallet and Refer & Earn carry their own bottom bars.** Neither uses the
+  shared one: the icons have no labels, the middle button is blue and goes to
+  `/booking`, the profile icon is lit whatever the route, and the two copies
+  are not even the same size as each other. `LegacyBottomNav` takes both sets
+  of measurements.
+- **Notifications was a different screen.** The web app draws an emoji per
+  order status, a four-pixel blue bar down the left of anything unread, a
+  trash button beside the timestamp and a blue dot under the message, and it
+  carries the bottom bar. It also offers an "Enable Notifications" card when
+  the system permission is missing, which this port now asks for and shows.
+- **The blue icons inside the profile fields are real.** They are absolutely
+  positioned siblings of the input, and CSS paints positioned elements after
+  in-flow ones -- so they sit on top of the input's white background rather
+  than behind it. Create Profile and Edit Profile were drawing the `pl-10` gap
+  with nothing in it.
+- **Add Address was a form of labelled boxes.** The web screen lists the saved
+  addresses with a red Delete on each, hides the form behind a dashed
+  "+ Add New Address" button, and uses pill-shaped inputs with placeholders in
+  the order Line 1, Line 2, City, State, Pincode -- then a round Primary radio
+  and a fixed footer with Cancel beside Save Address.
+
 ## What is deliberately different from the web app
 
 Everything else is a faithful port. These are the exceptions, each for a reason:
@@ -219,23 +248,22 @@ Everything else is a faithful port. These are the exceptions, each for a reason:
    the Google Maps JavaScript API, which needs billing enabled on the Google
    Cloud project; until that is switched on it shows an error and no map. The
    coordinates it produces are the same latitude/longitude the captain's app
-   navigates to. Switch to `google_maps_flutter` once billing is on, if wanted.
-5. **The wallet screen uses the shared bottom bar.** The web screen carried its
-   own copy whose middle button went to the legacy `/booking` page.
-6. **Addresses are saved as objects, not re-parsed from their display text.**
+   navigates to, and the card is the same card -- but it says "Tap or drag the
+   pin", because tapping is how this map sets it. Switch to
+   `google_maps_flutter` once billing is on, if wanted.
+5. **Addresses are saved as objects, not re-parsed from their display text.**
    The web screen rebuilt them by splitting strings, which dropped the
    dropped-pin coordinates and mangled any city containing a comma.
-7. **The order uses the address marked as default**, not whichever happens to
+6. **The order uses the address marked as default**, not whichever happens to
    be first in the list. The web screen always sent `address[0]` as the pickup
    address, so a customer who marked their second address as the default still
    had the first one collected from.
-8. **The splash never waits on the animation.** Two timers that nothing can
+7. **The splash never waits on the animation.** Two timers that nothing can
    cancel open the app whatever the animation does. This is the bug that made
    the 2.3.3 Capacitor build refuse to open on some phones.
-9. **The confirmation names the day the customer picked.** The web screen says
-   "Today" or "Tomorrow" from a `pickupType` flag that only ever holds those
-   two, so a pickup booked for Wednesday was confirmed as "Tomorrow". This one
-   prints the day that was actually chosen.
+8. **Saving an address returns to the screen it was opened from.** The web
+   screen always navigates to Profile afterwards, so adding an address in the
+   middle of checkout dropped the customer out of it.
 
 ## The one thing that cannot be avoided
 

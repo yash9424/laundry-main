@@ -19,7 +19,7 @@ Future<String?> pickProfilePhoto(BuildContext context) async {
     builder: (sheetContext) => SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 32), // p-6 pb-8
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -29,30 +29,34 @@ Future<String?> pickProfilePhoto(BuildContext context) async {
                 const Expanded(
                   child: Text(
                     'Select Photo',
+                    // <h3 class="text-lg font-semibold">
                     style: TextStyle(
                       fontFamily: 'Montserrat',
-                      fontSize: 17,
+                      fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(sheetContext).pop(),
+                GestureDetector(
+                  onTap: () => Navigator.of(sheetContext).pop(),
+                  behavior: HitTestBehavior.opaque,
+                  child: const Icon(Icons.close, size: 20), // w-5 h-5
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 16), // mb-4
             _option(
               sheetContext,
               Icons.photo_camera_outlined,
               'Take Photo',
               ImageSource.camera,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12), // space-y-3
             _option(
               sheetContext,
-              Icons.photo_library_outlined,
+              // The web screen's gallery option carries the User icon, not a
+              // picture one. Odd, but it is what the shipped app shows.
+              Icons.person_outline,
               'Choose from Gallery',
               ImageSource.gallery,
             ),
@@ -92,18 +96,18 @@ Widget _option(
   ImageSource source,
 ) {
   return Material(
-    color: const Color(0xFFF9FAFB),
-    borderRadius: BorderRadius.circular(14),
+    color: const Color(0xFFF9FAFB), // bg-gray-50
+    borderRadius: BorderRadius.circular(Brand.rXl), // rounded-xl
     child: InkWell(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(Brand.rXl),
       onTap: () => Navigator.of(context).pop(source),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.all(16), // p-4
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFF3B82F6)),
-            const SizedBox(width: 12),
-            Text(label, style: const TextStyle(fontSize: 15)),
+            Icon(icon, size: 20, color: Brand.blue500), // w-5 h-5
+            const SizedBox(width: 12), // gap-3
+            Text(label, style: const TextStyle(fontSize: 16)),
           ],
         ),
       ),

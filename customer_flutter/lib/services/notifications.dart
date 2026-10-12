@@ -212,6 +212,47 @@ class Notifications {
     _ready = true;
   }
 
+  // ---- permission --------------------------------------------------------
+
+  /// Whether the system will show a notification if one is posted. The
+  /// notifications screen asks before offering its "Enable Notifications"
+  /// card, as the web screen asks `LocalNotifications.checkPermissions()`.
+  ///
+  /// Deliberately does not go through `_ensureReady`, which asks for the
+  /// permission as a side effect; this is only a question.
+  Future<bool> permissionGranted() async {
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (android != null) return await android.areNotificationsEnabled() ?? true;
+    // iOS asks at launch and cannot be asked again from inside the app, so
+    // there is nothing to offer there.
+    return true;
+  }
+
+  /// Asks for the permission, returning whether it was given. Android stops
+  /// showing the dialog after two refusals and simply answers no.
+  Future<bool> requestPermission() async {
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (android != null) {
+      return await android.requestNotificationsPermission() ?? false;
+    }
+    final ios = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
+    return await ios?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        ) ??
+        false;
+  }
+
   // ---- lifecycle ---------------------------------------------------------
 
   /// Starts (or restarts) watching for the customer who is signed in now.

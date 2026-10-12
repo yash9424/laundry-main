@@ -118,3 +118,112 @@ class AppBottomNav extends StatelessWidget {
     );
   }
 }
+
+/// Wallet and Refer & Earn do not use the shared bar: each has its own copy
+/// inline, with no labels, a blue cart button instead of the brand gradient,
+/// the profile icon lit whatever the route, and a middle button that goes to
+/// the **legacy** `/booking` screen rather than the cart. The two copies are
+/// not even the same size as each other, which is why this takes the
+/// measurements.
+class LegacyBottomNav extends StatelessWidget {
+  const LegacyBottomNav({
+    super.key,
+    required this.iconSize,
+    required this.circleSize,
+    required this.cartSize,
+    required this.padding,
+  });
+
+  /// Wallet's: `px-2 py-2`, `w-5 h-5` icons, a `w-8 h-8` button.
+  const LegacyBottomNav.wallet({super.key})
+      : iconSize = 20,
+        circleSize = 32,
+        cartSize = 16,
+        padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
+
+  /// Refer & Earn's: `px-4 py-4`, `w-6 h-6` icons, a `w-10 h-10` button.
+  const LegacyBottomNav.referEarn({super.key})
+      : iconSize = 24,
+        circleSize = 40,
+        cartSize = 20,
+        padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 16);
+
+  final double iconSize;
+  final double circleSize;
+  final double cartSize;
+  final EdgeInsets padding;
+
+  static const _grey = Color(0xFF9CA3AF);
+  static const _blue = Color(0xFF3B82F6);
+  static const _blue700 = Color(0xFF1D4ED8);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Brand.border)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x26000000),
+            blurRadius: 25,
+            offset: Offset(0, -12),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: padding,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _item(context, Icons.home_outlined, '/home'),
+              _item(context, Icons.local_offer_outlined, '/prices'),
+              _cart(context),
+              _item(context, Icons.rotate_left, '/booking-history'),
+              _item(context, Icons.person_outline, '/profile', lit: true),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _item(BuildContext context, IconData icon, String route,
+      {bool lit = false}) {
+    return InkResponse(
+      onTap: () => Navigator.of(context).pushNamed(route),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Icon(icon, size: iconSize, color: lit ? _blue : _grey),
+      ),
+    );
+  }
+
+  Widget _cart(BuildContext context) {
+    return InkResponse(
+      onTap: () => Navigator.of(context).pushNamed('/booking'),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Container(
+          height: circleSize,
+          width: circleSize,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [_blue, _blue700]),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1F000000),
+                blurRadius: 15,
+                offset: Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Icon(Icons.shopping_cart, size: cartSize, color: Colors.white),
+        ),
+      ),
+    );
+  }
+}

@@ -226,7 +226,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
   @override
   Widget build(BuildContext context) {
     final slot = (widget.args['selectedSlot'] ?? '').toString();
-    final dayLabel = (widget.args['pickupDayLabel'] ?? '').toString();
+    final pickupType = (widget.args['pickupType'] ?? '').toString();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -284,11 +284,12 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
           ),
           const SizedBox(height: 2),
           Text(
-            // The day the customer actually picked, rather than guessing at
-            // today or tomorrow as the old screen did.
+            // `pickupType === 'now' ? 'Today' : 'Tomorrow'`, which is what the
+            // Capacitor build prints -- so a slot booked for Wednesday is
+            // confirmed as "Tomorrow". Kept to match it.
             'Pickup scheduled for '
-            '${dayLabel.isNotEmpty ? dayLabel : 'your selected day'}'
-            '${slot.isEmpty ? '' : ', $slot'}.',
+            '${pickupType == 'now' ? 'Today' : 'Tomorrow'}'
+            ', ${slot.isEmpty ? '9-11 AM' : slot}.',
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 14, // text-sm
