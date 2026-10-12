@@ -119,34 +119,34 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: Brand.purple))
           : _subscriptions.isEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
+          ? Padding(
+              // `text-align: center; padding: 3rem 1rem` -- near the top of
+              // the page, not centred in what is left of it.
+              padding: const EdgeInsets.fromLTRB(16, 48, 16, 48),
+              // `text-align: center` centres each line across the whole page,
+              // not around the widest of them, so the column has to be told to
+              // take the full width.
+              child: SizedBox(
+                width: double.infinity,
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('\u{1F48E}', style: TextStyle(fontSize: 48)),
-                    const SizedBox(height: 14),
+                    const Text('\u{1F4CB}', style: TextStyle(fontSize: 48)),
+                    const SizedBox(height: 12), // 0.75rem
                     const Text(
-                      'No wallet plans yet',
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      'No subscriptions yet.',
+                      style: TextStyle(color: Color(0xFF64748B)),
                     ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Top up your wallet and get more to spend.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Brand.mutedForeground),
-                    ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16), // 1rem
                     SizedBox(
-                      width: 220,
+                      // `padding: 0.75rem 1.5rem` around the label, so the
+                      // button is only as wide as its text.
+                      width: 152,
+                      height: 44,
                       child: GradientButton(
-                        label: 'See the plans',
-                        height: 48,
+                        label: 'Browse Plans',
+                        radius: 12,
+                        fontWeight: FontWeight.w700,
                         onPressed: () => Navigator.of(
                           context,
                         ).pushReplacementNamed('/subscriptions'),

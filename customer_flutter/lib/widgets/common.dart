@@ -11,7 +11,9 @@ enum DisabledLook {
   /// A flat `#9ca3af`, which the profile and cart screens set inline.
   flatGrey,
 
-  /// shadcn's `disabled:bg-gray-300`, which Rate Your Order asks for.
+  /// `bg-gray-300`, which Rate Your Order and the slot screen ask for. The
+  /// slot screen also greys the label; Rate Your Order leaves it white, so the
+  /// colour is passed separately.
   flatGrey300,
 }
 
@@ -31,6 +33,7 @@ class GradientButton extends StatelessWidget {
     this.fontSize = 16,
     this.fontWeight = FontWeight.w600,
     this.disabledLook = DisabledLook.fadedGradient,
+    this.disabledLabelColour,
     this.shadow = true,
   });
 
@@ -43,12 +46,19 @@ class GradientButton extends StatelessWidget {
   final double fontSize;
   final FontWeight fontWeight;
   final DisabledLook disabledLook;
+
+  /// What the label turns when the button is disabled. White unless a screen
+  /// says otherwise -- the slot screen's `bg-gray-300 text-gray-500` does.
+  final Color? disabledLabelColour;
   final bool shadow;
 
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null && !busy;
     final faded = !enabled && disabledLook == DisabledLook.fadedGradient;
+    final labelColour = enabled || disabledLabelColour == null
+        ? Colors.white
+        : disabledLabelColour!;
 
     final body = SizedBox(
       height: height,
@@ -92,13 +102,13 @@ class GradientButton extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         if (icon != null) ...[
-                          Icon(icon, size: fontSize + 2, color: Colors.white),
+                          Icon(icon, size: fontSize + 2, color: labelColour),
                           const SizedBox(width: 8),
                         ],
                         Text(
                           label,
                           style: TextStyle(
-                            color: Colors.white,
+                            color: labelColour,
                             fontSize: fontSize,
                             fontWeight: fontWeight,
                             fontFamily: Brand.heading,

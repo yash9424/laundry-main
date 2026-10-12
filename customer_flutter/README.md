@@ -186,6 +186,19 @@ a sweep of the screens the first pass had not reached turned up three more.
 - **The garment icon.** Booking History and Rate Your Order were drawing
   Material's `dry_cleaning` where the web uses lucide's `Shirt`, which
   `lib/widgets/lucide.dart` already carries for the other screens.
+- **Wallet Plans was a list.** The web screen is a hero band, a sideways strip
+  of every plan, and the selected one opened out underneath with its picture,
+  what it is worth and what it buys. My Wallet Plans' empty state had its own
+  wording and a diamond where the web has a clipboard and "No subscriptions
+  yet."
+- **Order Confirmed had Status and Payment Method the wrong way round**, and
+  painted Order Total and Status in the brand purple where the markup asks for
+  `text-primary`, which this app defines as `#0080ff`. Its rows also split the
+  width evenly, so a six-item order wrapped onto two lines when
+  `justify-between` would have fitted it on one.
+- **The slot screen's Confirm Order greys out differently.** It is
+  `bg-gray-300 text-gray-500` there, not the faded gradient the rest of the app
+  uses -- the one button in the app that does this.
 
 ## What is deliberately different from the web app
 
@@ -219,6 +232,10 @@ Everything else is a faithful port. These are the exceptions, each for a reason:
 8. **The splash never waits on the animation.** Two timers that nothing can
    cancel open the app whatever the animation does. This is the bug that made
    the 2.3.3 Capacitor build refuse to open on some phones.
+9. **The confirmation names the day the customer picked.** The web screen says
+   "Today" or "Tomorrow" from a `pickupType` flag that only ever holds those
+   two, so a pickup booked for Wednesday was confirmed as "Tomorrow". This one
+   prints the day that was actually chosen.
 
 ## The one thing that cannot be avoided
 

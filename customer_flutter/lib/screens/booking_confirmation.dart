@@ -241,8 +241,9 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
         children: [
           Center(
             child: Container(
-              height: 104,
-              width: 104,
+              // w-24 h-24
+              height: 96,
+              width: 96,
               decoration: BoxDecoration(
                 gradient: Brand.gradient,
                 shape: BoxShape.circle,
@@ -256,7 +257,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
               ),
               child: const Icon(
                 Icons.check_circle_outline,
-                size: 54,
+                size: 48, // w-12 h-12
                 color: Colors.white,
               ),
             ),
@@ -277,7 +278,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
             'Order #$_orderId has been placed successfully.',
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 14.5,
+              fontSize: 14, // text-sm
               color: Brand.mutedForeground,
             ),
           ),
@@ -290,7 +291,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
             '${slot.isEmpty ? '' : ', $slot'}.',
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 14.5,
+              fontSize: 14, // text-sm
               color: Brand.mutedForeground,
             ),
           ),
@@ -325,15 +326,16 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                 _row(
                   'Order Total:',
                   rupees(_amount('total')),
-                  valueColor: Brand.purple,
+                  valueColor: Brand.primary, // text-primary
                   bold: true,
                 ),
                 if (_amount('walletUsed') > 0)
                   _row('Paid from Wallet:', rupees(_amount('walletUsed'))),
                 if (_amount('paidOnline') > 0)
                   _row('Paid Online:', rupees(_amount('paidOnline'))),
+                // Status comes before the payment method in the markup.
+                _row('Status:', _status, valueColor: Brand.primary),
                 _row('Payment Method:', _paymentMethodLabel),
-                _row('Status:', _status, valueColor: Brand.purple),
                 _row('Payment Status:', 'Paid', valueColor: Brand.green600),
               ],
             ),
@@ -420,26 +422,27 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
     bool bold = false,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 8), // space-y-2
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14.5,
-                color: Brand.mutedForeground,
-              ),
+          // `justify-between`: the label is only as wide as its words, and
+          // the value gets everything else -- otherwise a long item list
+          // wraps when it does not have to.
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14, // text-sm
+              color: Brand.mutedForeground,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 12), // gap-3
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.right,
               style: TextStyle(
-                fontSize: bold ? 16 : 14.5,
+                fontSize: bold ? 16 : 14, // text-base / text-sm
                 fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
                 color: valueColor,
               ),

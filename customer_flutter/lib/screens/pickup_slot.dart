@@ -469,6 +469,11 @@ class _PickupSlotScreenState extends State<PickupSlotScreen> {
                     label: 'Confirm Order - ${rupees(_orderTotal)}',
                     height: 50,
                     radius: 16,
+                    // `bg-gray-300 text-gray-500` when it cannot be pressed --
+                    // a flat grey, not the faded gradient the other screens
+                    // use.
+                    disabledLook: DisabledLook.flatGrey300,
+                    disabledLabelColour: const Color(0xFF6B7280),
                     onPressed: _canConfirm ? _confirm : null,
                   ),
                   if (_selectedSlot.isNotEmpty && !_garmentConfirmed)
