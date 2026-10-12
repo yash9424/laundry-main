@@ -184,7 +184,7 @@ All routes are unauthenticated (see 9.1). CORS is `*` for `/api/*` via `middlewa
 | Route | Notes |
 |---|---|
 | `GET /api/orders` | `?customerId=`, `?partnerId=`, `?hub=<name>`. With no filter it returns **every order**, populated with customer/partner name + mobile + email. Both mobile apps call it unfiltered — see 9.1. |
-| `POST /api/orders` | Creates the order. Generates `orderId`, assigns a hub by pickup pincode, applies `walletUsed`, clears dues, records the voucher, awards points. **Only whitelisted fields are copied** — anything else the client sends is dropped (this is why express is lost, 9.2). |
+| `POST /api/orders` | Creates the order. Generates `orderId`, assigns a hub by pickup pincode, applies `walletUsed`, clears dues, records the voucher, pays any referral. **Only whitelisted fields are copied** — anything else the client sends is dropped. It also **refuses a duplicate**: an identical order (same customer, same `totalAmount`, same items) placed within two minutes returns the existing one with `duplicate: true` rather than creating a second. That guard is what protects the builds already on people's phones, which can still send the same order twice. |
 | `GET/PATCH/DELETE /api/orders/[id]` | Accepts `orderId` or `_id`. PATCH `$set`s **whatever JSON you send** with `runValidators:false`, and contains the cancellation-fee and delivery-failure-fee logic. This is the single most important backend file. |
 | `POST /api/orders/[id]/review` | Customer rating. |
 | `POST /api/orders/[id]/refund` | Exists but the admin UI does NOT use it (9.2). |
@@ -285,11 +285,18 @@ Same wallet-then-due deduction.
 **Dues.** `customer.dueAmount` is added to the next order's total and cleared when that
 order is paid. Admin can clear it via the refund flow or `/api/customers/[id]/clear-dues`.
 
-**Points.** `WalletSettings.orderCompletionPoints` are awarded in `POST /api/orders`
-(on creation) **and again** on the `delivered` PATCH — points and `totalOrders` are
-double counted today (9.2). Referral: a new customer enters a code at profile creation
-(`referredBy`); on their first order the referrer gets `referralPoints` and the new user gets
-`signupBonusPoints`, and the code is marked used.
+**Points are no longer part of the product.** Every points field in `WalletSettings`
+(`pointsPerRupee`, `orderCompletionPoints`, `referralPoints`, `signupBonusPoints`,
+`minRedeemPoints`) reads 0 in production, `/api/customers/[id]/adjust` refuses anything but
+`type: 'balance'`, and no points are shown anywhere in the customer app. The fields are still
+on the model, so don't assume they are safe to remove.
+
+**Referral.** A new customer enters a code at profile creation (`referredBy`). The payout
+happens on their **first order**, in `POST /api/orders`, and it is **wallet credit, not
+points**: the referrer gets `WalletSettings.referralRewardAmount` (Rs.50) and the new customer
+gets `referredUserRewardAmount` (Rs.30), each with a `WalletTransaction` row. The code is
+marked used *before* the money moves, so a retry cannot pay twice. Paying on the first order
+rather than at sign-up means the business has gained a paying customer first.
 
 **Vouchers.** Percentage-only, no expiry or minimum. Validated client-side. Marked used in
 `Customer.usedVouchers` when the order is paid — and also when the customer taps "Copy Code"
@@ -432,10 +439,6 @@ Ask the owner before "fixing" anything here; some of it is load-bearing.
 - Full Aadhaar and bank account numbers are shown unmasked on the admin partner page.
 
 ### 9.2 Money and data correctness
-- **Express delivery is never saved.** The customer app sends `expressDelivery` and
-  `expressDeliveryFee`, but `POST /api/orders` doesn't copy them onto the Order, so the fee is
-  charged (it's inside `totalAmount`) while the "⚡ Express" badges in the admin and partner
-  apps never appear. Fix = whitelist both fields in `orders/route.ts`.
 - **Order points are awarded twice** — once on creation, once on `delivered`. `totalOrders`
   is incremented twice too.
 - **Wallet point redemption applies twice** (`Wallet.tsx` writes the new balance with PATCH,

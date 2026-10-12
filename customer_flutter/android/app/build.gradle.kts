@@ -44,7 +44,7 @@ android {
         minSdk = flutter.minSdkVersion
         targetSdk = 35
         // The Capacitor build shipped 15 / 2.3.3, so this has to be higher.
-        versionCode = 16
+        versionCode = 17
         versionName = "2.4.0"
     }
 
