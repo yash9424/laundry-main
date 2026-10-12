@@ -1,0 +1,83 @@
+name: partnerapp
+description: "Urban Steam Captain - the delivery partner app."
+publish_to: 'none'
+
+# Not the Android versionCode/versionName: those are set in
+# android/app/build.gradle.kts, because they have to line up with the published
+# Capacitor build (17 / 1.0.17) rather than with this file.
+version: 1.1.0+18
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Networking, and the stand-in for the WebView's localStorage
+  http: ^1.2.2
+  shared_preferences: ^2.3.3
+
+  # Google sign-in, the one social login the captain app offers
+  google_sign_in: ^6.2.2
+
+  # Pickup photos and KYC documents
+  image_picker: ^1.1.2
+
+  # The nav icons and the two big illustrations are the web app's own SVGs
+  flutter_svg: ^2.0.10
+
+  # Order polling turns into a local notification, same as the Capacitor build
+  flutter_local_notifications: ^17.2.4
+
+  # Calling the customer, and handing an address to the maps app
+  url_launcher: ^6.3.1
+
+  # The address map is a Google Maps embed in an iframe, the same as
+  # LeafletMap.tsx; a webview is what holds it.
+  webview_flutter: ^4.10.0
+  # Needed directly: granting the embedded map page permission to read the
+  # device location is an Android-only call on the platform controller.
+  webview_flutter_android: ^4.12.0
+
+  # Live navigation: where the captain is, against where they are going
+  geolocator: ^13.0.2
+
+  intl: ^0.19.0
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+
+  fonts:
+    - family: Montserrat
+      fonts:
+        - asset: assets/fonts/Montserrat-Regular.ttf
+        - asset: assets/fonts/Montserrat-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Montserrat-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Montserrat-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Montserrat-ExtraBold.ttf
+          weight: 800
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Regular.ttf
+        - asset: assets/fonts/Manrope-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Manrope-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Manrope-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Manrope-ExtraBold.ttf
+          weight: 800

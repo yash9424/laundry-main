@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The brand gradient behind the mark. The foreground is now transparent
+     outside the mark, so this is what colours the icon. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="45"
+        android:startColor="#452D9B"
+        android:endColor="#07C8D0" />
+</shape>
