@@ -11,7 +11,7 @@ class CongratsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Brand.background,
-      body: SafeArea(
+      body: QuirkSafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16), // px-4

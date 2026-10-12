@@ -47,7 +47,7 @@ class _CheckAvailabilityScreenState extends State<CheckAvailabilityScreen> {
         centred: true,
         showBack: false,
       ),
-      body: SafeArea(
+      body: QuirkSafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16),

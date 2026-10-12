@@ -198,7 +198,7 @@ class _VerifyMobileScreenState extends State<VerifyMobileScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const PageHeader('Verify Mobile'),
-      body: SafeArea(
+      body: QuirkSafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16), // px-4

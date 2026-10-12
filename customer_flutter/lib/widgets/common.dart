@@ -380,3 +380,34 @@ void showToast(BuildContext context, String message, {bool error = false}) {
 
 /// Formats money the way every screen prints it.
 String rupees(num amount) => '₹${amount.round()}';
+
+/// SafeArea, plus the extra top inset the web app gives a handful of screens.
+///
+/// Welcome, Check Availability, Congrats, Not Available, Create Profile and
+/// Verify Mobile all carry a `safe-top` class in the web app, which adds
+/// `env(safe-area-inset-top)` as padding. The WebView already begins below the
+/// status bar, because Capacitor runs with `overlaysWebView: false`, so the
+/// inset lands twice and the content sits a status bar lower than it otherwise
+/// would. It is a quirk rather than a decision, but it is where customers are
+/// used to seeing these screens, so the port matches it.
+///
+/// `viewPadding` rather than `padding`, because the app-level SafeArea in
+/// main.dart has already consumed the latter by the time a screen builds.
+class QuirkSafeArea extends StatelessWidget {
+  const QuirkSafeArea({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    // Read the inset off the window rather than the inherited MediaQuery: the
+    // app-level SafeArea in main.dart has already removed it from both
+    // `padding` and `viewPadding` by the time a screen builds, so asking the
+    // context would give zero and nothing would move.
+    final statusBar = MediaQueryData.fromView(View.of(context)).padding.top;
+    return Padding(
+      padding: EdgeInsets.only(top: statusBar),
+      child: SafeArea(child: child),
+    );
+  }
+}

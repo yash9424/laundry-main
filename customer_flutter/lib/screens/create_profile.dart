@@ -206,7 +206,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const PageHeader('Create Profile'),
-      body: SafeArea(
+      body: QuirkSafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 32), // px-4 py-4
           child: Column(

@@ -137,20 +137,25 @@ The upstream fix is to stop serving multi-megabyte PNGs as banners -- the admin
 upload route does not resize anything (CLAUDE.md 9.1 notes it does not even
 check the file type). Until that changes, this keeps it from looking broken.
 
-## A difference left in place
+## The vertical offset on the sign-up screens
 
-On eight screens -- Welcome, Check Availability, Congrats, Not Available,
-Create Profile, Verify Mobile, and the two checkout steps -- the web app's
-content sits about 38 logical pixels lower than this port's.
+Welcome, Check Availability, Congrats, Not Available, Create Profile and
+Verify Mobile carry a `safe-top` class in the web app, which adds
+`env(safe-area-inset-top)` as padding on top of a WebView that already begins
+below the status bar. Those six screens use `QuirkSafeArea` here so the same
+padding lands in the same place.
 
-That is not a mistake here. Those pages carry a `safe-top` class, which adds
-`env(safe-area-inset-top)` as padding, but the WebView already begins below the
-status bar because Capacitor runs with `overlaysWebView: false`. The inset is
-applied twice and the content is pushed down by a status bar for no reason.
+It does not close the gap entirely, and the rest is not padding. The shipped
+app leaves the status bar invisible on its pre-login screens -- there is no
+clock or battery drawn over them -- so the page has the whole screen to centre
+itself in and sits a little lower. After sign-in the status bar comes back and
+the two line up. Hiding the status bar is not reproduced: it would be copying
+a fault rather than a design, and it only shows on screens nobody sees side by
+side.
 
-It is reproducible if an exact match matters more than the layout being right;
-it is left alone because nobody sees the two side by side, and the port's
-version is the one that is correct.
+Worth knowing when reading `QuirkSafeArea`: padding a centred layout moves its
+contents by half the padding, not all of it, because the centre of what is
+left also moves. The web behaves the same way, which is the point.
 
 ## What is deliberately different from the web app
 
