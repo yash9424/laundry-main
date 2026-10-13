@@ -165,7 +165,8 @@ export default function OrderDetails() {
   const fetchOrderDetails = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/orders/${orderId}`)
+      // This screen shows the pickup photos, so it is the one caller that asks.
+      const response = await fetch(`/api/orders/${orderId}?includePhotos=1`)
       const data = await response.json()
       
       if (data.success) {

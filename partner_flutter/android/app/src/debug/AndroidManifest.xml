@@ -4,4 +4,10 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Debug builds only, so the release APK is untouched: a debug build may
+         talk to a backend over plain http, which is how the app is run against
+         `npm run dev` on a development machine (http://10.0.2.2:3000 from an
+         emulator). Android blocks cleartext by default from targetSdk 28. -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>

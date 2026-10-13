@@ -13,4 +13,7 @@ const ReviewSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 })
 
+// Looked up by order whenever a rating is submitted or shown.
+ReviewSchema.index({ orderId: 1 })
+
 export default mongoose.models.Review || mongoose.model('Review', ReviewSchema)

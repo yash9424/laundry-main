@@ -401,14 +401,17 @@ export async function GET(request: NextRequest) {
     // the Captain app then re-fetched every 10 seconds. Nothing reads photos from
     // the list — only the admin order detail screen does, and that calls
     // /api/orders/[id], which still returns them.
+    // `lean()` because every one of these is serialised straight to JSON: the
+    // full Mongoose documents were being hydrated -- getters, setters, change
+    // tracking, the lot -- for every order on every poll, and nothing here ever
+    // uses a document method.
     const orders = await Order.find(query)
       .select('-pickupPhotos')
       .populate('customerId', 'name mobile email')
       .populate('partnerId', 'name mobile email')
       .populate('hub', 'name address contactPerson contactNumber')
       .sort({ createdAt: -1 })
-    
-    console.log('Orders found:', orders.length)
+      .lean()
     
     return NextResponse.json({
       success: true,

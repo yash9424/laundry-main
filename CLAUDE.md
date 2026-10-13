@@ -445,6 +445,11 @@ Captain app. Read `partner_flutter/README.md` first; the short version:
 - Uploaded images/videos go to `admin panel/public/uploads/` on the server's disk. They are
   **not in git** and are not backed up by a redeploy — don't wipe that folder.
 - Single PM2 instance matters: the OTP store is in-process memory. Clustering would break login.
+- **Performance:** both apps poll hard (customer every 2s per phone, Captain every 10s and
+  twice over), and the database had no indexes until 2026-10-13, so every poll was a full
+  collection scan. `VPS-PERFORMANCE.md` has the diagnosis, what was changed, and the
+  commands to run when the CPU climbs. `admin panel/scripts/create-indexes.js` applies the
+  indexes to a running server without a deploy (it only adds indexes -- safe to re-run).
 
 ### 8.7 Secrets already in git (do not add more)
 `partner/partner-release-key.keystore`, `partner/partner-release-key-new.keystore`,

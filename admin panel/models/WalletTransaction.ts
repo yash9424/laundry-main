@@ -12,4 +12,7 @@ const WalletTransactionSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 })
 
+// The wallet screen asks for one customer's rows, newest first.
+WalletTransactionSchema.index({ customerId: 1, createdAt: -1 })
+
 export default mongoose.models.WalletTransaction || mongoose.model('WalletTransaction', WalletTransactionSchema)

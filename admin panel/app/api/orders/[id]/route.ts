@@ -33,14 +33,23 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     Partner // Ensure Partner model is registered
     Customer // Ensure Customer model is registered
     
+    // The pickup photos are base64 data URLs kept inside the document, so an
+    // order with them runs to about 600 KB. The customer app re-reads this
+    // route every five seconds while a customer watches their order, and it
+    // never shows a photo -- only the admin order detail screen does, and it
+    // asks for them with `?includePhotos=1`. The Captain app only ever writes
+    // them. So they are left out unless someone wants them.
+    const includePhotos = request.nextUrl.searchParams.get('includePhotos') === '1'
+    const projection = includePhotos ? {} : { pickupPhotos: 0 }
+
     // Try to find by orderId first, then by _id
-    let order = await Order.findOne({ orderId: id })
+    let order = await Order.findOne({ orderId: id }, projection)
       .populate('customerId', 'name mobile email address')
       .populate('partnerId', 'name mobile email')
       .populate('hub', 'name address contactPerson contactNumber')
     
     if (!order) {
-      order = await Order.findById(id)
+      order = await Order.findById(id, projection)
         .populate('customerId', 'name mobile email address')
         .populate('partnerId', 'name mobile email')
         .populate('hub', 'name address contactPerson contactNumber')

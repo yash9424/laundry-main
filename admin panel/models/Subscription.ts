@@ -12,4 +12,7 @@ const SubscriptionSchema = new mongoose.Schema({
   purchasedAt: { type: Date, default: Date.now }
 })
 
+// My Wallet Plans asks for one customer's purchases.
+SubscriptionSchema.index({ customerId: 1, createdAt: -1 })
+
 export default mongoose.models.Subscription || mongoose.model('Subscription', SubscriptionSchema)

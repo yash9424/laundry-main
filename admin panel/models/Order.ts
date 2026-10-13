@@ -110,4 +110,16 @@ const OrderSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 })
 
+// The collection the whole system reads. Both apps poll it -- the customer
+// app every two seconds per signed-in phone, the Captain app every ten -- and
+// without these every one of those was a full scan of every order ever placed,
+// followed by an in-memory sort. That is what pins the server's CPU as the
+// collection grows.
+OrderSchema.index({ orderId: 1 })                       // GET/PATCH /api/orders/[id]
+OrderSchema.index({ customerId: 1, createdAt: -1 })     // the customer app's poll
+OrderSchema.index({ partnerId: 1, status: 1 })          // the Captain's lists and counts
+OrderSchema.index({ status: 1, createdAt: -1 })         // admin lists and reports
+OrderSchema.index({ createdAt: -1 })                    // the default sort
+OrderSchema.index({ 'pickupAddress.pincode': 1, status: 1 }) // hub and partnerScope
+
 export default mongoose.models.Order || mongoose.model('Order', OrderSchema)
