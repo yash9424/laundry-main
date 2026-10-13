@@ -34,7 +34,7 @@ function mongoUri() {
 
 const INDEXES = {
   orders: [
-    { keys: { orderId: 1 }, name: 'orderId_1' },
+    // orderId is declared unique on the schema, so that index already exists.
     { keys: { customerId: 1, createdAt: -1 }, name: 'customerId_1_createdAt_-1' },
     { keys: { partnerId: 1, status: 1 }, name: 'partnerId_1_status_1' },
     { keys: { status: 1, createdAt: -1 }, name: 'status_1_createdAt_-1' },

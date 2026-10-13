@@ -115,7 +115,8 @@ const OrderSchema = new mongoose.Schema({
 // without these every one of those was a full scan of every order ever placed,
 // followed by an in-memory sort. That is what pins the server's CPU as the
 // collection grows.
-OrderSchema.index({ orderId: 1 })                       // GET/PATCH /api/orders/[id]
+// `orderId` needs no entry here: the path is declared unique, so Mongoose
+// already creates that index, and naming it twice conflicts on boot.
 OrderSchema.index({ customerId: 1, createdAt: -1 })     // the customer app's poll
 OrderSchema.index({ partnerId: 1, status: 1 })          // the Captain's lists and counts
 OrderSchema.index({ status: 1, createdAt: -1 })         // admin lists and reports

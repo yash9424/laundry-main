@@ -22,8 +22,9 @@ paid again for every user, every two seconds. That is the CPU.
 
 ## Fixed in the code (deploy to get it)
 
-- **Indexes** on `orders` (`orderId`, `customerId+createdAt`, `partnerId+status`,
-  `status+createdAt`, `createdAt`, `pickupAddress.pincode+status`),
+- **Indexes** on `orders` (`customerId+createdAt`, `partnerId+status`,
+  `status+createdAt`, `createdAt`, `pickupAddress.pincode+status` -- `orderId`
+  already had one, because the path is declared unique),
   `wallettransactions`, `reviews`, `subscriptions`. Declared on the schemas, so a
   deploy creates them.
 - **`.lean()`** on the orders list, which was hydrating full Mongoose documents
