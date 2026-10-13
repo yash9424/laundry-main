@@ -355,12 +355,18 @@ The mobile apps point at `API_URL` (`src/config/api.ts`), which defaults to
 `http://localhost:3000` when the env var is absent.
 
 ### 8.2 Environment variables
-`admin panel/.env.local` (see `.env.example`):
+**On the server the file is `admin panel/.env.production`, not `.env.local`** (checked
+2026-10-13; `.env.local` does not exist there). Locally either name works -- Next.js reads
+both. Keep it `chmod 600`: it was world-readable until 2026-10-13. There is a helper on the
+VPS, `~/adminuser/set-secret.sh KEY_NAME`, which prompts for a value without echoing it,
+backs the file up to `~/env-backups`, and restarts the app.
+
+`admin panel/.env.local` / `.env.production` (see `.env.example`):
 `MONGODB_URI`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_ANDROID_CLIENT_ID`,
 `GOOGLE_PARTNER_ANDROID_CLIENT_ID`, `GOOGLE_IOS_CLIENT_ID`, `GOOGLE_PARTNER_IOS_CLIENT_ID`,
 `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`,
-`INDORI_SMS_USERNAME` / `_PASSWORD` / `_SENDER_ID` / `_TEMPLATE_ID`,
-`NEXT_PUBLIC_API_URL`. (`FIREBASE_*` is referenced by `lib/firebase.ts`, which nothing imports.)
+`INDORI_SMS_USERNAME` / `_PASSWORD` / `_SENDER_ID` / `_AUTH_TOKEN` / `_TEMPLATE_ID`,
+`GOOGLE_MAPS_API_KEY`, `NEXT_PUBLIC_API_URL`. (`FIREBASE_*` is referenced by `lib/firebase.ts`, which nothing imports.)
 
 `customer/.env.production`: `VITE_API_URL=https://acsgroup.cloud` (tracked in git)
 `partner/.env.production`: `NEXT_PUBLIC_API_URL=https://acsgroup.cloud` (tracked in git)
