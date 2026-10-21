@@ -48,6 +48,7 @@ import TermsConditions from "./pages/TermsConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
+import MaintenanceGate from "@/components/MaintenanceGate";
 
 const queryClient = new QueryClient();
 
@@ -142,7 +143,7 @@ const AppContent = () => {
   }, [navigate, location.pathname]);
 
   return (
-    <>
+    <MaintenanceGate>
       <Routes>
         <Route path="/" element={<VideoSplash />} />
         <Route path="/welcome" element={<Welcome />} />
@@ -176,7 +177,7 @@ const AppContent = () => {
         <Route path="/my-subscription" element={<MySubscription />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </>
+    </MaintenanceGate>
   );
 };
 

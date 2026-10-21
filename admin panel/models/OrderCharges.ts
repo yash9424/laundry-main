@@ -61,6 +61,15 @@ const OrderChargesSchema = new mongoose.Schema({
   expressDeliveryDescription: { type: String, default: '' },
   todaySlotsEnabled: { type: Boolean, default: true },
   tomorrowSlotsEnabled: { type: Boolean, default: true },
+
+  // The one switch that takes both apps offline, for a deploy, a migration or
+  // anything else that should not be happening under live orders. Both apps
+  // already read this document on launch, so nothing new has to be polled and
+  // builds that predate the switch simply ignore these two fields.
+  appMaintenanceMode: { type: Boolean, default: false },
+  appMaintenanceTitle: { type: String, default: "We'll be right back" },
+  appMaintenanceMessage: { type: String, default: 'Urban Steam is briefly unavailable while we carry out scheduled maintenance. Please try again shortly.' },
+
   updatedAt: { type: Date, default: Date.now }
 })
 

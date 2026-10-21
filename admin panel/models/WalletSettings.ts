@@ -8,7 +8,7 @@ const WalletSettingsSchema = new mongoose.Schema({
   // margin rather than a payout, and it is only given once the referred friend
   // has actually placed and paid for an order.
   referralRewardAmount: { type: Number, default: 50 },       // to the referrer
-  referredUserRewardAmount: { type: Number, default: 25 },   // to the new customer
+  referredUserRewardAmount: { type: Number, default: 30 },   // to the new customer
   updatedAt: { type: Date, default: Date.now }
 })
 

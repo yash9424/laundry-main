@@ -55,6 +55,57 @@ interface Pickup {
   expressDelivery?: boolean;
 }
 
+
+/** Minutes past midnight for the start of a slot label, for sorting.
+ *
+ * Slot labels are free text typed in the admin panel -- "9:00 AM",
+ * "9 AM - 11 AM", "5-11 pm" have all been used -- so this reads the first
+ * hour it can find and gives up gracefully: anything unreadable sorts last
+ * rather than scrambling the order.
+ */
+function slotStartMinutes(label?: string): number {
+  if (!label) return 24 * 60 + 1;
+  const match = label.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+  if (!match) return 24 * 60 + 1;
+  let hour = parseInt(match[1], 10);
+  const minutes = match[2] ? parseInt(match[2], 10) : 0;
+  const period = (match[3] || '').toLowerCase();
+  if (period === 'pm' && hour !== 12) hour += 12;
+  if (period === 'am' && hour === 12) hour = 0;
+  // No am/pm at all: assume a working day, so "5" means the afternoon.
+  if (!period && hour < 8) hour += 12;
+  return hour * 60 + minutes;
+}
+
+/** Groups the pickups by day, then by slot, each in the order a Captain works them. */
+function groupBySlot(list: Pickup[]) {
+  const groups = new Map<string, { dateKey: string; dateLabel: string; slot: string; minutes: number; items: Pickup[] }>();
+
+  for (const pickup of list) {
+    const raw = pickup.pickupSlot?.date;
+    const date = raw ? new Date(raw) : null;
+    const dateKey = date && !isNaN(date.getTime()) ? date.toISOString().slice(0, 10) : 'zzzz';
+    const slot = pickup.pickupSlot?.timeSlot?.trim() || 'Time not set';
+    const key = `${dateKey}|${slot}`;
+    const existing = groups.get(key);
+    if (existing) {
+      existing.items.push(pickup);
+    } else {
+      groups.set(key, {
+        dateKey,
+        dateLabel: formatDisplayDate(raw),
+        slot,
+        minutes: slotStartMinutes(slot),
+        items: [pickup],
+      });
+    }
+  }
+
+  return Array.from(groups.values()).sort((a, b) =>
+    a.dateKey === b.dateKey ? a.minutes - b.minutes : a.dateKey.localeCompare(b.dateKey)
+  );
+}
+
 export default function Pickups() {
   const router = useRouter();
   const [pickups, setPickups] = useState<Pickup[]>([]);
@@ -299,7 +350,23 @@ export default function Pickups() {
             `}</style>
           </div>
         ) : pickups.length > 0 ? (
-          pickups.map((p) => (
+          groupBySlot(pickups).map((group, groupIndex, allGroups) => (
+            <div key={`${group.dateKey}|${group.slot}`} className="flex flex-col gap-4">
+              {/* One heading per pickup window, so the Captain reads four names
+                  under "9:00 AM - 11:00 AM" instead of scanning every card. The
+                  date is repeated only when it changes. */}
+              {(groupIndex === 0 || allGroups[groupIndex - 1].dateKey !== group.dateKey) && (
+                <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mt-1">
+                  {group.dateLabel}
+                </p>
+              )}
+              <div className="flex items-center justify-between rounded-xl px-3 py-2" style={{ background: 'linear-gradient(to right, rgba(69,45,155,0.10), rgba(7,200,208,0.10))' }}>
+                <span className="text-sm font-extrabold" style={{ color: '#452D9B' }}>🕐 {group.slot}</span>
+                <span className="text-xs font-bold text-gray-600">
+                  {group.items.length} {group.items.length === 1 ? 'pickup' : 'pickups'}
+                </span>
+              </div>
+              {group.items.map((p) => (
             <div key={p._id} className="rounded-2xl bg-white card-shadow p-4 border border-gray-100">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
@@ -384,6 +451,8 @@ export default function Pickups() {
                 </button>
                 )}
               </div>
+            </div>
+              ))}
             </div>
           ))
         ) : (

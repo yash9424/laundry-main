@@ -5,6 +5,7 @@ import ClientBottomNav from "@/components/ClientBottomNav";
 import CapacitorInit from "@/components/CapacitorInit";
 import BrandFonts from "@/components/BrandFonts";
 import OrderMonitor from "@/components/OrderMonitor";
+import MaintenanceGate from "@/components/MaintenanceGate";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const montserrat = Montserrat({
@@ -48,9 +49,11 @@ export default function RootLayout({
           <div className="w-full min-h-screen flex flex-col bg-white safe-area" suppressHydrationWarning>
             <CapacitorInit />
         <BrandFonts />
-            <OrderMonitor />
-            <main className="flex-1">{children}</main>
-            <ClientBottomNav />
+            <MaintenanceGate>
+              <OrderMonitor />
+              <main className="flex-1">{children}</main>
+              <ClientBottomNav />
+            </MaintenanceGate>
           </div>
         </GoogleOAuthProvider>
       </body>

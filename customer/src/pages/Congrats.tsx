@@ -18,8 +18,12 @@ const Congrats = () => {
           Congrats!
         </h1>
         
+        <h2 className="mb-3 text-base sm:text-lg font-semibold text-foreground">
+          You're in our service area.
+        </h2>
+
         <p className="mb-6 sm:mb-8 text-sm sm:text-base text-foreground px-2 sm:px-4">
-          You're in. You can now focus on what matters. Your ironing is our problem now. Let's get started.
+          Exceptional garment care, delivered to your doorstep. Your Urban Steam experience starts here.
         </p>
         
         <div className="w-full">

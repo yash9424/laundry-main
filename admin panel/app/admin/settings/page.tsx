@@ -88,6 +88,62 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' })
 
+  // The customer app and the Captain app both read /api/order-charges when they
+  // open, so the switch lives on that document: no new endpoint, and a build
+  // that predates it simply ignores the field.
+  const [maintenance, setMaintenance] = useState(false)
+  const [maintenanceTitle, setMaintenanceTitle] = useState('')
+  const [maintenanceMessage, setMaintenanceMessage] = useState('')
+  const [maintenanceLoaded, setMaintenanceLoaded] = useState(false)
+  const [savingMaintenance, setSavingMaintenance] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/order-charges')
+      .then(r => r.json())
+      .then(d => {
+        if (!d?.success || !d.data) return
+        setMaintenance(d.data.appMaintenanceMode === true)
+        setMaintenanceTitle(d.data.appMaintenanceTitle || "We'll be right back")
+        setMaintenanceMessage(d.data.appMaintenanceMessage || '')
+        setMaintenanceLoaded(true)
+      })
+      .catch(() => setMaintenanceLoaded(true))
+  }, [])
+
+  const saveMaintenance = async (nextMode: boolean) => {
+    setSavingMaintenance(true)
+    try {
+      const response = await fetch('/api/order-charges', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appMaintenanceMode: nextMode,
+          appMaintenanceTitle: maintenanceTitle.trim() || "We'll be right back",
+          appMaintenanceMessage: maintenanceMessage.trim(),
+        }),
+      })
+      const data = await response.json()
+      if (data?.success) {
+        setMaintenance(nextMode)
+        setModal({
+          isOpen: true,
+          title: nextMode ? 'Apps are now offline' : 'Apps are back online',
+          message: nextMode
+            ? 'Both apps now show the maintenance screen. Customers cannot book and Captains cannot work until you switch this back on.'
+            : 'Both apps are working normally again.',
+          type: 'success',
+        })
+      } else {
+        setModal({ isOpen: true, title: 'Could not save', message: data?.error || 'Please try again.', type: 'error' })
+      }
+    } catch {
+      setModal({ isOpen: true, title: 'Could not save', message: 'The server did not respond. Please try again.', type: 'error' })
+    } finally {
+      setSavingMaintenance(false)
+    }
+  }
+
+
   useEffect(() => {
     const stored = localStorage.getItem('adminUser')
     if (!stored) {
@@ -167,6 +223,71 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* App availability -- one switch for both apps */}
+        <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '1.5rem', marginBottom: '1.5rem', border: `2px solid ${maintenance ? '#fca5a5' : '#e5e7eb'}`, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.5rem', flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 0, flex: '1 1 320px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>{maintenance ? '🔴' : '🟢'}</span> App availability
+              </h3>
+              <p style={{ margin: '0.4rem 0 0', fontSize: '0.85rem', color: '#6b7280', lineHeight: 1.5 }}>
+                One switch for <strong>both</strong> the Customer app and the Captain app. Turn it off
+                during server work and every user sees a single &ldquo;we are currently unavailable&rdquo;
+                screen instead of the app &mdash; no bookings, no pickups, nothing half-working.
+              </p>
+              <p style={{ margin: '0.5rem 0 0', fontSize: '0.8rem', color: maintenance ? '#b91c1c' : '#047857', fontWeight: 700 }}>
+                {maintenance ? 'Apps are OFFLINE for customers and Captains right now.' : 'Apps are live and working normally.'}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => saveMaintenance(!maintenance)}
+              disabled={!maintenanceLoaded || savingMaintenance}
+              title={maintenance ? 'Bring both apps back online' : 'Take both apps offline'}
+              style={{
+                position: 'relative', width: 76, height: 38, borderRadius: 999, border: 'none', flexShrink: 0,
+                cursor: (!maintenanceLoaded || savingMaintenance) ? 'not-allowed' : 'pointer',
+                backgroundColor: maintenance ? '#dc2626' : '#16a34a',
+                opacity: (!maintenanceLoaded || savingMaintenance) ? 0.6 : 1,
+                transition: 'background-color 0.2s',
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: 4, left: maintenance ? 42 : 4, width: 30, height: 30, borderRadius: '50%',
+                backgroundColor: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+              }} />
+            </button>
+          </div>
+
+          <div style={{ marginTop: '1.25rem', display: 'grid', gridTemplateColumns: 'minmax(0, 280px) minmax(0, 1fr)', gap: '1rem' }} className="settings-grid">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#374151', marginBottom: '0.35rem' }}>Heading shown in the apps</label>
+              <input
+                value={maintenanceTitle}
+                onChange={(e) => setMaintenanceTitle(e.target.value)}
+                placeholder="We'll be right back"
+                maxLength={60}
+                style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '10px', border: '1px solid #d1d5db', fontSize: '0.88rem' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#374151', marginBottom: '0.35rem' }}>Message shown underneath</label>
+              <input
+                value={maintenanceMessage}
+                onChange={(e) => setMaintenanceMessage(e.target.value)}
+                placeholder="Urban Steam is briefly unavailable while we carry out scheduled maintenance."
+                maxLength={200}
+                style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '10px', border: '1px solid #d1d5db', fontSize: '0.88rem' }}
+              />
+            </div>
+          </div>
+          <p style={{ margin: '0.75rem 0 0', fontSize: '0.78rem', color: '#9ca3af' }}>
+            Wording is saved with the switch. Apps pick the change up within a minute, and
+            immediately when someone reopens them.
+          </p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 340px) minmax(0, 1fr)', gap: '1.5rem', alignItems: 'start' }} className="settings-grid">

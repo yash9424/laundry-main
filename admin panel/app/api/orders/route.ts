@@ -131,10 +131,22 @@ export async function POST(request: NextRequest) {
     const amountPaidOnline = orderData.paymentStatus === 'paid' ? Math.max(0, orderTotal - walletApplied) : 0
     const expressFeeForTotal = orderData.expressDelivery ? Number(orderData.expressDeliveryFee) || 0 : 0
     const expectedTotal = itemsSubtotal - discountAmount + previousDuePaid + expressFeeForTotal
+
+    // The charged total is fixed -- it is what the customer was shown and what
+    // Razorpay took -- and the discount is fixed too, because it is the
+    // voucher's own percentage of the garments. The figure that moves is the
+    // outstanding due: the checkout screen reads it once when it opens, and an
+    // earlier order or an admin adjustment can clear it while the customer is
+    // still choosing a slot. So the due this payment actually covered is
+    // derived from the total, and the discount is left alone.
+    //
+    // Rewriting the discount instead -- which is what this did -- printed a 20%
+    // voucher on a Rs.600 order as a Rs.320 discount.
+    let dueCoveredByThisOrder = previousDuePaid
     if (Math.abs(expectedTotal - orderTotal) > 1) {
-      // The charged total is the truth: derive the discount from it so the printed lines always add up
       console.warn(`Order ${orderId}: total mismatch. Expected ${expectedTotal} from breakdown, received ${orderTotal}`)
-      discountAmount = Math.min(Math.max(itemsSubtotal + previousDuePaid + expressFeeForTotal - orderTotal, 0), itemsSubtotal)
+      const chargedBeyondGarments = orderTotal - (itemsSubtotal - discountAmount + expressFeeForTotal)
+      dueCoveredByThisOrder = Math.min(Math.max(Math.round(chargedBeyondGarments), 0), previousDuePaid)
     }
 
     const newOrder = new Order({
@@ -146,7 +158,7 @@ export async function POST(request: NextRequest) {
       discountAmount,
       walletUsed: walletApplied,
       amountPaidOnline,
-      previousDuePaid: previousDuePaid,
+      previousDuePaid: dueCoveredByThisOrder,
       status: 'pending',
       hub: assignedHub,
       pickupAddress: orderData.pickupAddress,
@@ -226,15 +238,18 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Clear due amount if payment is successful and record transaction
-    if (orderData.paymentStatus === 'paid') {
+    // Settle the part of the due this order actually paid for, and no more.
+    // It used to set dueAmount to 0 on any paid order, so a customer whose
+    // checkout total never included the due had it written off for free.
+    if (orderData.paymentStatus === 'paid' && dueCoveredByThisOrder > 0) {
       const customer = await Customer.findById(orderData.customerId)
       if (customer && customer.dueAmount > 0) {
-        const paidDueAmount = customer.dueAmount
+        const paidDueAmount = Math.min(dueCoveredByThisOrder, customer.dueAmount)
+        const remainingDue = Math.max(0, customer.dueAmount - paidDueAmount)
         
         // Clear due amount
         await Customer.findByIdAndUpdate(orderData.customerId, {
-          dueAmount: 0
+          dueAmount: remainingDue
         })
         
         // Record wallet transaction for due payment
@@ -245,7 +260,7 @@ export async function POST(request: NextRequest) {
           amount: 0,
           reason: `Due amount of ₹${paidDueAmount} paid with Order #${orderId}`,
           previousValue: customer.dueAmount,
-          newValue: 0,
+          newValue: remainingDue,
           adjustedBy: 'System'
         })
       }
@@ -279,7 +294,7 @@ export async function POST(request: NextRequest) {
           if (referrer && String(referrer._id) !== String(customer._id)) {
             const settings = await WalletSettings.findOne()
             const toReferrer = Math.max(0, Math.round(Number(settings?.referralRewardAmount ?? 50)) || 0)
-            const toNewCustomer = Math.max(0, Math.round(Number(settings?.referredUserRewardAmount ?? 25)) || 0)
+            const toNewCustomer = Math.max(0, Math.round(Number(settings?.referredUserRewardAmount ?? 30)) || 0)
 
             // Spend the code first, so a retry cannot pay twice
             const spent = await Customer.updateOne(

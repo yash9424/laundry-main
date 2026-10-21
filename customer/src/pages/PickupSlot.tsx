@@ -275,6 +275,12 @@ const PickupSlot = () => {
 
         <div className="bg-white rounded-2xl p-4 shadow-sm">
           <h2 className="font-semibold text-black mb-3">Slots for {dayLabel(dayIndex)}</h2>
+          {/* Asked for by the client: a customer who finds nothing that suits
+              them should know the list is not final. */}
+          <p className="text-xs sm:text-sm text-gray-600 mb-3">
+            More pickup slots are added regularly. Please check back if your preferred
+            slot is unavailable.
+          </p>
           {dayClosed ? (
             <div className="rounded-2xl bg-orange-50 border border-orange-200 p-4 text-center">
               <p className="text-orange-600 font-semibold text-sm">

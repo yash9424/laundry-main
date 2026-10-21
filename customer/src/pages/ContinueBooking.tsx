@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Shirt, CheckCircle2, MapPin, Circle, Check, X, Clock, Tag, ChevronRight } from "lucide-react";
 import { TermsContent } from "@/pages/TermsConditions";
@@ -31,12 +31,23 @@ const ContinueBooking = () => {
   const [customerInfo, setCustomerInfo] = useState<any>(null);
   const [pastOrders, setPastOrders] = useState<any[]>([]);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  // One checkout screen places one order. `isProcessingPayment` is state, so a
+  // second tap that lands in the same render still gets through it; this does
+  // not. Together with the two-minute guard on the server and the cart being
+  // cleared on success, the same basket cannot be paid for twice.
+  const orderPlacedRef = useRef(false);
   const [showPaymentWarning, setShowPaymentWarning] = useState(false);
   const [showAddressWarning, setShowAddressWarning] = useState(false);
   const [paymentWarningMessage, setPaymentWarningMessage] = useState('');
   const [realItemData, setRealItemData] = useState<any[]>([]);
   const [loading, setLoading] = useState(isFromCart);
   const [additionalNotes, setAdditionalNotes] = useState('');
+  // What the customer chose on the home screen, before the slots were
+  // loaded. Express and Standard have separate slots, so this decides
+  // whether the Express row is shown at all.
+  const expressSelectedUpFront =
+    typeof window !== 'undefined' &&
+    localStorage.getItem('selectedDeliveryType') === 'express';
   const [expressDelivery, setExpressDelivery] = useState(
     () => localStorage.getItem('selectedDeliveryType') === 'express'
   );
@@ -377,10 +388,14 @@ const ContinueBooking = () => {
         </div>
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Additional Notes</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Special Pickup Instructions</h2>
           <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
+            <p className="text-xs sm:text-sm text-gray-600 mb-2">
+              If you won't be available at the time of pickup, please mention your preferred
+              collection location in the comments below (e.g., lobby, reception, or doorstep).
+            </p>
             <textarea
-              placeholder="Add any special instructions for pickup/delivery (optional)..."
+              placeholder="e.g. leave with the reception, or call on arrival (optional)"
               value={additionalNotes}
               onChange={(e) => setAdditionalNotes(e.target.value)}
               className="w-full h-20 rounded-xl border-2 border-gray-300 px-3 py-2 text-sm resize-none outline-none focus:border-[#452D9B] focus:ring-2 focus:ring-[#452D9B]/20"
@@ -390,7 +405,12 @@ const ContinueBooking = () => {
           </div>
         </div>
 
-        {expressEnabled && expressDeliveryPrice > 0 && (
+        {/* Only when Express was the choice made before the slots were
+            picked. Standard and Express have their own pickup slots, so
+            turning Express on here added the fee to a slot booked for
+            Standard. The delivery type is chosen on the home screen and
+            this screen now only reports it. */}
+        {expressSelectedUpFront && expressEnabled && expressDeliveryPrice > 0 && (
           <div>
             <h2 className="text-base sm:text-lg font-bold mb-3 text-black">{expressDeliveryLabel || 'Express Delivery'}</h2>
             <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
@@ -415,14 +435,10 @@ const ContinueBooking = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-sm sm:text-base" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>+₹{expressDeliveryPrice}</span>
-                  <button
-                    type="button"
-                    title={expressDelivery ? 'Disable express delivery' : 'Enable express delivery'}
-                    onClick={() => setExpressDelivery(!expressDelivery)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${expressDelivery ? 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0]' : 'bg-gray-300'}`}
-                  >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${expressDelivery ? 'translate-x-6' : 'translate-x-1'}`} />
-                  </button>
+                  {/* Shown, not switched. The slots on the previous screen were
+                      loaded for this delivery type; changing it here would price
+                      one kind of slot as the other. */}
+                  <span className="rounded-full px-3 py-1 text-xs font-bold text-white" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>Selected</span>
                 </div>
               </div>
             </div>
@@ -637,6 +653,8 @@ const ContinueBooking = () => {
                 return;
               }
               
+              if (orderPlacedRef.current) return;
+              orderPlacedRef.current = true;
               setIsProcessingPayment(true);
               
               // Get selected payment method
@@ -669,6 +687,8 @@ const ContinueBooking = () => {
                 
                 const result = await response.json();
                 setIsProcessingPayment(false);
+                // The latch stays shut on success -- it only opens again on the
+                // failure branch below, so a retry is possible but a repeat is not.
                 
                 if (result.success) {
                   // Clear cart items from localStorage
@@ -703,6 +723,7 @@ const ContinueBooking = () => {
                     replace: true
                   });
                 } else {
+                  orderPlacedRef.current = false;
                   alert('Failed to place order. Please try again.');
                 }
                 return;
@@ -723,6 +744,7 @@ const ContinueBooking = () => {
               
               if (!orderResult.success) {
                 setIsProcessingPayment(false);
+                orderPlacedRef.current = false;
                 alert('Failed to create payment order');
                 return;
               }
@@ -814,10 +836,12 @@ const ContinueBooking = () => {
                       }
                     } else {
                       setIsProcessingPayment(false);
+                      orderPlacedRef.current = false;
                       alert('Payment verification failed');
                     }
                   } catch (error) {
                     setIsProcessingPayment(false);
+                    orderPlacedRef.current = false;
                     console.error('Payment verification error:', error);
                     alert('Payment verification failed');
                   }
@@ -834,6 +858,7 @@ const ContinueBooking = () => {
                 modal: {
                   ondismiss: function() {
                     setIsProcessingPayment(false);
+                    orderPlacedRef.current = false;
                   }
                 }
               };
@@ -848,6 +873,7 @@ const ContinueBooking = () => {
               
             } catch (error) {
               setIsProcessingPayment(false);
+              orderPlacedRef.current = false;
               console.error('Error processing payment:', error);
               alert('Failed to process payment. Please try again.');
             }

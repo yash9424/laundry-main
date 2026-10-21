@@ -30,7 +30,7 @@ export default function AddOnPage() {
   const [walletSettings, setWalletSettings] = useState({
     minOrderPrice: 500,
     referralRewardAmount: 50,
-    referredUserRewardAmount: 25
+    referredUserRewardAmount: 30
   })
   const [hubs, setHubs] = useState<any[]>([])
   const [hubForm, setHubForm] = useState({
