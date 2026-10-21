@@ -162,31 +162,36 @@ const BookingConfirmation = () => {
           Track Order
         </Button>
 
+        {/* replace, not push: the confirmation must not be reachable again by
+            going back, which is how the same cart was paid for twice. */}
         <Button
-          onClick={() => navigate("/home")}
+          onClick={() => navigate("/home", { replace: true })}
           variant="outline"
           className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold mb-3 border-2"
           style={{ borderColor: '#452D9B', color: '#452D9B' }}
         >
-          Back to Home
+          Home
         </Button>
 
-        {!isFinished && (
-          <Button
-            onClick={() => setShowConfirmDialog(true)}
-            className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold mb-4 sm:mb-6 text-white shadow-lg"
-            style={{ background: 'linear-gradient(to right, #ef4444, #dc2626)' }}
+        {/* Home and Track Order are the two things this screen offers. Cancelling
+            stays reachable -- this is the only screen a customer can cancel their
+            own order from -- but as a link, not a third button competing with them. */}
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-5 mb-2">
+          <button
+            onClick={() => setShowCancellationModal(true)}
+            className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 underline"
           >
-            Cancel Order
-          </Button>
-        )}
-
-        <button 
-          onClick={() => setShowCancellationModal(true)}
-          className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 underline mt-4"
-        >
-          View Cancellation Policy
-        </button>
+            View Cancellation Policy
+          </button>
+          {!isFinished && (
+            <button
+              onClick={() => setShowConfirmDialog(true)}
+              className="text-xs sm:text-sm text-red-600 hover:text-red-700 underline"
+            >
+              Cancel this order
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Cancellation Policy Modal */}
