@@ -12,16 +12,14 @@
   "dependencies": {
     "apple-signin-auth": "2.0.0",
     "bcryptjs": "^2.4.3",
-    "firebase-admin": "^13.5.0",
     "google-auth-library": "^10.4.2",
     "jsonwebtoken": "^9.0.2",
-    "jspdf": "^3.0.3",
+    "jspdf": "^3.0.4",
     "mongoose": "^8.0.0",
     "next": "^15.5.27",
     "razorpay": "^2.9.6",
     "react": "^18",
-    "react-dom": "^18",
-    "twilio": "^5.10.2"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
