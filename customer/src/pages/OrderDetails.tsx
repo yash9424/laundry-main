@@ -352,9 +352,9 @@ const OrderDetails = () => {
               <p className="text-sm sm:text-base font-bold mb-2">Payment Summary</p>
               <div className="space-y-1 text-xs sm:text-sm text-gray-700">
                 <div className="flex justify-between"><span>Items Subtotal</span><span>₹{Math.round(bd.subtotal)}</span></div>
+                {bd.discount > 0 && <div className="flex justify-between text-green-600"><span>Discount</span><span>-₹{Math.round(bd.discount)}</span></div>}
                 {bd.express > 0 && <div className="flex justify-between"><span>Express Delivery Fee</span><span>+₹{Math.round(bd.express)}</span></div>}
                 {bd.due > 0 && <div className="flex justify-between"><span>Previous Due</span><span>+₹{Math.round(bd.due)}</span></div>}
-                {bd.discount > 0 && <div className="flex justify-between text-green-600"><span>Discount</span><span>-₹{Math.round(bd.discount)}</span></div>}
                 <div className="flex justify-between font-bold text-black text-sm sm:text-base pt-1 border-t border-gray-200"><span>Order Total</span><span>₹{Math.round(bd.total)}</span></div>
                 {bd.wallet > 0 && <div className="flex justify-between"><span>Paid from Wallet</span><span>₹{Math.round(bd.wallet)}</span></div>}
                 {bd.paidOnline !== null && bd.paidOnline > 0 && <div className="flex justify-between"><span>Paid Online</span><span>₹{Math.round(bd.paidOnline)}</span></div>}

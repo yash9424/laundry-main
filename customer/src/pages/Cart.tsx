@@ -291,7 +291,7 @@ const Cart = () => {
                   <span className="font-semibold">{getSelectedItemsCount()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Selected Total:</span>
+                  <span>Items total:</span>
                   <span className="font-semibold">₹{getSelectedTotal()}</span>
                 </div>
                 {isExpressSelected && expressDeliveryFee > 0 && (
@@ -333,7 +333,8 @@ const Cart = () => {
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-600">
-                  Order Total{selectedItems.size > 0 ? ` (${selectedItems.size} item${selectedItems.size > 1 ? 's' : ''})` : ''}
+                  {/* garments, not cart rows -- the summary above counts the same way */}
+                  Order Total{getSelectedItemsCount() > 0 ? ` (${getSelectedItemsCount()} item${getSelectedItemsCount() > 1 ? 's' : ''})` : ''}
                 </span>
                 <span className="text-xl font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   ₹{getSelectedTotal() < minOrderPrice ? getSelectedTotal() : getOrderTotal()}

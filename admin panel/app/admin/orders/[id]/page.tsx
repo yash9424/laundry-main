@@ -579,9 +579,9 @@ export default function OrderDetails() {
               return (
                 <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px dashed #e5e7eb' }}>
                   <div style={rowStyle}><span>Items Subtotal</span><span>₹{Math.round(bd.subtotal)}</span></div>
+                  {bd.discount > 0 && <div style={{ ...rowStyle, color: '#16a34a' }}><span>Discount{order?.appliedVoucherCode ? ` (${order.appliedVoucherCode})` : ''}</span><span>-₹{Math.round(bd.discount)}</span></div>}
                   {bd.express > 0 && <div style={rowStyle}><span>Express Delivery Fee</span><span>+₹{Math.round(bd.express)}</span></div>}
                   {bd.due > 0 && <div style={rowStyle}><span>Previous Due</span><span>+₹{Math.round(bd.due)}</span></div>}
-                  {bd.discount > 0 && <div style={{ ...rowStyle, color: '#16a34a' }}><span>Discount{order?.appliedVoucherCode ? ` (${order.appliedVoucherCode})` : ''}</span><span>-₹{Math.round(bd.discount)}</span></div>}
                 </div>
               )
             })()}
@@ -1428,14 +1428,14 @@ export default function OrderDetails() {
                   { label: 'Subtotal', value: 'Rs.' + Math.round(bd.subtotal) },
                   { label: 'Tax (0%)', value: 'Rs.0.00' },
                 ];
-                if (bd.express > 0) summaryRows.push({ label: 'Express Delivery Fee', value: '+ Rs.' + Math.round(bd.express) });
-                if (bd.due > 0) summaryRows.push({ label: 'Previous Due', value: '+ Rs.' + Math.round(bd.due) });
                 if (bd.discount > 0) {
                   summaryRows.push({
                     label: order.appliedVoucherCode ? `Discount (${order.appliedVoucherCode})` : 'Discount',
                     value: '- Rs.' + Math.round(bd.discount)
                   });
                 }
+                if (bd.express > 0) summaryRows.push({ label: 'Express Delivery Fee', value: '+ Rs.' + Math.round(bd.express) });
+                if (bd.due > 0) summaryRows.push({ label: 'Previous Due', value: '+ Rs.' + Math.round(bd.due) });
                 summaryRows.push({ label: 'Total', value: 'Rs.' + Math.round(bd.total), emphasis: true });
                 if (bd.wallet > 0) summaryRows.push({ label: 'Paid from wallet', value: 'Rs.' + Math.round(bd.wallet) });
                 if (bd.paidOnline !== null && bd.paidOnline > 0) summaryRows.push({ label: 'Paid online', value: 'Rs.' + Math.round(bd.paidOnline) });

@@ -323,12 +323,14 @@ export const generateInvoicePDF = async (order: any) => {
       { label: 'Subtotal', value: 'Rs.' + Math.round(b.subtotal) },
       { label: 'Tax (0%)', value: 'Rs.0.00' },
     ];
-    if (b.express > 0) summaryRows.push({ label: 'Express Delivery Fee', value: '+ Rs.' + Math.round(b.express) });
-    if (b.due > 0) summaryRows.push({ label: 'Previous Due', value: '+ Rs.' + Math.round(b.due) });
+    // The discount comes off the garments, so it is printed against them,
+    // above the fees and the old due it has nothing to do with.
     if (b.discount > 0) {
       const discountPercentage = b.subtotal > 0 ? Math.round((b.discount / b.subtotal) * 100) : 0;
       summaryRows.push({ label: `Discount - ${discountPercentage}%`, value: '- Rs.' + Math.round(b.discount) });
     }
+    if (b.express > 0) summaryRows.push({ label: 'Express Delivery Fee', value: '+ Rs.' + Math.round(b.express) });
+    if (b.due > 0) summaryRows.push({ label: 'Previous Due', value: '+ Rs.' + Math.round(b.due) });
     summaryRows.push({ label: 'Total', value: 'Rs.' + Math.round(b.total), emphasis: true });
     if (b.wallet > 0) summaryRows.push({ label: 'Paid from wallet', value: 'Rs.' + Math.round(b.wallet) });
     if (b.paidOnline !== null && b.paidOnline > 0) summaryRows.push({ label: 'Paid online', value: 'Rs.' + Math.round(b.paidOnline) });

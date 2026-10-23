@@ -102,6 +102,12 @@ const BookingConfirmation = () => {
                 <span className="font-semibold text-sm sm:text-base">₹{orderData.originalTotal}</span>
               </div>
             )}
+            {orderData.discount > 0 && (
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-muted-foreground text-sm sm:text-base">Discount:</span>
+                <span className="font-semibold text-green-600 text-sm sm:text-base">-₹{orderData.discount}</span>
+              </div>
+            )}
             {orderData.expressDelivery && orderData.expressDeliveryFee > 0 && (
               <div className="flex justify-between items-start gap-3">
                 <span className="text-muted-foreground text-sm sm:text-base">Express Delivery Fee:</span>
@@ -112,12 +118,6 @@ const BookingConfirmation = () => {
               <div className="flex justify-between items-start gap-3">
                 <span className="text-muted-foreground text-sm sm:text-base">Previous Due:</span>
                 <span className="font-semibold text-sm sm:text-base">+₹{orderData.previousDue}</span>
-              </div>
-            )}
-            {orderData.discount > 0 && (
-              <div className="flex justify-between items-start gap-3">
-                <span className="text-muted-foreground text-sm sm:text-base">Discount:</span>
-                <span className="font-semibold text-green-600 text-sm sm:text-base">-₹{orderData.discount}</span>
               </div>
             )}
             <div className="flex justify-between items-start gap-3">

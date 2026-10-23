@@ -503,12 +503,21 @@ const ContinueBooking = () => {
                 )}
               </div>
             )}
-            {/* Grand Total -> Discount -> Wallet used -> Amount to Pay, in that order,
-                so the cost, what came off and what is still owed are all plain. */}
+            {/* One total, and it comes after the discount. This used to print a
+                "Grand Total" above the discount line and an "Amount to Pay"
+                below it, which left the customer with two totals and no way to
+                tell which one the order cost. */}
             <div className="space-y-2 text-xs sm:text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Items total</span>
                 <span className="text-black">₹{totalAmount}</span>
+              </div>
+              <div
+                key={appliedVoucher?.code || 'no-voucher'}
+                className={`flex justify-between text-green-600${appliedVoucher ? ' offer-discount-flash' : ''}`}
+              >
+                <span>{appliedVoucher ? `Discount (${appliedVoucher.code})` : 'Discount / Voucher'}</span>
+                <span>{discount > 0 ? `-₹${discount}` : '₹0'}</span>
               </div>
               {expressDelivery && expressDeliveryFee > 0 && (
                 <div className="flex justify-between">
@@ -523,15 +532,8 @@ const ContinueBooking = () => {
                 </div>
               )}
               <div className="flex justify-between pt-2 border-t font-semibold text-black">
-                <span>Grand Total (incl. GST)</span>
-                <span>₹{grandTotal}</span>
-              </div>
-              <div
-                key={appliedVoucher?.code || 'no-voucher'}
-                className={`flex justify-between text-green-600${appliedVoucher ? ' offer-discount-flash' : ''}`}
-              >
-                <span>{appliedVoucher ? `Discount (${appliedVoucher.code})` : 'Discount / Voucher'}</span>
-                <span>{discount > 0 ? `-₹${discount}` : '₹0'}</span>
+                <span>Order Total (incl. GST)</span>
+                <span>₹{amountAfterDiscount}</span>
               </div>
               <div className="flex justify-between text-blue-600">
                 <span>Paid from Urban Steam Wallet</span>

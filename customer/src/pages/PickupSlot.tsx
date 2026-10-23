@@ -347,7 +347,7 @@ const PickupSlot = () => {
               </div>
             )}
             <div className="flex justify-between pt-2 border-t font-bold text-black">
-              <span>Total</span>
+              <span>Order Total</span>
               <span>&#8377;{orderTotal}</span>
             </div>
           </div>
