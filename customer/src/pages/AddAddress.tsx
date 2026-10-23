@@ -440,7 +440,7 @@ const AddAddress = () => {
         </div>
       )}
       {toast.show && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[70] animate-in slide-in-from-top duration-300">
           <div className={`${toast.type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-green-500 to-green-600'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 min-w-[300px]`}>
             <AlertCircle className="w-6 h-6 flex-shrink-0" />
             <span className="font-semibold flex-1">{toast.message}</span>

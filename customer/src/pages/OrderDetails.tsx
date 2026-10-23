@@ -384,8 +384,8 @@ const OrderDetails = () => {
         </div>
 
         {showIssueForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+            <div className="max-h-[85vh] overflow-y-auto bg-white rounded-2xl p-6 w-full max-w-md">
               <h2 className="text-lg font-bold mb-4">Report Issue</h2>
               <textarea
                 value={issueText}
@@ -455,7 +455,7 @@ const OrderDetails = () => {
       </div>
 
       {showSuccessToast && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[70] animate-in slide-in-from-top duration-300">
           <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 min-w-[300px]">
             <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
             <span className="font-semibold flex-1">Issue reported successfully!</span>

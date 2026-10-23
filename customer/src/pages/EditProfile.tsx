@@ -228,8 +228,8 @@ const EditProfile = () => {
 
       {/* Image Selection Modal */}
       {showImageOptions && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50">
-          <div className="bg-white rounded-t-3xl w-full p-6 pb-8 animate-slide-up">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-[60]">
+          <div className="max-h-[85vh] overflow-y-auto bg-white rounded-t-3xl w-full p-6 pb-8 animate-slide-up">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Select Photo</h3>
               <button onClick={() => setShowImageOptions(false)}>

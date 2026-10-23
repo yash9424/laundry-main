@@ -467,7 +467,7 @@ const Booking = () => {
         </div>
 
         {showAddressModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50" onClick={() => setShowAddressModal(false)}>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-[60]" onClick={() => setShowAddressModal(false)}>
             <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="p-4 sm:p-6">
                 <h3 className="text-lg font-bold text-black mb-4">Select Address</h3>
@@ -569,7 +569,7 @@ const Booking = () => {
       <BottomNavigation />
 
       {toast.show && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[70] animate-in slide-in-from-top duration-300">
           <div className={`${toast.type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-green-500 to-green-600'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 min-w-[300px]`}>
             <AlertCircle className="w-6 h-6 flex-shrink-0" />
             <span className="font-semibold flex-1">{toast.message}</span>

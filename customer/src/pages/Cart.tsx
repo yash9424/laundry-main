@@ -309,13 +309,9 @@ const Cart = () => {
                     </div>
                   )
                 )}
-                <hr className="my-2" />
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Order Total:</span>
-                  <span style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    ₹{getSelectedTotal() < minOrderPrice ? getSelectedTotal() : getOrderTotal()}
-                  </span>
-                </div>
+                {/* No total here. The bar pinned above the nav carries it, along
+                    with the button, and being pinned it used to sit over this
+                    row and cut it in half on a short cart. */}
                 {selectedItems.size === 0 && (
                   <p className="text-red-500 text-sm mt-2">Please select items to place order</p>
                 )}
@@ -325,10 +321,15 @@ const Cart = () => {
               </div>
             </div>
 
+            {/* Takes the fixed bar's place in the flow, so the summary above can
+                always be scrolled out from under it. Matches the bar's height. */}
+            <div aria-hidden className="h-28" />
+
             {/* The total and the button stay in view while the item list scrolls.
-                On a short screen they used to sit below the fold entirely. */}
+                Fixed rather than sticky: sticky pulled the bar up over the
+                summary card and left no scroll range to recover it. */}
             <div
-              className="sticky z-30 -mx-4 px-4 pt-3 pb-2 bg-gray-50/95 backdrop-blur border-t"
+              className="fixed left-0 right-0 z-40 px-4 pt-3 pb-2 bg-gray-50/95 backdrop-blur border-t"
               style={{ bottom: 'calc(5rem + max(env(safe-area-inset-bottom), 0px))' }}
             >
               <div className="flex items-center justify-between mb-2">

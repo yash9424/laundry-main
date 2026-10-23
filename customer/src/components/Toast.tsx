@@ -27,7 +27,7 @@ export const Toast = ({ message, type, onClose, duration = 3000 }: ToastProps) =
   };
 
   return (
-    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300 w-[90%] max-w-md">
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[70] animate-in slide-in-from-top duration-300 w-[90%] max-w-md">
       <div className={`bg-gradient-to-r ${colors[type]} text-white px-4 py-4 rounded-2xl shadow-2xl flex items-center gap-3`}>
         {icons[type]}
         <span className="font-semibold flex-1 text-sm sm:text-base">{message}</span>
@@ -57,8 +57,8 @@ export const ConfirmDialog = ({
   cancelText = 'Cancel'
 }: ConfirmDialogProps) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+      <div className="max-h-[85vh] overflow-y-auto bg-white rounded-2xl w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
         <div className="p-6">
           <h3 className="text-lg sm:text-xl font-bold mb-2">{title}</h3>
           <p className="text-sm sm:text-base text-gray-600 mb-6">{message}</p>

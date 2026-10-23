@@ -347,8 +347,8 @@ const CreateProfile = () => {
 
       {/* Image Selection Modal */}
       {showImageOptions && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50">
-          <div className="bg-white rounded-t-3xl w-full p-6 pb-8 animate-slide-up">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-[60]">
+          <div className="max-h-[85vh] overflow-y-auto bg-white rounded-t-3xl w-full p-6 pb-8 animate-slide-up">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Select Photo</h3>
               <button onClick={() => setShowImageOptions(false)}>
@@ -376,7 +376,7 @@ const CreateProfile = () => {
       )}
 
       {showTermsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-lg sm:text-xl font-bold">Terms and Conditions</h2>

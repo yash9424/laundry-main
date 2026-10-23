@@ -895,7 +895,7 @@ const ContinueBooking = () => {
           on the booking screen, which pushed the total and the pay button down
           the page as soon as more than one voucher was live. */}
       {showOffersSheet && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50" onClick={() => setShowOffersSheet(false)}>
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[60]" onClick={() => setShowOffersSheet(false)}>
           <div
             className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl max-h-[75vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
@@ -953,7 +953,7 @@ const ContinueBooking = () => {
       )}
 
       {policyModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setPolicyModal(null)}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => setPolicyModal(null)}>
           <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-lg font-bold">
@@ -989,8 +989,8 @@ const ContinueBooking = () => {
 
       {/* Payment Warning Modal */}
       {showPaymentWarning && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="max-h-[85vh] overflow-y-auto bg-white rounded-2xl w-full max-w-md shadow-2xl">
             <div className="p-6 text-center">
               <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'linear-gradient(to right, #f59e0b, #ef4444)' }}>
                 <span className="text-3xl">⚠️</span>
@@ -1024,8 +1024,8 @@ const ContinueBooking = () => {
 
       {/* Address Warning Modal */}
       {showAddressWarning && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="max-h-[85vh] overflow-y-auto bg-white rounded-2xl w-full max-w-md shadow-2xl">
             <div className="p-6 text-center">
               <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'linear-gradient(to right, #f59e0b, #ef4444)' }}>
                 <span className="text-3xl">📍</span>

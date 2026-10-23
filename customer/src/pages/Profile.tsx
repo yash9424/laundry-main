@@ -562,7 +562,7 @@ const Profile = () => {
         </div>
 
         {showPaymentModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 pt-20" onClick={() => setShowPaymentModal(false)}>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-[60] p-4 pt-20" onClick={() => setShowPaymentModal(false)}>
             <div className="bg-white rounded-3xl w-full sm:max-w-md p-4 sm:p-6 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-base sm:text-lg font-bold text-black mb-3 sm:mb-4">{editingPaymentIndex !== null ? 'Edit' : 'Add'} Payment Method</h3>
               <div className="space-y-3 sm:space-y-4">

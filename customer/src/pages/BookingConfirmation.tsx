@@ -196,7 +196,7 @@ const BookingConfirmation = () => {
 
       {/* Cancellation Policy Modal */}
       {showCancellationModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-lg sm:text-xl font-bold">Cancellation Fees Terms</h2>

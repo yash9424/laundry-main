@@ -394,7 +394,7 @@ const Prices = () => {
 
       {/* Toast Notification */}
       {toast.show && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[70]">
           <div className={`${toast.type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-green-500 to-green-600'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3`}>
             <span className="font-semibold">{toast.message}</span>
           </div>
@@ -404,7 +404,7 @@ const Prices = () => {
       {/* Garment Preview */}
       {previewItem && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setPreviewItem(null)}
         >
           <div
@@ -483,8 +483,8 @@ const Prices = () => {
 
       {/* Info Modal */}
       {showInfoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm mx-4 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="max-h-[85vh] overflow-y-auto bg-white rounded-3xl p-6 w-full max-w-sm mx-4 shadow-2xl relative animate-in fade-in zoom-in duration-200">
             <button
               title="Close"
               onClick={() => setShowInfoModal(false)}
