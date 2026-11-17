@@ -70,6 +70,17 @@ const OrderChargesSchema = new mongoose.Schema({
   appMaintenanceTitle: { type: String, default: "We'll be right back" },
   appMaintenanceMessage: { type: String, default: 'Urban Steam is briefly unavailable while we carry out scheduled maintenance. Please try again shortly.' },
 
+  // One switch per app, per platform, and on Android per build type, so the
+  // Play Store build can be taken down while the debug build the team
+  // sideloads keeps working. The master switch above still overrides all of
+  // them, and still governs builds that predate these fields.
+  maintenanceCustomerAndroidRelease: { type: Boolean, default: false },
+  maintenanceCustomerAndroidDebug: { type: Boolean, default: false },
+  maintenanceCustomerIos: { type: Boolean, default: false },
+  maintenancePartnerAndroidRelease: { type: Boolean, default: false },
+  maintenancePartnerAndroidDebug: { type: Boolean, default: false },
+  maintenancePartnerIos: { type: Boolean, default: false },
+
   updatedAt: { type: Date, default: Date.now }
 })
 

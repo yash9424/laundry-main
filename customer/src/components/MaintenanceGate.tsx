@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { Capacitor } from "@capacitor/core";
 import { API_URL } from "@/config/api";
 import logo from "@/assets/LOGO MARK GRADIENT.png";
 
@@ -16,6 +17,29 @@ import logo from "@/assets/LOGO MARK GRADIENT.png";
  * look like a shutdown.
  */
 const POLL_MS = 60000;
+
+/** Which build this is, so it can find its own switch.
+ *
+ * The build mode is fixed when the bundle is built -- `build:debug` runs Vite
+ * in development mode -- so it says which command produced the bundle, not
+ * whether the APK wrapping it is natively debuggable. Anything that is not
+ * explicitly a development build is treated as release: a build that took some
+ * other route must not exempt itself from the switch real users are under.
+ */
+const PLATFORM = Capacitor.getPlatform();
+const IS_DEBUG_BUILD = import.meta.env.MODE === "development";
+
+/** True when this particular build is the one being taken offline. */
+const blockedByA = (c: Record<string, unknown>): boolean => {
+  if (c.appMaintenanceMode === true) return true;
+  if (PLATFORM === "ios") return c.maintenanceCustomerIos === true;
+  if (PLATFORM === "android") {
+    return IS_DEBUG_BUILD
+      ? c.maintenanceCustomerAndroidDebug === true
+      : c.maintenanceCustomerAndroidRelease === true;
+  }
+  return false;
+};
 
 interface Maintenance {
   on: boolean;
@@ -40,7 +64,7 @@ const MaintenanceGate = ({ children }: { children: ReactNode }) => {
         const data = await response.json();
         if (cancelled || !data?.success || !data.data) return;
         setState({
-          on: data.data.appMaintenanceMode === true,
+          on: blockedByA(data.data),
           title: data.data.appMaintenanceTitle || "We'll be right back",
           message:
             data.data.appMaintenanceMessage ||

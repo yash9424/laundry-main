@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { API_URL } from '@/config/api';
 
 /**
@@ -14,6 +15,29 @@ import { API_URL } from '@/config/api';
  * signal on the road never looks like a shutdown.
  */
 const POLL_MS = 60000;
+
+/** Which build this is, so it can find its own switch.
+ *
+ * BUILD_MODE is set by the build scripts and mapped to a public variable in
+ * next.config.ts. It says which command produced the bundle, not whether the
+ * APK is natively debuggable, and anything that is not explicitly a
+ * development build counts as release -- a build that took some other route
+ * must not exempt itself from the switch real users are under.
+ */
+const PLATFORM = Capacitor.getPlatform();
+const IS_DEBUG_BUILD = process.env.NEXT_PUBLIC_BUILD_MODE === 'development';
+
+/** True when this particular build is the one being taken offline. */
+const blockedByA = (c: Record<string, unknown>): boolean => {
+  if (c.appMaintenanceMode === true) return true;
+  if (PLATFORM === 'ios') return c.maintenancePartnerIos === true;
+  if (PLATFORM === 'android') {
+    return IS_DEBUG_BUILD
+      ? c.maintenancePartnerAndroidDebug === true
+      : c.maintenancePartnerAndroidRelease === true;
+  }
+  return false;
+};
 
 export default function MaintenanceGate({ children }: { children: ReactNode }) {
   const [on, setOn] = useState(false);
@@ -34,7 +58,7 @@ export default function MaintenanceGate({ children }: { children: ReactNode }) {
         clearTimeout(timeout);
         const data = await response.json();
         if (cancelled || !data?.success || !data.data) return;
-        setOn(data.data.appMaintenanceMode === true);
+        setOn(blockedByA(data.data));
         if (data.data.appMaintenanceTitle) setTitle(data.data.appMaintenanceTitle);
         if (data.data.appMaintenanceMessage) setMessage(data.data.appMaintenanceMessage);
       } catch {

@@ -79,6 +79,16 @@ const SETTINGS_MAP = [
   },
 ]
 
+/** Every build that can be taken offline on its own, in the order shown. */
+const BUILD_SWITCHES: { group: string; key: string; label: string; hint: string }[] = [
+  { group: 'Customer app', key: 'maintenanceCustomerAndroidRelease', label: 'Android \u2014 Play Store', hint: 'the build customers install' },
+  { group: 'Customer app', key: 'maintenanceCustomerAndroidDebug', label: 'Android \u2014 debug build', hint: 'the APK the team sideloads' },
+  { group: 'Customer app', key: 'maintenanceCustomerIos', label: 'iOS \u2014 App Store', hint: 'iPhone and iPad' },
+  { group: 'Captain app', key: 'maintenancePartnerAndroidRelease', label: 'Android \u2014 Play Store', hint: 'the build Captains install' },
+  { group: 'Captain app', key: 'maintenancePartnerAndroidDebug', label: 'Android \u2014 debug build', hint: 'the APK the team sideloads' },
+  { group: 'Captain app', key: 'maintenancePartnerIos', label: 'iOS \u2014 App Store', hint: 'no iOS build of this app exists yet' },
+]
+
 export default function SettingsPage() {
   const router = useRouter()
   const [user, setUser] = useState<AdminUser | null>(null)
@@ -96,6 +106,8 @@ export default function SettingsPage() {
   const [maintenanceMessage, setMaintenanceMessage] = useState('')
   const [maintenanceLoaded, setMaintenanceLoaded] = useState(false)
   const [savingMaintenance, setSavingMaintenance] = useState(false)
+  const [builds, setBuilds] = useState<Record<string, boolean>>({})
+  const [savingBuild, setSavingBuild] = useState('')
 
   useEffect(() => {
     fetch('/api/order-charges')
@@ -105,6 +117,7 @@ export default function SettingsPage() {
         setMaintenance(d.data.appMaintenanceMode === true)
         setMaintenanceTitle(d.data.appMaintenanceTitle || "We'll be right back")
         setMaintenanceMessage(d.data.appMaintenanceMessage || '')
+        setBuilds(Object.fromEntries(BUILD_SWITCHES.map(s => [s.key, d.data[s.key] === true])))
         setMaintenanceLoaded(true)
       })
       .catch(() => setMaintenanceLoaded(true))
@@ -143,6 +156,29 @@ export default function SettingsPage() {
     }
   }
 
+
+  const saveBuildSwitch = async (key: string, label: string, next: boolean) => {
+    setSavingBuild(key)
+    // Only this one field is sent. The route merges whatever it is given, so
+    // posting the whole set would overwrite a switch a colleague just changed.
+    try {
+      const response = await fetch('/api/order-charges', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [key]: next }),
+      })
+      const data = await response.json()
+      if (data?.success) {
+        setBuilds(prev => ({ ...prev, [key]: next }))
+      } else {
+        setModal({ isOpen: true, title: 'Could not save', message: data?.error || (label + ' was not changed. Please try again.'), type: 'error' })
+      }
+    } catch {
+      setModal({ isOpen: true, title: 'Could not save', message: 'The server did not respond. Please try again.', type: 'error' })
+    } finally {
+      setSavingBuild('')
+    }
+  }
 
   useEffect(() => {
     const stored = localStorage.getItem('adminUser')
@@ -288,6 +324,63 @@ export default function SettingsPage() {
             Wording is saved with the switch. Apps pick the change up within a minute, and
             immediately when someone reopens them.
           </p>
+
+          {/* One switch per build. The master above overrides every one of them. */}
+          <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px dashed #e5e7eb' }}>
+            <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#111827' }}>
+              Or take one build offline
+            </h4>
+            <p style={{ margin: '0.35rem 0 0', fontSize: '0.82rem', color: '#6b7280', lineHeight: 1.5 }}>
+              Turn off the Play Store build and your debug build keeps working, so you can test
+              while customers are held.{' '}
+              {maintenance && (
+                <strong style={{ color: '#b91c1c' }}>
+                  The master switch above is on, so everything is offline regardless of these.
+                </strong>
+              )}
+            </p>
+
+            {['Customer app', 'Captain app'].map(group => (
+              <div key={group} style={{ marginTop: '1.1rem' }}>
+                <p style={{ margin: '0 0 0.5rem', fontSize: '0.78rem', fontWeight: 800, color: '#452D9B', textTransform: 'uppercase', letterSpacing: '0.4px' }}>{group}</p>
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  {BUILD_SWITCHES.filter(s => s.group === group).map(s => {
+                    const on = builds[s.key] === true
+                    const busy = savingBuild === s.key || !maintenanceLoaded
+                    return (
+                      <div key={s.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', padding: '0.6rem 0.8rem', borderRadius: '10px', border: '1px solid ' + (on ? '#fca5a5' : '#e5e7eb'), backgroundColor: on ? '#fef2f2' : '#fff' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#111827' }}>{s.label}</div>
+                          <div style={{ fontSize: '0.76rem', color: '#6b7280' }}>{on ? 'Offline' : 'Live'} &middot; {s.hint}</div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => saveBuildSwitch(s.key, s.label, !on)}
+                          disabled={busy}
+                          title={(on ? 'Bring back online: ' : 'Take offline: ') + group + ' ' + s.label}
+                          style={{
+                            position: 'relative', width: 54, height: 28, borderRadius: 999, border: 'none', flexShrink: 0,
+                            cursor: busy ? 'not-allowed' : 'pointer',
+                            backgroundColor: on ? '#dc2626' : '#16a34a',
+                            opacity: busy ? 0.6 : 1, transition: 'background-color 0.2s',
+                          }}
+                        >
+                          <span style={{ position: 'absolute', top: 3, left: on ? 29 : 3, width: 22, height: 22, borderRadius: '50%', backgroundColor: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+
+            <p style={{ margin: '1rem 0 0', fontSize: '0.78rem', color: '#9ca3af', lineHeight: 1.5 }}>
+              A build obeys these only if it was made after they were added &mdash; anything older
+              knows the master switch alone. &ldquo;Debug build&rdquo; means one produced by the
+              debug build command, so a Play Console internal-testing build counts as the Play
+              Store one, not as a debug build.
+            </p>
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 340px) minmax(0, 1fr)', gap: '1.5rem', alignItems: 'start' }} className="settings-grid">
