@@ -292,7 +292,7 @@ export default function SettingsPage() {
               }}
             >
               <span style={{
-                position: 'absolute', top: 4, left: maintenance ? 42 : 4, width: 30, height: 30, borderRadius: '50%',
+                position: 'absolute', top: 4, left: maintenance ? 4 : 42, width: 30, height: 30, borderRadius: '50%',
                 backgroundColor: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
               }} />
             </button>
@@ -365,7 +365,7 @@ export default function SettingsPage() {
                             opacity: busy ? 0.6 : 1, transition: 'background-color 0.2s',
                           }}
                         >
-                          <span style={{ position: 'absolute', top: 3, left: on ? 29 : 3, width: 22, height: 22, borderRadius: '50%', backgroundColor: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+                          <span style={{ position: 'absolute', top: 3, left: on ? 3 : 29, width: 22, height: 22, borderRadius: '50%', backgroundColor: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
                         </button>
                       </div>
                     )
