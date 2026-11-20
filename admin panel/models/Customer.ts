@@ -23,13 +23,16 @@ const CustomerSchema = new mongoose.Schema({
     longitude: Number,
     isDefault: { type: Boolean, default: false }
   }],
+  // A saved payment method is a hint about which sheet Razorpay should open,
+  // nothing more. It once carried cardNumber, expiryDate and cvv as well --
+  // the card itself, and a CVV that PCI-DSS forbids storing at all -- none of
+  // which was ever used to take a payment. They are gone from the schema, so
+  // a phone on an older build that still sends them has them dropped on
+  // arrival instead of written down.
   paymentMethods: [{
     type: { type: String },
     upiId: { type: String },
-    cardNumber: { type: String },
     cardHolder: { type: String },
-    expiryDate: { type: String },
-    cvv: { type: String },
     accountNumber: { type: String },
     ifscCode: { type: String },
     bankName: { type: String },

@@ -40,10 +40,7 @@ const Profile = () => {
   const [newPayment, setNewPayment] = useState({ 
     type: 'UPI', 
     upiId: '',
-    cardNumber: '',
     cardHolder: '',
-    expiryDate: '',
-    cvv: '',
     accountNumber: '',
     ifscCode: '',
     bankName: ''
@@ -268,14 +265,14 @@ const Profile = () => {
         }
         paymentMethod.upiId = newPayment.upiId;
       } else if (newPayment.type === 'Card') {
-        if (!newPayment.cardNumber.trim() || !newPayment.cardHolder.trim() || !newPayment.cvv.trim()) {
-          console.error('Card details are incomplete');
+        // The name only, and only to tell two saved cards apart. The number,
+        // the expiry and the CVV are Razorpay's business, asked for in its own
+        // sheet at the moment of payment and never held here.
+        if (!newPayment.cardHolder.trim()) {
+          console.error('Card holder name is required');
           return;
         }
-        paymentMethod.cardNumber = newPayment.cardNumber;
         paymentMethod.cardHolder = newPayment.cardHolder;
-        paymentMethod.expiryDate = newPayment.expiryDate;
-        paymentMethod.cvv = newPayment.cvv;
       } else if (newPayment.type === 'Bank Transfer') {
         if (!newPayment.accountNumber.trim() || !newPayment.ifscCode.trim()) {
           console.error('Bank details are incomplete');
@@ -307,7 +304,7 @@ const Profile = () => {
       
       if (response.ok) {
         setPaymentOptions(updatedPayments);
-        setNewPayment({ type: 'UPI', upiId: '', cardNumber: '', cardHolder: '', expiryDate: '', cvv: '', accountNumber: '', ifscCode: '', bankName: '' });
+        setNewPayment({ type: 'UPI', upiId: '', cardHolder: '', accountNumber: '', ifscCode: '', bankName: '' });
         setEditingPaymentIndex(null);
         setShowPaymentModal(false);
         console.log('Payment method saved successfully');
@@ -329,10 +326,7 @@ const Profile = () => {
     setNewPayment({
       type: payment.type,
       upiId: payment.upiId || '',
-      cardNumber: payment.cardNumber || '',
       cardHolder: payment.cardHolder || '',
-      expiryDate: payment.expiryDate || '',
-      cvv: payment.cvv || '',
       accountNumber: payment.accountNumber || '',
       ifscCode: payment.ifscCode || '',
       bankName: payment.bankName || ''
@@ -511,7 +505,7 @@ const Profile = () => {
                   </div>
                   <p className="text-xs text-gray-500 truncate">
                     {option.type === 'UPI' && option.upiId}
-                    {option.type === 'Card' && `${option.cardHolder} - ****${option.cardNumber?.slice(-4)}`}
+                    {option.type === 'Card' && (option.cardHolder || 'Card')}
                     {option.type === 'Bank Transfer' && `${option.bankName} - ****${option.accountNumber?.slice(-4)}`}
                   </p>
                 </div>
@@ -604,54 +598,21 @@ const Profile = () => {
                 {newPayment.type === 'Card' && (
                   <>
                     <div>
-                      <label className="text-xs sm:text-sm font-medium text-black mb-1.5 sm:mb-2 block">Card Number</label>
+                      <label className="text-xs sm:text-sm font-medium text-black mb-1.5 sm:mb-2 block">Name on the card</label>
                       <input
                         type="text"
-                        placeholder="1234 5678 9012 3456"
-                        value={newPayment.cardNumber}
-                        onChange={(e) => setNewPayment({ ...newPayment, cardNumber: e.target.value })}
-                        className="w-full p-2.5 sm:p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-sm sm:text-base"
-                        style={{ fontSize: '16px' }}
-                        maxLength={16}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs sm:text-sm font-medium text-black mb-1.5 sm:mb-2 block">Card Holder Name</label>
-                      <input
-                        type="text"
-                        placeholder="John Doe"
+                        placeholder="So you can tell your cards apart"
                         value={newPayment.cardHolder}
                         onChange={(e) => setNewPayment({ ...newPayment, cardHolder: e.target.value })}
                         className="w-full p-2.5 sm:p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-sm sm:text-base"
                         style={{ fontSize: '16px' }}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                      <div>
-                        <label className="text-xs sm:text-sm font-medium text-black mb-1.5 sm:mb-2 block">Expiry Date</label>
-                        <input
-                          type="text"
-                          placeholder="MM/YY"
-                          value={newPayment.expiryDate}
-                          onChange={(e) => setNewPayment({ ...newPayment, expiryDate: e.target.value })}
-                          className="w-full p-2.5 sm:p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-sm sm:text-base"
-                          style={{ fontSize: '16px' }}
-                          maxLength={5}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs sm:text-sm font-medium text-black mb-1.5 sm:mb-2 block">CVV</label>
-                        <input
-                          type="password"
-                          placeholder="123"
-                          value={newPayment.cvv}
-                          onChange={(e) => setNewPayment({ ...newPayment, cvv: e.target.value })}
-                          className="w-full p-2.5 sm:p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-sm sm:text-base"
-                          style={{ fontSize: '16px' }}
-                          maxLength={3}
-                        />
-                      </div>
-                    </div>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      We never ask for or store your card number, expiry date or CVV. You enter
+                      those in the secure payment window when you pay, and they stay with our
+                      payment provider.
+                    </p>
                   </>
                 )}
                 
@@ -697,7 +658,7 @@ const Profile = () => {
                   <button
                     onClick={() => {
                       setShowPaymentModal(false);
-                      setNewPayment({ type: 'UPI', upiId: '', cardNumber: '', cardHolder: '', expiryDate: '', cvv: '', accountNumber: '', ifscCode: '', bankName: '' });
+                      setNewPayment({ type: 'UPI', upiId: '', cardHolder: '', accountNumber: '', ifscCode: '', bankName: '' });
                       setEditingPaymentIndex(null);
                     }}
                     className="flex-1 py-2.5 sm:py-3 rounded-xl font-semibold text-gray-600 border border-gray-300 text-sm sm:text-base"

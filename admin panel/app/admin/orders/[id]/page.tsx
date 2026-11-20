@@ -755,7 +755,7 @@ export default function OrderDetails() {
                         </div>
                         <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem' }}>
                           {pm.type === 'UPI' && pm.upiId && `UPI: ${pm.upiId}`}
-                          {pm.type === 'Card' && pm.cardNumber && `Card: ****${String(pm.cardNumber).slice(-4)} | ${pm.cardHolder || ''}`}
+                          {pm.type === 'Card' && `Card${pm.cardHolder ? ` - ${pm.cardHolder}` : ''}`}
                           {pm.type === 'Bank Transfer' && pm.accountNumber && `${pm.bankName || ''} - ****${String(pm.accountNumber).slice(-4)}`}
                         </div>
                       </div>

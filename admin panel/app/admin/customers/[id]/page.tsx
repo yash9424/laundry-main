@@ -259,12 +259,8 @@ export default function CustomerProfilePage() {
                 </div>
                 <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
                   {pm.type === 'UPI' && pm.upiId && `UPI ID: ${pm.upiId}`}
-                  {pm.type === 'Card' && pm.cardNumber && (
-                    <>
-                      <div>Card: ****{pm.cardNumber.slice(-4)}</div>
-                      <div>Holder: {pm.cardHolder}</div>
-                      <div>Expiry: {pm.expiryDate}</div>
-                    </>
+                  {pm.type === 'Card' && (
+                    <div>Card{pm.cardHolder ? ` - ${pm.cardHolder}` : ''}</div>
                   )}
                   {pm.type === 'Bank Transfer' && pm.accountNumber && (
                     <>
