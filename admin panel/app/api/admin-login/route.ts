@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import AdminUser from '@/models/AdminUser';
 import bcrypt from 'bcryptjs';
+import { signAdminToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,8 +26,19 @@ export async function POST(request: NextRequest) {
     }
     
     if (isPasswordValid) {
+      // The token is what the server will actually trust from here on.
+      // The object beside it is only what the panel shows in its own header.
+      const token = signAdminToken({
+        sub: String(user._id),
+        role: user.role,
+        email: user.email,
+        username: user.username,
+        hub: user.hub || null,
+      });
+
       return NextResponse.json({ 
         success: true, 
+        token,
         data: { 
           role: user.role, 
           email: user.email, 

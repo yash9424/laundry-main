@@ -1,6 +1,7 @@
 import './globals.css'
 import { Montserrat, Manrope } from 'next/font/google'
 import BrandFonts from './components/BrandFonts'
+import AdminAuth from './components/AdminAuth'
 
 // Same typography system as the Customer and Captain apps:
 // Montserrat for headings and buttons, Manrope for body text.
@@ -27,6 +28,7 @@ export default function RootLayout({
     <html lang="en" className={`${montserrat.variable} ${manrope.variable}`}>
       <body>
         <BrandFonts />
+        <AdminAuth />
         {children}
       </body>
     </html>

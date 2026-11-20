@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import OrderCharges from '@/models/OrderCharges'
+import { requireAdmin } from '@/lib/auth'
 
 export async function GET() {
   await dbConnect()
@@ -17,6 +18,10 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  // Changing this is an administrator's job, and until now anybody could.
+  const denied = requireAdmin(request)
+  if (denied) return denied
+
   await dbConnect()
   const body = await request.json()
   console.log('Received body:', body)

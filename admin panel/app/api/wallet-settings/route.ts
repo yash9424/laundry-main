@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import WalletSettings from '@/models/WalletSettings'
+import { requireAdmin } from '@/lib/auth'
 
 export async function GET() {
   try {
@@ -26,6 +27,10 @@ const EDITABLE = [
 
 export async function POST(request: NextRequest) {
   try {
+  // Changing this is an administrator's job, and until now anybody could.
+  const denied = requireAdmin(request)
+  if (denied) return denied
+
     await connectDB()
     const body = await request.json()
 

@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import AdminUser from '@/models/AdminUser';
 import bcrypt from 'bcryptjs';
+import { requireAdmin } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
+  // Changing this is an administrator's job, and until now anybody could.
+  const denied = requireAdmin(request)
+  if (denied) return denied
+
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');
@@ -24,6 +29,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+  // Changing this is an administrator's job, and until now anybody could.
+  const denied = requireAdmin(request)
+  if (denied) return denied
+
     await dbConnect();
     const data = await request.json();
     
@@ -42,6 +51,10 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+  // Changing this is an administrator's job, and until now anybody could.
+  const denied = requireAdmin(request)
+  if (denied) return denied
+
     await dbConnect();
     const { _id, password, oldPassword, ...data } = await request.json();
     
@@ -74,6 +87,10 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+  // Changing this is an administrator's job, and until now anybody could.
+  const denied = requireAdmin(request)
+  if (denied) return denied
+
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

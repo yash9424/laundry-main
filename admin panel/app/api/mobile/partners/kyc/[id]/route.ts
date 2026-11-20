@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Partner from '@/models/Partner'
 import { persistImageFields } from '@/lib/imageStore'
+import { requireAdmin } from '@/lib/auth'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,6 +19,10 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+  // Changing this is an administrator's job, and until now anybody could.
+  const denied = requireAdmin(request)
+  if (denied) return denied
+
     await connectDB()
     const { id } = await params
     const body = await request.json()

@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '../../../../../lib/mongodb'
 import Customer from '../../../../../models/Customer'
+import { requireAdmin } from '@/lib/auth'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+  // Changing this is an administrator's job, and until now anybody could.
+  const denied = requireAdmin(request)
+  if (denied) return denied
+
     await dbConnect()
     const { id } = await params
 

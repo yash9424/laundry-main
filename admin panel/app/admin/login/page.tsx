@@ -20,6 +20,8 @@ export default function AdminLogin() {
       const data = await response.json();
       if (data.success) {
         localStorage.setItem('adminUser', JSON.stringify(data.data));
+        // What the server actually checks on every administrative call.
+        if (data.token) localStorage.setItem('adminToken', data.token);
         window.location.href = '/admin/dashboard';
       } else {
         setModal({ isOpen: true, title: 'Login Failed', message: 'Invalid email or password', type: 'error' });

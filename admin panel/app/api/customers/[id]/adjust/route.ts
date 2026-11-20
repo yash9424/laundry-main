@@ -3,12 +3,17 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import connectDB from '@/lib/mongodb';
 import WalletTransaction from '@/models/WalletTransaction';
+import { requireAdmin } from '@/lib/auth'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+  // Changing this is an administrator's job, and until now anybody could.
+  const denied = requireAdmin(request)
+  if (denied) return denied
+
     const { db } = await connectToDatabase();
     const { id } = await params;
     const body = await request.json();

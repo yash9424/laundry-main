@@ -84,6 +84,16 @@ const SubscriptionIcon = () => (
   </svg>
 )
 
+/** Signing out has to drop the token, not just change the page. */
+const signOut = () => {
+  try {
+    localStorage.removeItem('adminToken')
+    localStorage.removeItem('adminUser')
+  } catch {
+    // a browser with storage blocked has nothing to clear
+  }
+}
+
 const LogoutIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
     <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
@@ -179,7 +189,7 @@ export default function Sidebar({ activePage, isMobileMenuOpen = false, onMobile
         
         {/* Logout button at bottom */}
         <div style={{ padding: '0 0.75rem 0 0.75rem' }}>
-          <a href="/admin/login" style={{ textDecoration: 'none' }}>
+          <a href="/admin/login" onClick={signOut} style={{ textDecoration: 'none' }}>
             <div style={{
               padding: '0.75rem 1.5rem',
               borderRadius: '20px',
@@ -269,7 +279,7 @@ export default function Sidebar({ activePage, isMobileMenuOpen = false, onMobile
         
         {/* Logout button at bottom */}
         <div style={{ padding: '0 0.75rem 0 0.75rem' }}>
-          <a href="/admin/login" style={{ textDecoration: 'none' }} onClick={onMobileMenuClose}>
+          <a href="/admin/login" style={{ textDecoration: 'none' }} onClick={() => { signOut(); onMobileMenuClose?.(); }}>
             <div style={{
               padding: '0.75rem 1.5rem',
               borderRadius: '20px',
