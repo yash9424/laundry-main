@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
 import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
+import { directionsUrl } from '@/utils/mapLinks';
 import { Capacitor } from '@capacitor/core';
 
 // Live countdown for Express Delivery orders only (12hr SLA). Standard orders
@@ -246,14 +247,31 @@ export default function DropToHub() {
         </div>
       </button>
 
-      {/* Map */}
+      {/* The drive to the hub is the half of the round trip a captain makes
+          most often, and starting it used to mean finding a caption-sized
+          link. Same map, with a button the size of the job. Live tracking
+          belongs to the pickup, which has a pin to track towards; a hub record
+          carries no coordinates. */}
       {hub && (
-        <div className="mt-3 mx-4 relative rounded-xl overflow-hidden h-48">
-          <LeafletMap address={hub.address} />
-          <div className="absolute left-4 bottom-4 bg-white shadow-sm rounded-xl px-4 py-2">
-            <p className="text-sm font-semibold text-black">{hub.name}</p>
-            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hub.address.street}, ${hub.address.city}`)}`} target="_blank" className="text-xs" style={{ color: '#452D9B' }}>Open in Google Maps</a>
+        <div className="mt-3 mx-4">
+          <div className="relative rounded-xl overflow-hidden h-48">
+            <LeafletMap address={hub.address} />
+            <div className="absolute left-4 bottom-4 bg-white shadow-sm rounded-xl px-4 py-2">
+              <p className="text-sm font-semibold text-black">{hub.name}</p>
+              <p className="text-[11px] text-gray-500">
+                {[hub.address?.street, hub.address?.city].filter(Boolean).join(', ')}
+              </p>
+            </div>
           </div>
+          <a
+            href={directionsUrl(hub.address)}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white"
+            style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+          >
+            Navigate to {hub.name}
+          </a>
         </div>
       )}
 

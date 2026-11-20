@@ -16,6 +16,8 @@ interface Props {
   destination: Destination;
   label?: string;
   customerName?: string;
+  /** Shown until a distance or route is known. A hub has no customer pin. */
+  fallbackNote?: string;
 }
 
 const MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -75,7 +77,7 @@ const plainText = (html: string) =>
  * The captain previously got nothing but a link out to Google Maps, so there was
  * no sense of how far the stop was or which way to set off.
  */
-const LiveNavigationMap = ({ destination, label = 'Customer location', customerName }: Props) => {
+const LiveNavigationMap = ({ destination, label = 'Customer location', customerName, fallbackNote = 'Exact location pinned by the customer' }: Props) => {
   const boxRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const meRef = useRef<any>(null);
@@ -266,7 +268,7 @@ const LiveNavigationMap = ({ destination, label = 'Customer location', customerN
     ? `${route.distance} · ${route.duration} by road`
     : straightLine !== null
       ? `${readableDistance(straightLine)} away`
-      : 'Exact location pinned by the customer';
+      : fallbackNote;
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
